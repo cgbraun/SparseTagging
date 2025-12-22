@@ -1,0 +1,191 @@
+
+======================================================================
+Data Initialization
+======================================================================
+Configuration: MEDIUM
+  Rows:       100,000
+  Columns:    100
+  Sparsity:   99.0% (1.0% fill)
+  Iterations: 20 (warmup: 5)
+  Seed:       42
+
+Creating test matrices...
+  ✓ Sparse with cache:    0.007s
+  ✓ Sparse without cache: 0.007s
+  ✓ Dense array:          0.002s
+
+Memory Usage:
+  Dense:              9.54 MB
+  Sparse (data):      0.09 MB
+  Sparse (indices):   0.38 MB
+  Sparse (indptr):    0.00 MB
+  Sparse (metadata):  0.00 MB
+  Sparse (total):     0.48 MB
+  Memory Savings:     95.0%
+
+======================================================================
+Unit Tests
+======================================================================
+
+Test 1: BaseTag Construction
+  ✓ PASSED
+
+Test 2: Basic Query
+  ✓ PASSED (332 matches)
+
+Test 3: Cache Functionality
+  ✓ PASSED (hit_rate: 33.3%)
+
+Test 4: Dense vs Sparse Consistency
+  ✓ PASSED (both found 332 matches)
+
+Test 5: Cache Auto-Invalidation
+  ✓ PASSED (cache cleared, version 0 → 1)
+
+======================================================================
+Unit Test Summary: 5 passed, 0 failed
+======================================================================
+
+======================================================================
+Single-Column Query Benchmarks
+======================================================================
+
+Test: Tag1 == HIGH
+  Dense:              0.159ms ± 0.019ms (  332 matches)
+  Sparse (no cache):   0.058ms ± 0.001ms (  332 matches)
+  Sparse (cached):     0.009ms ± 0.003ms (  332 matches)
+  Speedup (sparse vs dense):   2.8x
+  Speedup (cache vs uncached):   6.6x
+  Speedup (cache vs dense):   18.3x
+
+Test: Tag2 == MEDIUM
+  Dense:              0.157ms ± 0.014ms (  320 matches)
+  Sparse (no cache):   0.059ms ± 0.009ms (  320 matches)
+  Sparse (cached):     0.009ms ± 0.003ms (  320 matches)
+  Speedup (sparse vs dense):   2.6x
+  Speedup (cache vs uncached):   6.7x
+  Speedup (cache vs dense):   17.6x
+
+Test: Tag3 > LOW
+  Dense:              0.176ms ± 0.029ms (  659 matches)
+  Sparse (no cache):   0.059ms ± 0.001ms (  659 matches)
+  Sparse (cached):     0.009ms ± 0.003ms (  659 matches)
+  Speedup (sparse vs dense):   3.0x
+  Speedup (cache vs uncached):   6.8x
+  Speedup (cache vs dense):   20.1x
+
+Test: Tag4 >= MEDIUM
+  Dense:              0.176ms ± 0.019ms (  675 matches)
+  Sparse (no cache):   0.059ms ± 0.001ms (  675 matches)
+  Sparse (cached):     0.009ms ± 0.003ms (  675 matches)
+  Speedup (sparse vs dense):   3.0x
+  Speedup (cache vs uncached):   6.8x
+  Speedup (cache vs dense):   20.3x
+
+Test: Tag5 IN [HIGH,MED]
+  Dense:              0.211ms ± 0.041ms (  663 matches)
+  Sparse (no cache):   0.058ms ± 0.001ms (  663 matches)
+  Sparse (cached):     0.011ms ± 0.006ms (  663 matches)
+  Speedup (sparse vs dense):   3.6x
+  Speedup (cache vs uncached):   5.3x
+  Speedup (cache vs dense):   19.0x
+
+======================================================================
+Multi-Column Query Benchmarks
+======================================================================
+
+Test: Tag1==HIGH AND Tag2>=MED
+  Dense:               0.263ms ± 0.038ms (    2 matches)
+  Sparse (no cache):   0.146ms ± 0.011ms (    2 matches)
+  Sparse (cached):     0.013ms ± 0.004ms (    2 matches)
+  Speedup (sparse vs dense):    1.8x
+  Speedup (cache vs dense):    20.4x
+  Speedup (cache vs uncached):  11.4x
+
+Test: Tag1==HIGH OR Tag3==LOW
+  Dense:               0.255ms ± 0.047ms (  648 matches)
+  Sparse (no cache):   0.197ms ± 0.020ms (  648 matches)
+  Sparse (cached):     0.013ms ± 0.004ms (  648 matches)
+  Speedup (sparse vs dense):    1.3x
+  Speedup (cache vs dense):    19.6x
+  Speedup (cache vs uncached):  15.2x
+
+Test: NOT (Tag2==LOW)
+  Dense:               3.812ms ± 0.238ms (62882 matches)
+  Sparse (no cache):  11.225ms ± 0.261ms (62882 matches)
+  Sparse (cached):     0.012ms ± 0.008ms (62882 matches)
+  Speedup (sparse vs dense):    0.3x
+  Speedup (cache vs dense):   323.7x
+  Speedup (cache vs uncached): 953.3x
+
+======================================================================
+Cache Performance Analysis
+======================================================================
+
+Repeated Query Pattern (Q1 × 10):
+  Query  1:   0.139ms (MISS)
+  Query  2:   0.028ms (HIT)
+  Query  3:   0.028ms (HIT)
+  Query  4:   0.020ms (HIT)
+  Query  5:   0.034ms (HIT)
+  Query  6:   0.017ms (HIT)
+  Query  7:   0.045ms (HIT)
+  Query  8:   0.014ms (HIT)
+  Query  9:   0.014ms (HIT)
+  Query 10:   0.013ms (HIT)
+
+Cache Statistics:
+  Hits:          170
+  Misses:        12
+  Hit Rate:      93.4%
+  Cache Size:    1 entries
+  Memory:        0.003 MB
+  Data Version:  2
+
+
+Cache Overhead Test (30 unique queries):
+  With cache:    2.88ms
+  Without cache: 1.94ms
+  Overhead:      48.85%
+  ⚠ Overhead exceeds 10% threshold
+
+======================================================================
+Performance Summary
+======================================================================
+
+Single-Column Query Performance:
+Query                     Dense        Sparse       Cached       Speedup   
+                          (ms)         (ms)         (ms)         (vs Dense)
+---------------------------------------------------------------------------
+Tag1 == HIGH                0.159        0.058        0.009        18.3x
+Tag2 == MEDIUM              0.157        0.059        0.009        17.6x
+Tag3 > LOW                  0.176        0.059        0.009        20.1x
+Tag4 >= MEDIUM              0.176        0.059        0.009        20.3x
+Tag5 IN [HIGH,MED]          0.211        0.058        0.011        19.0x
+
+Multi-Column Query Performance:
+Query                          Dense        Uncached     Cached       Speedup   
+                               (ms)         (ms)         (ms)         (vs Dense)
+-----------------------------------------------------------------------------
+Tag1==HIGH AND Tag2>=MED         0.263        0.146        0.013        20.4x
+Tag1==HIGH OR Tag3==LOW          0.255        0.197        0.013        19.6x
+NOT (Tag2==LOW)                  3.812       11.225        0.012       323.7x
+
+Cache Performance:
+  First query (miss):    0.139ms
+  Repeated query (hit):  0.024ms
+  Speedup:               5.9x
+  Overhead:              48.85%
+  Hit rate:              93.4%
+
+Memory Efficiency:
+  Dense:        9.54 MB
+  Sparse:       0.48 MB
+  Savings:      95.0%
+
+Key Findings:
+  • Cached queries are 19x faster than dense on average
+  • Cache provides 6x speedup for repeated queries
+  • Cache overhead is only 48.9% for unique queries
+  • Sparse format saves 95% memory vs dense
+  • All 5/5 unit tests passed

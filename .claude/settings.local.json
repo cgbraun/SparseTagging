@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(if [ -f \".venv/Scripts/activate\" ])",
+      "Bash(then echo \"Windows venv\")",
+      "Bash(elif [ -f \".venv/bin/activate\" ])",
+      "Bash(then echo \"Unix venv\")",
+      "Bash(fi)",
+      "Bash(python3:*)",
+      "Bash(python -c:*)",
+      "Bash(awk:*)"
+    ]
+  }
+}
