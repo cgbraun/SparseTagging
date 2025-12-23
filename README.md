@@ -1,8 +1,16 @@
-# BaseTag v2.2.0
+# BaseTag v2.4.0
 
 High-performance sparse array library for tag confidence data with intelligent query caching.
 
-## What's New in v2.2.0
+## What's New in v2.4.0
+
+- ✅ **100% type safety**: Complete type hint coverage with mypy enforcement, PEP 561 compliant
+- ✅ **Custom exceptions**: Domain-specific error hierarchy with backward compatibility
+- ✅ **Refactored architecture**: Dedicated QueryCacheManager class, cleaner separation of concerns
+- ✅ **Enhanced documentation**: CONTRIBUTING.md, ARCHITECTURE.md, DEPLOYMENT.md guides
+- ✅ **173 comprehensive tests**: Added 36 new tests for cache manager and exception handling
+
+## What's in v2.2.0
 
 - ✅ **scipy.sparse array migration**: Modernized to use current array format (matrix format deprecated)
 - ✅ **Backward compatible**: Still accepts matrix format, converts automatically
@@ -190,6 +198,27 @@ bt.optimize_indices_dtype()  # Converts int32 → int16, saves 50%
 bt_optimized = bt.optimize_indices_dtype(inplace=False)
 ```
 
+### 6. Type Safety & Quality (v2.4+)
+
+```python
+# 100% type hint coverage with mypy enforcement
+from src.basetag import BaseTag, TagConfidence
+from src.exceptions import ValidationError, InvalidColumnError
+
+# PEP 561 compliant - includes py.typed marker
+# Type checkers will recognize all types automatically
+
+# Custom exception hierarchy with backward compatibility
+try:
+    bt.query({'column': 'NonExistent', 'op': '==', 'value': TagConfidence.HIGH})
+except InvalidColumnError as e:  # Also catchable as KeyError
+    print(f"Column error: {e}")
+
+# 173 comprehensive tests with ≥85% coverage
+# Modular architecture with dedicated QueryCacheManager
+# Production docs: CONTRIBUTING.md, ARCHITECTURE.md, DEPLOYMENT.md
+```
+
 ## Factory Methods
 
 ```python
@@ -321,11 +350,11 @@ This is a research/prototype library. For production use, thorough testing is re
 
 ## License
 
-[Your License Here]
+MIT License - See [LICENSE](LICENSE) file for details.
 
 ## Authors
 
-[Your Name/Team]
+BaseTag development team
 
 ## Version History
 

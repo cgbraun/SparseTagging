@@ -6,7 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 BaseTag is a high-performance sparse array library for tag confidence data with intelligent query caching. It provides 95% memory savings and 100-170x speedups for sparse tag confidence queries through scipy sparse arrays and intelligent caching.
 
-**Current Version:** v2.2.0
+**Current Version:** v2.4.0
+
+**Key Features** (v2.4.0):
+- 100% type hint coverage with mypy strict mode
+- Custom exception hierarchy for better error handling
+- Modular architecture with dedicated cache manager
+- 173 comprehensive tests with ≥85% coverage
+- Production-grade documentation
 
 ## Development Environment
 
@@ -26,15 +33,36 @@ pip install -r requirements.txt
 ## Running Tests and Benchmarks
 
 ```bash
+# Run all tests
+pytest tests/
+
+# Run with coverage
+pytest --cov=src tests/
+
+# Generate HTML coverage report
+pytest --cov=src --cov-report=html tests/
+
+# Run type checking
+mypy src/basetag.py src/cache_manager.py src/exceptions.py
+
 # Run benchmarks (from project root)
 cd src
 python benchmark.py
 
-# Benchmark outputs saved to docs/ directory
+# Benchmark outputs saved to reports/ directory (gitignored)
 # Generates performance reports for small (1K), medium (100K), and large (1M) matrices
 ```
 
-**Note:** There is currently a `tests/` directory but no test files. Tests should be added there when created.
+**Test Suite**: 173 tests across 9 test files with ≥85% coverage
+- `test_cache_manager.py`: Cache manager functionality
+- `test_exceptions.py`: Exception hierarchy and usage
+- `test_critical_bugs.py`: Critical bug fixes validation
+- `test_data_integrity.py`: Data consistency and immutability
+- `test_edge_cases.py`: Boundary conditions
+- `test_error_handling.py`: Error scenarios
+- `test_integration.py`: End-to-end workflows
+- `test_performance.py`: Performance validation
+- `test_query_operations.py`: Query operators
 
 ## Core Architecture
 
@@ -161,6 +189,103 @@ def set_column(self, column_name: str, values: np.ndarray) -> 'BaseTag':
     return self  # Method chaining supported
 ```
 
+## Type Checking (v2.4+)
+
+This project enforces type safety with mypy strict mode:
+
+```bash
+# Check core modules
+mypy src/basetag.py src/cache_manager.py src/exceptions.py
+
+# Check all source files
+mypy src/
+```
+
+**Configuration**: `mypy.ini` with strict settings
+- `disallow_untyped_defs = True`: All functions must have type hints
+- `check_untyped_defs = True`: Type check untyped definitions
+- `no_implicit_optional = True`: Explicit Optional[] required
+- `warn_redundant_casts = True`: Detect unnecessary casts
+- `strict_equality = True`: Stricter equality checks
+
+**Type Patterns**:
+```python
+# Use TYPE_CHECKING to avoid circular imports
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .basetag import QueryResult
+
+# Use Any for NumPy types to avoid scipy typing issues
+from typing import Any
+target_dtype: Any = np.int8
+
+# Type annotations on all functions
+def method_name(self, param: int) -> Optional[str]:
+    """Docstring."""
+    pass
+```
+
+## Custom Exceptions (v2.4+)
+
+Use domain-specific exceptions from `src/exceptions.py`:
+
+**Exception Hierarchy**:
+```
+BaseTagError (Exception)
+├── ValidationError (ValueError) - Input validation failures
+│   └── MatrixSizeError - Dimensions exceed limits
+└── QueryError (BaseException)
+    ├── InvalidQueryStructureError (ValueError) - Malformed query dict
+    ├── InvalidColumnError (KeyError) - Column name not found
+    ├── InvalidOperatorError (ValueError) - Unsupported operator
+    └── InvalidValueError (ValueError) - Invalid TagConfidence value
+```
+
+**Usage**:
+```python
+from src.exceptions import InvalidColumnError, InvalidValueError
+
+# Raise specific exceptions
+if column_name not in self._column_index:
+    raise InvalidColumnError(f"Column '{column_name}' not found")
+
+if value == TagConfidence.NONE:
+    raise InvalidValueError("Cannot compare to NONE/zero value")
+```
+
+**Backward Compatibility**: All custom exceptions inherit from standard exceptions (ValueError, KeyError), so existing `except ValueError:` blocks still work.
+
+## Cache System (v2.4+)
+
+Cache logic is managed by `QueryCacheManager` class in `src/cache_manager.py`:
+
+**Architecture**:
+- MD5-based cache keys for consistent hashing
+- Memory-bounded storage (256 entries, 10MB max by default)
+- Hit/miss statistics tracking
+- Automatic invalidation on data changes
+
+**Accessing Cache Manager**:
+```python
+# Check if caching is enabled
+if bt._cache_manager:
+    stats = bt._cache_manager.stats()
+    print(f"Hit rate: {stats['hit_rate']:.1%}")
+
+# Custom cache configuration
+from src.cache_manager import QueryCacheManager
+bt._cache_manager = QueryCacheManager(
+    max_entries=512,
+    max_memory_mb=20.0,
+    large_result_threshold_mb=2.0
+)
+```
+
+**Key Generation**:
+- Simple queries: Fast string-based hashing (`"col|op|val"`)
+- Complex queries: JSON serialization with `QueryEncoder`
+- Result: 32-character MD5 hex string
+
 ## Performance Characteristics
 
 ### Scale Performance (1M rows, 100 cols, 99% sparse)
@@ -196,4 +321,7 @@ Planned features (see CHANGELOG.md for v2.2+ roadmap):
 3. **Column names must be unique** - Used for indexing
 4. **Cache invalidation required** - Use decorator on mutation methods
 5. **NOT operator semantics** - Excludes all-zero rows (sparse semantics)
-6. **No current test suite** - Add tests to `tests/` directory when creating them
+6. **Test suite exists** - Run `pytest tests/` to execute 9 tests (7 critical + 2 performance)
+7. **Integer limits validated** - `create_random()` validates against MAX_SAFE_NNZ (2.1B)
+8. **Index optimization safety** - `optimize_indices_dtype()` validates actual index values before conversion
+9. **Thread-safe random generation** - Uses `np.random.default_rng()` not global seed

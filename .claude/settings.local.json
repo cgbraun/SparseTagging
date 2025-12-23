@@ -8,7 +8,18 @@
       "Bash(fi)",
       "Bash(python3:*)",
       "Bash(python -c:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(python -m pip install:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(grep:*)",
+      "Bash(for file in test_edge_cases.py test_error_handling.py test_integration.py)",
+      "Bash(do sed -i 's/from_array/from_dense/g' \"$file\")",
+      "Bash(done)",
+      "Bash(pip install:*)",
+      "Bash(mypy:*)",
+      "Bash(if [ ! -d \"docs\" ])",
+      "Bash(then mkdir docs)"
     ]
   }
 }

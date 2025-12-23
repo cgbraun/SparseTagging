@@ -2,6 +2,161 @@
 
 All notable changes to BaseTag will be documented in this file.
 
+## [2.4.0] - 2025-12-23
+
+### Added
+- **Complete type safety**: 100% type hint coverage with mypy enforcement
+  - Added type hints to 12 methods missing return types
+  - Created `_ensure_tag_confidence()` type guard for safe value conversion
+  - All decorators and helpers fully typed
+  - PEP 561 compliant with `py.typed` marker file
+  - Configured mypy with strict mode in `mypy.ini`
+- **Custom exception hierarchy**: Domain-specific exceptions for better error handling
+  - Created 9 custom exception classes in `src/exceptions.py`
+  - `BaseTagError` base class for all library exceptions
+  - `ValidationError`, `QueryError` hierarchy with backward compatibility
+  - All exceptions inherit from standard exceptions (ValueError, KeyError) for compatibility
+  - 36 new tests for exception behavior and backward compatibility
+- **QueryCacheManager class**: Dedicated cache management module
+  - Extracted ~250 lines from BaseTag into `src/cache_manager.py`
+  - MD5-based cache key generation
+  - Memory-bounded storage with configurable limits
+  - Hit/miss statistics tracking
+  - Clean separation of concerns
+- **Comprehensive documentation**:
+  - `CONTRIBUTING.md`: Development setup, testing, PR guidelines
+  - `docs/ARCHITECTURE.md`: Design principles, component overview, extension points
+  - `docs/DEPLOYMENT.md`: Production deployment, performance tuning, troubleshooting
+  - `LICENSE`: MIT License file
+  - Enhanced docstrings for `_get_column_index()`, `get_value_counts()`, `_transform_comparison()`
+- **Helper methods for better modularity**:
+  - `_execute_timed_query()`: Eliminates ~100 lines of duplication in benchmark.py
+  - `_get_rows_with_any_data()`: Simplifies NOT operator logic (35 lines → 8 lines)
+
+### Changed
+- **Refactored cache system**: BaseTag now delegates to QueryCacheManager
+  - Removed 8 cache-related attributes from BaseTag.__init__()
+  - Replaced with single `_cache_manager` optional instance
+  - All cache operations delegated to manager class
+  - Deleted 3 internal cache methods (`_query_to_key()`, `_should_cache_result()`, `_get_cache_memory_mb()`)
+- **Refactored benchmark.py**: Eliminated code duplication
+  - Created `_execute_timed_query()` helper method
+  - Refactored `_query_dense()`, `_query_dense_multi()`, `_query_sparse()` to use helper
+  - Reduced ~100 lines of duplicated timing logic
+  - Benchmark reports now saved to `reports/` directory (gitignored)
+- **Exception types**: All ValueError/KeyError replaced with custom exceptions
+  - 17 exception sites updated to use specific exception types
+  - Backward compatible: custom exceptions inherit from base exceptions
+  - Better error context and messages
+- **Updated pyproject.toml**: Production-grade configuration
+  - Version bumped to 2.4.0
+  - Comprehensive metadata (keywords, classifiers, URLs)
+  - Optional dev dependencies group
+  - Integrated mypy and pytest configuration
+  - Python ≥3.9 requirement
+
+### Fixed
+- **Documentation**: Fixed LICENSE and AUTHORS placeholders in README.md
+- **QUICKSTART.md**: Corrected path references and removed non-existent API mentions
+  - Fixed `basetag_v2.1_package/` path reference
+  - Updated `to_array()` → `to_basetag()` in examples
+
+### Removed
+- **Dated artifacts**: Removed timestamped performance report snapshots
+  - Deleted 3 performance report files from docs/
+  - Deleted test coverage report snapshot
+  - Reports now generated to gitignored `reports/` directory
+- **Old cache methods**: Removed from basetag.py after extraction
+  - `_query_to_key()`, `_should_cache_result()`, `_get_cache_memory_mb()`
+  - Now handled by QueryCacheManager class
+- **Unused imports**: Removed `hashlib` and `json` from basetag.py
+  - Moved to cache_manager.py where they're actually used
+
+### Improved
+- **Code organization**: Clear separation of concerns
+  - Cache logic fully extracted to dedicated module
+  - Benchmark timing logic centralized in helper method
+  - NOT operator logic extracted to testable method
+- **Type safety**: Zero mypy errors in strict mode
+  - All functions fully typed with proper annotations
+  - Custom types for NumPy arrays to avoid scipy typing issues
+  - TYPE_CHECKING guards to prevent circular imports
+- **Error messages**: Custom exceptions provide clearer context
+  - InvalidColumnError shows available columns
+  - InvalidOperatorError shows the invalid operator
+  - InvalidValueError explains why value is invalid
+- **Maintainability**: Reduced cognitive load
+  - basetag.py reduced from 982 to ~730 lines
+  - benchmark.py reduced from 808 to ~700 lines
+  - Cleaner method signatures and responsibilities
+- **Test coverage**: 173 tests (was 137), 36 new tests added
+  - `tests/test_cache_manager.py`: 15 tests for cache manager functionality
+  - `tests/test_exceptions.py`: 21 tests for exception hierarchy and usage
+  - All tests passing with ≥85% coverage maintained
+- **.gitignore**: Comprehensive ignore patterns
+  - Generated reports directory
+  - Python artifacts
+  - Testing/coverage outputs
+  - IDE and environment files
+
+## [2.3.0] - 2025-12-22
+
+### Fixed
+- **Critical**: Index dtype optimization validates actual index values (prevents data corruption)
+  - Added validation of max index values before converting to smaller dtypes
+  - Validates both `.indices` and `.indptr` arrays to prevent overflow
+  - Prevents silent data corruption when sparse data is concentrated in high row indices
+- **Critical**: Integer overflow protection in `create_random()` for large matrices
+  - Validates nnz against MAX_SAFE_NNZ (2.1 billion) with clear error messages
+  - Uses float intermediates to detect overflow before it occurs
+  - Validates matrix dimensions are positive
+  - Handles zero nnz gracefully
+- **Critical**: JSON serialization handles TagConfidence enums in cache keys
+  - Added `QueryEncoder` custom JSON encoder for TagConfidence enums
+  - Handles NumPy integer and floating types
+  - Fallback to repr() for any remaining non-serializable types
+  - Prevents cache system from crashing on enum values
+
+### Performance
+- **Fast path for simple query cache keys** (50-70% faster)
+  - String-based hashing for single-column queries bypasses JSON serialization
+  - Falls back to JSON for complex multi-column queries
+  - Reduces cache key generation overhead significantly
+- **O(1) cache memory tracking** (was O(n) iteration)
+  - Incremental tracking of cache memory usage
+  - Eliminates repeated iteration through all cached results
+  - Faster cache decisions with no performance overhead
+- **Thread-safe random generation** using local RNG
+  - Uses `np.random.default_rng()` instead of global `np.random.seed()`
+  - No side effects on global random state
+  - Safe for concurrent use
+
+### Improved
+- **Constants for magic numbers**
+  - Added `MAX_INT8_VALUE`, `MAX_INT16_VALUE`, `MAX_INT32_VALUE`
+  - Added `INT8_THRESHOLD`, `INT16_THRESHOLD`
+  - Added `DEFAULT_CACHE_MAX_ENTRIES`, `DEFAULT_CACHE_MAX_MEMORY_MB`
+  - Added `CACHE_OVERHEAD_BYTES`, `MAX_SAFE_NNZ`
+  - All magic numbers now have named constants with documentation
+- **Enhanced validation messages**
+  - Clear error messages for overflow conditions
+  - Helpful context in validation failures
+  - Better debugging information
+
+### Added
+- **Comprehensive test suite**
+  - pytest framework configuration
+  - 7 critical bug tests covering all fixes
+  - 2 performance regression tests
+  - 100% pass rate on all tests
+  - Tests for thread safety, data integrity, and edge cases
+
+### API Compatibility
+- **No breaking changes** - All improvements are backward compatible
+- Minor enhancement: `create_random()` now raises clearer errors for invalid inputs
+
+---
+
 ## [2.2.0] - 2025-12-22
 
 ### Changed

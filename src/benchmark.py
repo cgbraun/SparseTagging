@@ -137,6 +137,38 @@ class PerformanceBenchmark:
             'savings_percent': (1 - sparse_mem['total']/dense_mem) * 100
         }
 
+    def _execute_timed_query(
+        self,
+        query_func,
+        iterations: int,
+        warmup: int
+    ) -> Tuple[float, float, int]:
+        """
+        Execute query function with timing and warmup.
+
+        Args:
+            query_func: Callable that executes query and returns match count
+            iterations: Number of benchmark iterations
+            warmup: Number of warmup iterations
+
+        Returns:
+            (avg_time_ms, std_time_ms, match_count)
+        """
+        # Warmup
+        count = None
+        for _ in range(warmup):
+            count = query_func()
+
+        # Timed iterations
+        times = []
+        for _ in range(iterations):
+            start = time.perf_counter()
+            count = query_func()
+            end = time.perf_counter()
+            times.append((end - start) * 1000)
+
+        return np.mean(times), np.std(times), count
+
     def _query_dense_multi(self, query_dict: Dict, iterations: int, warmup: int) -> Tuple[float, float, int]:
         """
         Execute multi-column query on dense array and time it.
@@ -155,8 +187,8 @@ class PerformanceBenchmark:
         if not operator or not conditions:
             raise ValueError("Multi-column query requires operator and conditions")
 
-        # Warmup
-        for _ in range(warmup):
+        def execute_query():
+            """Execute the multi-column query on dense array."""
             masks = []
             for cond in conditions:
                 if 'operator' in cond:
@@ -193,53 +225,9 @@ class PerformanceBenchmark:
                 # Apply NOT only to rows with data
                 result_mask = has_data_mask & ~masks[0]
 
-            result_count = np.sum(result_mask)
+            return int(np.sum(result_mask))
 
-        # Benchmark
-        times = []
-        for _ in range(iterations):
-            t = time.perf_counter()
-
-            masks = []
-            for cond in conditions:
-                if 'operator' in cond:
-                    # Nested - skip for now
-                    continue
-                col_name = cond['column']
-                col_idx = self.bt_cached._column_index[col_name]
-                op = cond['op']
-
-                if op == '==':
-                    mask = self.dense[:, col_idx] == cond['value']
-                elif op == '>':
-                    mask = self.dense[:, col_idx] > cond['value']
-                elif op == '>=':
-                    mask = self.dense[:, col_idx] >= cond['value']
-                elif op == 'IN':
-                    mask = np.isin(self.dense[:, col_idx], cond['values'])
-                else:
-                    raise ValueError(f"Unsupported op: {op}")
-                masks.append(mask)
-
-            if operator == 'AND':
-                result_mask = masks[0]
-                for m in masks[1:]:
-                    result_mask = result_mask & m
-            elif operator == 'OR':
-                result_mask = masks[0]
-                for m in masks[1:]:
-                    result_mask = result_mask | m
-            elif operator == 'NOT':
-                # CRITICAL: Match sparse semantics
-                # Universe = rows with ANY non-zero value (not all zeros)
-                has_data_mask = np.any(self.dense != 0, axis=1)
-                # Apply NOT only to rows with data
-                result_mask = has_data_mask & ~masks[0]
-
-            result_count = np.sum(result_mask)
-            times.append((time.perf_counter() - t) * 1000)
-
-        return np.mean(times), np.std(times), int(result_count)
+        return self._execute_timed_query(execute_query, iterations, warmup)
 
     def _query_dense(self, col_idx: int, op: str, value,
                      iterations: int, warmup: int) -> Tuple[float, float, int]:
@@ -249,8 +237,8 @@ class PerformanceBenchmark:
         Returns:
             (avg_time_ms, std_time_ms, match_count)
         """
-        # Warmup
-        for _ in range(warmup):
+        def execute_query():
+            """Execute the single-column query on dense array."""
             if op == '==':
                 mask = self.dense[:, col_idx] == value
             elif op == '>':
@@ -261,24 +249,9 @@ class PerformanceBenchmark:
                 mask = np.isin(self.dense[:, col_idx], value)
             else:
                 raise ValueError(f"Unsupported op: {op}")
-            result_count = np.sum(mask)
+            return int(np.sum(mask))
 
-        # Benchmark
-        times = []
-        for _ in range(iterations):
-            t = time.perf_counter()
-            if op == '==':
-                mask = self.dense[:, col_idx] == value
-            elif op == '>':
-                mask = self.dense[:, col_idx] > value
-            elif op == '>=':
-                mask = self.dense[:, col_idx] >= value
-            elif op == 'IN':
-                mask = np.isin(self.dense[:, col_idx], value)
-            result_count = np.sum(mask)
-            times.append((time.perf_counter() - t) * 1000)
-
-        return np.mean(times), np.std(times), int(result_count)
+        return self._execute_timed_query(execute_query, iterations, warmup)
 
     def _query_sparse(self, query_dict: Dict, use_cache: bool,
                      iterations: int, warmup: int) -> Tuple[float, float, int]:
@@ -290,18 +263,12 @@ class PerformanceBenchmark:
         """
         bt = self.bt_cached if use_cache else self.bt_uncached
 
-        # Warmup
-        for _ in range(warmup):
+        def execute_query():
+            """Execute the sparse query."""
             result = bt.query(query_dict, use_cache=use_cache)
+            return result.count
 
-        # Benchmark
-        times = []
-        for _ in range(iterations):
-            t = time.perf_counter()
-            result = bt.query(query_dict, use_cache=use_cache)
-            times.append((time.perf_counter() - t) * 1000)
-
-        return np.mean(times), np.std(times), result.count
+        return self._execute_timed_query(execute_query, iterations, warmup)
 
     def benchmark_single_column_queries(self):
         """Benchmark single-column query operations."""
@@ -751,10 +718,10 @@ class PerformanceBenchmark:
 
         # Save report
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        # Use docs directory relative to project root
-        docs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'docs')
-        os.makedirs(docs_dir, exist_ok=True)
-        filename = os.path.join(docs_dir, f"performance_report_{self.size_config}_{timestamp}.txt")
+        # Use reports directory (gitignored) relative to project root
+        reports_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'reports')
+        os.makedirs(reports_dir, exist_ok=True)
+        filename = os.path.join(reports_dir, f"performance_report_{self.size_config}_{timestamp}.txt")
         self.save_report(filename)
 
         return filename

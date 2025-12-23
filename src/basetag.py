@@ -19,12 +19,19 @@ import enum
 import logging
 import numpy as np
 from scipy import sparse
-from typing import List, Dict, Union, Optional, Tuple, Set
+from typing import List, Dict, Union, Optional, Tuple, Set, Callable, Any
 import warnings
 from scipy.sparse import SparseEfficiencyWarning
-import hashlib
-import json
 from functools import wraps
+
+from .exceptions import (
+    ValidationError,
+    InvalidColumnError,
+    InvalidOperatorError,
+    InvalidValueError,
+    InvalidQueryStructureError
+)
+from .cache_manager import QueryCacheManager
 
 logger = logging.getLogger(__name__)
 
@@ -33,13 +40,40 @@ logger = logging.getLogger(__name__)
 SparseType = Union[sparse.spmatrix, sparse.sparray]
 
 
-def invalidates_cache(func):
+# ========================================================================
+# Constants
+# ========================================================================
+
+# Integer type limits
+MAX_INT8_VALUE = 127
+MAX_INT16_VALUE = 32767
+MAX_INT32_VALUE = 2147483647
+
+# Matrix size thresholds for dtype optimization
+INT8_THRESHOLD = 256      # Matrices with <256 rows can use int8 indices
+INT16_THRESHOLD = 65536   # Matrices with <65,536 rows can use int16 indices
+
+# Cache configuration defaults
+DEFAULT_CACHE_MAX_ENTRIES = 256
+DEFAULT_CACHE_MAX_MEMORY_MB = 10
+DEFAULT_LARGE_RESULT_THRESHOLD_MB = 1.0
+CACHE_OVERHEAD_BYTES = 200  # Estimated overhead per cached QueryResult
+
+# Random generation limits
+MAX_SAFE_NNZ = MAX_INT32_VALUE  # Maximum safe nnz value
+
+# TagConfidence valid range
+TAG_CONFIDENCE_MAX = 3
+TAG_CONFIDENCE_MIN = 0
+
+
+def invalidates_cache(func: Callable[..., Any]) -> Callable[..., Any]:
     """
     Decorator that automatically invalidates cache when data is modified.
-    
+
     Apply to any method that modifies self._data_internal or self._column_names.
     The decorated method can return self for method chaining.
-    
+
     Example:
         @invalidates_cache
         def set_column(self, name, values):
@@ -47,7 +81,7 @@ def invalidates_cache(func):
             return self
     """
     @wraps(func)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
         result = func(self, *args, **kwargs)
         self._invalidate_cache()
         logger.debug(f"{func.__name__} invalidated cache (version {self._data_version})")
@@ -149,7 +183,7 @@ class BaseTag:
             ValueError: If data is not sparse
         """
         if not sparse.issparse(data):
-            raise ValueError("Data must be a scipy sparse matrix or array")
+            raise ValidationError("Data must be a scipy sparse matrix or array")
         
         # Convert to CSC array if needed (handles both matrix and wrong format)
         if data.format != 'csc' or isinstance(data, sparse.spmatrix):
@@ -179,7 +213,7 @@ class BaseTag:
             data = data.astype(np.uint8)
         
         if len(column_names) != data.shape[1]:
-            raise ValueError(
+            raise ValidationError(
                 f"Column count mismatch: {len(column_names)} names "
                 f"for {data.shape[1]} columns"
             )
@@ -187,24 +221,16 @@ class BaseTag:
         # Validate all values are 0-3
         if data.data.size > 0:
             if np.any(data.data > 3):
-                raise ValueError("All values must be 0-3 (TagConfidence range)")
+                raise ValidationError("All values must be 0-3 (TagConfidence range)")
         
         # Store data using internal variable (property provides access with auto-invalidation)
         self._data_internal = data
         self._column_names = list(column_names)
         self._column_index = {name: idx for idx, name in enumerate(column_names)}
-        
-        # Cache infrastructure
-        self._cache = {}                    # query_hash → QueryResult
-        self._cache_enabled = enable_cache  # Master switch
-        self._cache_hits = 0                # Statistics
-        self._cache_misses = 0
+
+        # Cache infrastructure - delegate to QueryCacheManager
+        self._cache_manager: Optional[QueryCacheManager] = QueryCacheManager() if enable_cache else None
         self._data_version = 0              # Track modifications (increments on changes)
-        
-        # Cache configuration (conservative defaults)
-        self._cache_max_entries = 256       # Max number of cached queries
-        self._cache_max_memory_mb = 10      # Max cache memory (MB)
-        self._large_result_threshold_mb = 1.0  # Don't cache results >1MB
         
         logger.info(
             f"Created BaseTag: shape={data.shape}, "
@@ -218,7 +244,7 @@ class BaseTag:
         return self._data_internal
     
     @_data.setter
-    def _data(self, new_data: SparseType):
+    def _data(self, new_data: SparseType) -> None:
         """
         Set sparse array data.
         Automatically invalidates cache on direct assignment.
@@ -242,14 +268,14 @@ class BaseTag:
         logger.info(f"Data directly assigned - cache invalidated (version {self._data_version})")
     
     @classmethod
-    def from_sparse(cls, sparse_matrix: SparseType, 
-                    column_names: List[str], **kwargs) -> 'BaseTag':
+    def from_sparse(cls, sparse_matrix: SparseType,
+                    column_names: List[str], **kwargs: Any) -> 'BaseTag':
         """Create BaseTag from existing sparse matrix or array."""
         return cls(sparse_matrix, column_names, **kwargs)
     
     @classmethod
     def from_dense(cls, dense_array: np.ndarray, column_names: List[str],
-                   sparsity_threshold: float = 0.1, **kwargs) -> 'BaseTag':
+                   sparsity_threshold: float = 0.1, **kwargs: Any) -> 'BaseTag':
         """Create BaseTag from dense numpy array."""
         if not isinstance(dense_array, np.ndarray):
             dense_array = np.array(dense_array)
@@ -269,7 +295,7 @@ class BaseTag:
         return cls(sparse_matrix, column_names, **kwargs)
     
     @classmethod
-    def create_empty(cls, n_rows: int, column_names: List[str], **kwargs) -> 'BaseTag':
+    def create_empty(cls, n_rows: int, column_names: List[str], **kwargs: Any) -> 'BaseTag':
         """Create empty BaseTag with all zeros."""
         n_cols = len(column_names)
         sparse_matrix = sparse.csc_array((n_rows, n_cols), dtype=np.uint8)
@@ -277,22 +303,45 @@ class BaseTag:
     
     @classmethod
     def create_random(cls, n_rows: int, column_names: List[str],
-                     fill_percent: float = 0.1, 
+                     fill_percent: float = 0.1,
                      seed: Optional[int] = None,
                      enable_cache: bool = True) -> 'BaseTag':
         """Create BaseTag with random test data."""
         if not 0 <= fill_percent <= 1:
-            raise ValueError("fill_percent must be between 0 and 1")
+            raise ValidationError("fill_percent must be between 0 and 1")
         
         n_cols = len(column_names)
         
-        if seed is not None:
-            np.random.seed(seed)
-        
-        nnz = int(n_rows * n_cols * fill_percent)
-        rows = np.random.randint(0, n_rows, size=nnz)
-        cols = np.random.randint(0, n_cols, size=nnz)
-        values = np.random.randint(1, 4, size=nnz, dtype=np.uint8)
+        # Use local RNG instead of global state (thread-safe, no side effects)
+        rng = np.random.default_rng(seed=seed)
+
+        # Calculate nnz with overflow protection
+        nnz_float = float(n_rows) * float(n_cols) * fill_percent
+        nnz = int(nnz_float)
+
+        # Validate against safe limits
+        if nnz > MAX_SAFE_NNZ:
+            raise ValidationError(
+                f"Matrix too large: nnz={nnz:,} exceeds safe limit {MAX_SAFE_NNZ:,}. "
+                f"Reduce size or fill_percent (rows={n_rows:,}, cols={n_cols}, fill={fill_percent:.2%})"
+            )
+
+        if nnz < 0:
+            raise ValidationError(
+                f"Integer overflow detected in nnz calculation. Matrix dimensions too large."
+            )
+
+        if n_rows <= 0 or n_cols <= 0:
+            raise ValidationError(f"Matrix dimensions must be positive: rows={n_rows}, cols={n_cols}")
+
+        if nnz == 0:
+            logger.warning(f"Creating empty matrix: nnz=0")
+            return cls.create_empty(n_rows, column_names, enable_cache=enable_cache)
+
+        # Generate random data using local RNG
+        rows = rng.integers(0, n_rows, size=nnz, dtype=np.int64)
+        cols = rng.integers(0, n_cols, size=nnz, dtype=np.int64)
+        values = rng.integers(1, 4, size=nnz, dtype=np.uint8)
         
         sparse_matrix = sparse.csc_array(
             (values, (rows, cols)), 
@@ -328,16 +377,79 @@ class BaseTag:
         return 1 - (self.nnz / (self.shape[0] * self.shape[1]))
     
     def _get_column_index(self, column_name: str) -> int:
-        """Get column index from name, with validation."""
+        """
+        Get column index from name with validation.
+
+        Args:
+            column_name: Name of the column to look up
+
+        Returns:
+            Column index (0-based integer)
+
+        Raises:
+            InvalidColumnError: If column name is not found in the matrix
+
+        Example:
+            >>> bt = BaseTag.create_random(100, ['Tag1', 'Tag2'], 0.1)
+            >>> bt._get_column_index('Tag1')
+            0
+            >>> bt._get_column_index('NonExistent')
+            InvalidColumnError: Column 'NonExistent' not found
+        """
         if column_name not in self._column_index:
-            raise ValueError(
+            raise InvalidColumnError(
                 f"Column '{column_name}' not found. "
                 f"Available: {', '.join(self._column_names)}"
             )
         return self._column_index[column_name]
-    
-    def get_value_counts(self, columns: Optional[Union[str, List[str]]] = None) -> Dict:
-        """Get count of each TagConfidence value per column."""
+
+    def _ensure_tag_confidence(self, value: Union[int, TagConfidence]) -> TagConfidence:
+        """
+        Type-safe conversion to TagConfidence with validation.
+
+        Args:
+            value: Integer (0-3) or TagConfidence enum value
+
+        Returns:
+            TagConfidence enum value
+
+        Raises:
+            ValueError: If value is not valid TagConfidence (must be 0-3)
+        """
+        if isinstance(value, TagConfidence):
+            return value
+        if isinstance(value, int) and 0 <= value <= 3:
+            return TagConfidence(value)
+        raise InvalidValueError(f"Invalid TagConfidence value: {value} (must be 0-3)")
+
+    def get_value_counts(self, columns: Optional[Union[str, List[str]]] = None) -> Dict[str, Dict[TagConfidence, int]]:
+        """
+        Get distribution of TagConfidence values per column.
+
+        Counts the number of rows with each confidence level (NONE, LOW, MEDIUM, HIGH)
+        for the specified columns. NONE values are implicit zeros in the sparse matrix.
+
+        Args:
+            columns: Column name(s) to analyze. If None, analyzes all columns.
+                    Can be a single string or list of strings.
+
+        Returns:
+            Dictionary mapping column names to dictionaries of value counts.
+            Inner dictionaries map TagConfidence values to integer counts.
+
+        Example:
+            >>> bt = BaseTag.create_random(100, ['Tag1', 'Tag2'], 0.1, seed=42)
+            >>> counts = bt.get_value_counts('Tag1')
+            >>> counts['Tag1'][TagConfidence.HIGH]
+            3
+            >>> counts['Tag1'][TagConfidence.NONE]  # Rows with no Tag1 value
+            89
+
+            >>> # Multiple columns
+            >>> counts = bt.get_value_counts(['Tag1', 'Tag2'])
+            >>> sum(counts['Tag1'].values())
+            100
+        """
         if columns is None:
             columns = self._column_names
         elif isinstance(columns, str):
@@ -366,9 +478,32 @@ class BaseTag:
         return results
     
     def _transform_comparison(self, op: str, value: TagConfidence) -> Set[int]:
-        """Transform comparison operators to value sets."""
+        """
+        Transform comparison operators to value sets for efficient IN-style queries.
+
+        Converts comparison operators (==, !=, >, >=, <, <=) to sets of matching values.
+        This optimization allows treating comparisons as IN operations on the sparse matrix.
+
+        Args:
+            op: Comparison operator string (==, !=, >, >=, <, <=)
+            value: TagConfidence value to compare against (LOW, MEDIUM, or HIGH)
+
+        Returns:
+            Set of integer values (1-3) that satisfy the comparison
+
+        Raises:
+            InvalidValueError: If value is NONE/zero (would create dense matrix)
+            InvalidOperatorError: If operator is unknown
+
+        Example:
+            >>> bt = BaseTag.create_random(100, ['Tag1'], 0.1)
+            >>> bt._transform_comparison('>=', TagConfidence.MEDIUM)
+            {2, 3}  # MEDIUM and HIGH
+            >>> bt._transform_comparison('!=', TagConfidence.LOW)
+            {2, 3}  # MEDIUM and HIGH (excludes LOW)
+        """
         if value == TagConfidence.NONE:
-            raise ValueError(
+            raise InvalidValueError(
                 "Cannot compare to NONE/zero value. This would create dense matrix."
             )
         
@@ -389,7 +524,7 @@ class BaseTag:
         elif op == '<=':
             result = {v for v in valid if v <= value_int}
         else:
-            raise ValueError(f"Unknown operator: {op}")
+            raise InvalidOperatorError(f"Unknown operator: {op}")
         
         return result
     
@@ -420,12 +555,12 @@ class BaseTag:
             # Handle IN operator
             values = condition.get('values', [])
             if not values:
-                raise ValueError("IN operator requires 'values' list")
-            
+                raise InvalidQueryStructureError("IN operator requires 'values' list")
+
             # Check which non-zero values match
             value_ints = {int(v) for v in values}
             if TagConfidence.NONE in values:
-                raise ValueError("Cannot use NONE in IN operator")
+                raise InvalidValueError("Cannot use NONE in IN operator")
             
             # Only check the non-zero values!
             matching_mask = np.isin(col_values, list(value_ints))
@@ -435,11 +570,11 @@ class BaseTag:
             # Handle comparison operators
             value = condition.get('value')
             if value is None:
-                raise ValueError(f"Operator '{op}' requires 'value' field")
-            
-            if not isinstance(value, TagConfidence):
-                value = TagConfidence(value)
-            
+                raise InvalidQueryStructureError(f"Operator '{op}' requires 'value' field")
+
+            # Type-safe conversion to TagConfidence
+            value = self._ensure_tag_confidence(value)
+
             # Transform to value set
             value_set = self._transform_comparison(op, value)
             
@@ -453,7 +588,38 @@ class BaseTag:
                 matching_rows = col_row_indices[matching_mask]
         
         return matching_rows
-    
+
+    def _get_rows_with_any_data(self) -> np.ndarray:
+        """
+        Get universe of rows containing ANY non-zero value.
+
+        This is used for NOT operator semantics where we only consider rows that have
+        at least one non-zero tag confidence value. Rows with all zeros (no tag data)
+        are excluded from the NOT operation.
+
+        Returns:
+            Sorted array of row indices that have at least one non-zero value
+
+        Example:
+            Matrix with 5 rows:
+            - Row 0: all zeros → excluded
+            - Row 1: [LOW, NONE, NONE] → included
+            - Row 2: all zeros → excluded
+            - Row 3: [NONE, MEDIUM, NONE] → included
+            - Row 4: all zeros → excluded
+            Returns: [1, 3]
+        """
+        all_indices_list = []
+        for col_idx in range(self.shape[1]):
+            col_start = self._data.indptr[col_idx]
+            col_end = self._data.indptr[col_idx + 1]
+            if col_end > col_start:  # Column has data
+                all_indices_list.append(self._data.indices[col_start:col_end])
+
+        if all_indices_list:
+            return np.unique(np.concatenate(all_indices_list))
+        return np.array([], dtype=np.int64)
+
     def _evaluate_query_optimized(self, query: Dict) -> np.ndarray:
         """
         OPTIMIZED v2: Recursively evaluate query using NumPy operations.
@@ -467,9 +633,9 @@ class BaseTag:
             # Nested logical operation
             operator = query['operator'].upper()
             conditions = query.get('conditions', [])
-            
+
             if not conditions:
-                raise ValueError(f"{operator} operator requires 'conditions' list")
+                raise InvalidQueryStructureError(f"{operator} operator requires 'conditions' list")
             
             # Evaluate all sub-conditions to get row index arrays (already sorted from sparse)
             row_arrays = [self._evaluate_query_optimized(cond) for cond in conditions]
@@ -488,43 +654,14 @@ class BaseTag:
                 result = np.unique(result)  # Sorted unique values
             elif operator == 'NOT':
                 if len(row_arrays) != 1:
-                    raise ValueError("NOT operator requires exactly one condition")
-                
-                # CRITICAL: NOT semantics for sparse data
-                # ============================================
-                # NOT operates only on the universe of rows with ANY non-zero value.
-                # 
-                # Rationale:
-                #   - Zero in sparse matrix = "no data" or "no tag confidence"
-                #   - NOT(condition) = "has data but doesn't match condition"
-                #   - Rows with all zeros are excluded (they have no tag confidence)
-                #
-                # Example: NOT(Tag2 == LOW)
-                #   - Include: rows where Tag2 = MEDIUM/HIGH (has data, doesn't match)
-                #   - Exclude: rows where Tag2 = LOW (matches condition)
-                #   - Exclude: rows with all zeros (no tag confidence anywhere)
-                #
-                # This differs from naive NOT which would include all-zero rows.
-                # ============================================
-                
-                # Get all rows with any non-zero value efficiently
-                # Collect indices from all columns
-                all_indices_list = []
-                for col_idx in range(self.shape[1]):
-                    col_start = self._data.indptr[col_idx]
-                    col_end = self._data.indptr[col_idx + 1]
-                    if col_end > col_start:  # Column has data
-                        all_indices_list.append(self._data.indices[col_start:col_end])
-                
-                if all_indices_list:
-                    # Concatenate and get unique indices (universe of rows with data)
-                    all_rows_with_data = np.unique(np.concatenate(all_indices_list))
-                    # NOT = rows with data but not in the condition (setdiff)
-                    result = np.setdiff1d(all_rows_with_data, row_arrays[0], assume_unique=True)
-                else:
-                    result = np.array([], dtype=np.int64)
+                    raise InvalidQueryStructureError("NOT operator requires exactly one condition")
+
+                # NOT operates only on rows with ANY non-zero data (sparse semantics)
+                # Excludes all-zero rows since they have no tag confidence
+                universe = self._get_rows_with_any_data()
+                result = np.setdiff1d(universe, row_arrays[0], assume_unique=True)
             else:
-                raise ValueError(f"Unknown operator: {operator}")
+                raise InvalidOperatorError(f"Unknown operator: {operator}")
             
             return result
         else:
@@ -562,141 +699,59 @@ class BaseTag:
             Cache overhead is <5% even for uncached queries.
         """
         logger.debug(f"Executing query: {query_dict}")
-        
+
         if not isinstance(query_dict, dict):
-            raise ValueError("Query must be a dictionary")
-        
+            raise InvalidQueryStructureError("Query must be a dictionary")
+
         # Check if caching is enabled
-        if not use_cache or not self._cache_enabled:
+        if not use_cache or not self._cache_manager:
             # Execute without cache
             matching_indices = self._evaluate_query_optimized(query_dict)
             return QueryResult(matching_indices, self)
-        
-        # Generate cache key
-        cache_key = self._query_to_key(query_dict)
-        
-        # Check cache
-        if cache_key in self._cache:
-            self._cache_hits += 1
-            logger.debug(
-                f"Cache hit (hit_rate: {self._cache_hits/(self._cache_hits+self._cache_misses):.1%})"
-            )
-            return self._cache[cache_key]
-        
+
+        # Try to get from cache
+        cached_result = self._cache_manager.get(query_dict)
+        if cached_result is not None:
+            return cached_result
+
         # Cache miss - execute query
-        self._cache_misses += 1
         matching_indices = self._evaluate_query_optimized(query_dict)
         result = QueryResult(matching_indices, self)
-        
-        # Store in cache if should cache
-        if self._should_cache_result(result):
-            self._cache[cache_key] = result
-            logger.debug(
-                f"Result cached ({len(self._cache)} entries, "
-                f"{self._get_cache_memory_mb():.2f}MB)"
-            )
-        
+
+        # Store in cache
+        self._cache_manager.put(query_dict, result)
+
         return result
     
     # ========================================================================
     # Cache Management Methods
     # ========================================================================
     
-    def _query_to_key(self, query_dict: Dict) -> str:
-        """
-        Generate cache key from query dictionary.
-        
-        Args:
-            query_dict: Query specification
-            
-        Returns:
-            MD5 hash of canonicalized query (32 char hex string)
-        """
-        # Canonicalize query (sorted keys for consistent hashing)
-        query_str = json.dumps(query_dict, sort_keys=True)
-        return hashlib.md5(query_str.encode()).hexdigest()
-    
-    def _should_cache_result(self, result: QueryResult) -> bool:
-        """
-        Determine if query result should be cached.
-        
-        Args:
-            result: QueryResult to potentially cache
-            
-        Returns:
-            True if result should be cached
-        """
-        # Check if cache is enabled
-        if not self._cache_enabled:
-            return False
-        
-        # Check entry limit
-        if len(self._cache) >= self._cache_max_entries:
-            logger.debug(f"Cache full ({self._cache_max_entries} entries)")
-            return False
-        
-        # Check result size (don't cache very large results)
-        result_size_mb = (result.indices.nbytes + 200) / (1024**2)
-        if result_size_mb > self._large_result_threshold_mb:
-            logger.debug(
-                f"Not caching large result ({result_size_mb:.2f}MB > "
-                f"{self._large_result_threshold_mb}MB threshold)"
-            )
-            return False
-        
-        # Check total cache memory
-        current_cache_mb = self._get_cache_memory_mb()
-        if current_cache_mb + result_size_mb > self._cache_max_memory_mb:
-            logger.debug(
-                f"Not caching result (would exceed {self._cache_max_memory_mb}MB limit)"
-            )
-            return False
-        
-        return True
-    
-    def _get_cache_memory_mb(self) -> float:
-        """
-        Calculate current cache memory usage in MB.
-        
-        Returns:
-            Memory usage in megabytes
-        """
-        total_bytes = 0
-        for result in self._cache.values():
-            # Count indices array + overhead
-            total_bytes += result.indices.nbytes + 200
-        return total_bytes / (1024**2)
-    
-    def _invalidate_cache(self):
+    def _invalidate_cache(self) -> None:
         """
         Clear query cache when data is modified.
-        
+
         Called automatically by:
         - Property setter (_data.setter)
         - @invalidates_cache decorator on mutating methods
-        
+
         Note:
-            This method is safe to call even if cache is empty.
+            This method is safe to call even if cache is disabled.
         """
-        old_size = len(self._cache)
-        self._cache.clear()
+        if self._cache_manager:
+            self._cache_manager.clear()
         self._data_version += 1
-        
-        if old_size > 0:
-            logger.debug(
-                f"Cache invalidated: {old_size} entries cleared "
-                f"(version {self._data_version - 1} → {self._data_version})"
-            )
+        logger.debug(f"Cache invalidated (version → {self._data_version})")
     
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """
         Manually clear query cache.
-        
+
         Useful for:
         - Memory management
         - Testing
         - When you know queries won't repeat
-        
+
         Example:
             >>> bt = BaseTag.create_random(1000, ['Tag1'], 0.01)
             >>> result = bt.query({'column': 'Tag1', 'op': '==', 'value': HIGH})
@@ -705,14 +760,13 @@ class BaseTag:
             >>> stats['size_entries']
             0
         """
-        old_size = len(self._cache)
-        self._cache.clear()
-        logger.info(f"Cache manually cleared: {old_size} entries removed")
+        if self._cache_manager:
+            self._cache_manager.clear()
     
-    def cache_stats(self) -> Dict:
+    def cache_stats(self) -> Dict[str, Union[int, float, bool]]:
         """
         Get cache performance statistics.
-        
+
         Returns:
             Dictionary with cache metrics:
             - hits: Number of cache hits
@@ -723,7 +777,7 @@ class BaseTag:
             - size_mb: Memory usage in megabytes
             - data_version: Current data version (increments on modifications)
             - enabled: Whether caching is enabled
-            
+
         Example:
             >>> bt = BaseTag.create_random(1000, ['Tag1'], 0.01)
             >>> for _ in range(10):
@@ -736,24 +790,22 @@ class BaseTag:
             >>> stats['size_mb']
             0.002
         """
-        total = self._cache_hits + self._cache_misses
-        hit_rate = self._cache_hits / total if total > 0 else 0
-        
-        size_bytes = sum(
-            result.indices.nbytes + 200 
-            for result in self._cache.values()
-        )
-        
-        return {
-            'hits': self._cache_hits,
-            'misses': self._cache_misses,
-            'hit_rate': hit_rate,
-            'size_entries': len(self._cache),
-            'size_bytes': size_bytes,
-            'size_mb': size_bytes / (1024**2),
-            'data_version': self._data_version,
-            'enabled': self._cache_enabled
-        }
+        if self._cache_manager:
+            stats = self._cache_manager.stats()
+            stats['data_version'] = self._data_version
+            stats['enabled'] = True
+            return stats
+        else:
+            return {
+                'hits': 0,
+                'misses': 0,
+                'hit_rate': 0.0,
+                'size_entries': 0,
+                'size_bytes': 0,
+                'size_mb': 0.0,
+                'data_version': self._data_version,
+                'enabled': False
+            }
     
     def filter(self, query_dict: Dict) -> 'BaseTag':
         """Filter BaseTag and return new BaseTag with matching rows."""
@@ -817,45 +869,65 @@ class BaseTag:
             Indices memory reduced by 50.0%
         """
         n_rows = self._data.shape[0]
-        
-        # Determine optimal dtype
-        if n_rows < 256:
-            target_dtype = np.int8
-        elif n_rows < 65536:
+
+        # Determine optimal dtype based on matrix dimensions
+        if n_rows < INT8_THRESHOLD:
+            target_dtype: Any = np.int8
+            max_value = MAX_INT8_VALUE
+        elif n_rows < INT16_THRESHOLD:
             target_dtype = np.int16
+            max_value = MAX_INT16_VALUE
         else:
             # Already optimal (int32 needed)
             if inplace:
                 return None
-            else:
-                return BaseTag(self._data.copy(), self._column_names, enable_cache=self._cache_enabled)
-        
+            return BaseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
+
+        # CRITICAL: Validate actual index values fit in target dtype
+        # This prevents data corruption when sparse data is concentrated in high row indices
+        if len(self._data.indices) > 0:
+            max_index: Any = np.max(self._data.indices)
+            if max_index > max_value:
+                logger.warning(
+                    f"Cannot optimize to {target_dtype}: max index {max_index} exceeds {max_value}. "
+                    f"Matrix has {n_rows} rows but data exists in row indices beyond {target_dtype} range."
+                )
+                if inplace:
+                    return None
+                return BaseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
+
+        # Validate indptr values (column pointers can also overflow)
+        if len(self._data.indptr) > 0:
+            max_indptr: Any = np.max(self._data.indptr)
+            if max_indptr > max_value:
+                logger.warning(
+                    f"Cannot optimize to {target_dtype}: max indptr {max_indptr} exceeds {max_value}"
+                )
+                if inplace:
+                    return None
+                return BaseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
+
         # Check if already optimal
         if self._data.indices.dtype == target_dtype:
             if inplace:
                 return None
-            else:
-                return BaseTag(self._data.copy(), self._column_names, enable_cache=self._cache_enabled)
-        
-        # Convert indices dtype
+            return BaseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
+
+        # Safe to convert - all validation passed
         old_mem = self._data.indices.nbytes
-        
-        # Create new sparse matrix with optimized indices
         new_data = self._data.copy()
         new_data.indices = new_data.indices.astype(target_dtype)
         new_data.indptr = new_data.indptr.astype(target_dtype)
-        
         new_mem = new_data.indices.nbytes
         savings = (old_mem - new_mem) / old_mem * 100
-        
+
         logger.info(f"Optimized indices dtype: {self._data.indices.dtype} → {target_dtype}, "
-                   f"saved {savings:.1f}% indices memory ({old_mem-new_mem} bytes)")
-        
+                   f"saved {savings:.1f}% indices memory")
+
         if inplace:
             self._data = new_data
             return None
-        else:
-            return BaseTag(new_data, self._column_names, enable_cache=self._cache_enabled)
+        return BaseTag(new_data, self._column_names, enable_cache=self._cache_manager is not None)
     
     
     def __repr__(self) -> str:

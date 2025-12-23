@@ -6,7 +6,9 @@ Get started with BaseTag in 5 minutes.
 
 ```bash
 pip install numpy scipy psutil
-cd basetag_v2.1_package/src
+
+# If installing from source:
+cd SparseTagging/src
 ```
 
 ## Your First Query (2 minutes)
@@ -148,12 +150,9 @@ print(f"Matches: {result.count}")
 # Get row indices
 print(f"Indices: {result.indices}")
 
-# Get filtered data as array
-filtered_data = result.to_array(dense=False)  # Sparse
-filtered_data = result.to_array(dense=True)   # Dense
-
-# Get specific column from results
-toxicity_values = result.get_column('Toxicity', dense=True)
+# Convert result to new BaseTag with only matching rows
+filtered_bt = result.to_basetag()
+print(f"Filtered shape: {filtered_bt.shape}")
 ```
 
 ### Cache Management
