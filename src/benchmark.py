@@ -1,5 +1,5 @@
 """
-Comprehensive Performance Benchmark for BaseTag v2.1
+Comprehensive Performance Benchmark for SparseTag v2.1
 =====================================================
 
 Tests three scenarios across multiple sizes:
@@ -23,7 +23,7 @@ import os
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional
 
-from basetag import BaseTag, TagConfidence
+from src.sparsetag import SparseTag, TagConfidence
 
 # Shortcuts
 HIGH = TagConfidence.HIGH
@@ -97,7 +97,7 @@ class PerformanceBenchmark:
 
         # 1. Sparse with cache (v2.1)
         t1 = time.perf_counter()
-        self.bt_cached = BaseTag.create_random(
+        self.bt_cached = SparseTag.create_random(
             self.n_rows, columns, self.fill_percent, self.seed, enable_cache=True
         )
         time_cached = time.perf_counter() - t1
@@ -105,7 +105,7 @@ class PerformanceBenchmark:
 
         # 2. Sparse without cache (v2.0)
         t2 = time.perf_counter()
-        self.bt_uncached = BaseTag.create_random(
+        self.bt_uncached = SparseTag.create_random(
             self.n_rows, columns, self.fill_percent, self.seed, enable_cache=False
         )
         time_uncached = time.perf_counter() - t2
@@ -505,9 +505,9 @@ class PerformanceBenchmark:
         tests_failed = 0
 
         # Test 1: Construction
-        self._log("\nTest 1: BaseTag Construction")
+        self._log("\nTest 1: SparseTag Construction")
         try:
-            bt = BaseTag.create_random(100, ['A', 'B'], 0.1, seed=42)
+            bt = SparseTag.create_random(100, ['A', 'B'], 0.1, seed=42)
             assert bt.shape == (100, 2)
             self._log("  ✓ PASSED")
             tests_passed += 1
@@ -699,7 +699,7 @@ class PerformanceBenchmark:
     def run_all(self) -> str:
         """Run all benchmarks and return report filename."""
         print(f"\n{'#'*70}")
-        print(f"# BaseTag v2.1 - Comprehensive Performance Benchmark")
+        print(f"# SparseTag v2.1 - Comprehensive Performance Benchmark")
         print(f"# Configuration: {self.size_config.upper()}")
         print(f"# Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"{'#'*70}")
@@ -730,7 +730,7 @@ class PerformanceBenchmark:
 def main():
     """Run benchmarks for all size configurations."""
     print("\n" + "="*70)
-    print("BaseTag v2.1 - Complete Performance Analysis")
+    print("SparseTag v2.1 - Complete Performance Analysis")
     print("="*70)
     print("\nThis will run comprehensive benchmarks for:")
     print("  • Small matrices (1K rows)")

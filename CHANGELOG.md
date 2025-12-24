@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to BaseTag will be documented in this file.
+All notable changes to SparseTag will be documented in this file.
 
 ## [2.4.0] - 2025-12-23
 
@@ -13,12 +13,12 @@ All notable changes to BaseTag will be documented in this file.
   - Configured mypy with strict mode in `mypy.ini`
 - **Custom exception hierarchy**: Domain-specific exceptions for better error handling
   - Created 9 custom exception classes in `src/exceptions.py`
-  - `BaseTagError` base class for all library exceptions
+  - `SparseTagError` base class for all library exceptions
   - `ValidationError`, `QueryError` hierarchy with backward compatibility
   - All exceptions inherit from standard exceptions (ValueError, KeyError) for compatibility
   - 36 new tests for exception behavior and backward compatibility
 - **QueryCacheManager class**: Dedicated cache management module
-  - Extracted ~250 lines from BaseTag into `src/cache_manager.py`
+  - Extracted ~250 lines from SparseTag into `src/cache_manager.py`
   - MD5-based cache key generation
   - Memory-bounded storage with configurable limits
   - Hit/miss statistics tracking
@@ -34,8 +34,8 @@ All notable changes to BaseTag will be documented in this file.
   - `_get_rows_with_any_data()`: Simplifies NOT operator logic (35 lines → 8 lines)
 
 ### Changed
-- **Refactored cache system**: BaseTag now delegates to QueryCacheManager
-  - Removed 8 cache-related attributes from BaseTag.__init__()
+- **Refactored cache system**: SparseTag now delegates to QueryCacheManager
+  - Removed 8 cache-related attributes from SparseTag.__init__()
   - Replaced with single `_cache_manager` optional instance
   - All cache operations delegated to manager class
   - Deleted 3 internal cache methods (`_query_to_key()`, `_should_cache_result()`, `_get_cache_memory_mb()`)
@@ -58,18 +58,18 @@ All notable changes to BaseTag will be documented in this file.
 ### Fixed
 - **Documentation**: Fixed LICENSE and AUTHORS placeholders in README.md
 - **QUICKSTART.md**: Corrected path references and removed non-existent API mentions
-  - Fixed `basetag_v2.1_package/` path reference
-  - Updated `to_array()` → `to_basetag()` in examples
+  - Fixed `sparsetag_v2.1_package/` path reference
+  - Updated `to_array()` → `to_sparsetag()` in examples
 
 ### Removed
 - **Dated artifacts**: Removed timestamped performance report snapshots
   - Deleted 3 performance report files from docs/
   - Deleted test coverage report snapshot
   - Reports now generated to gitignored `reports/` directory
-- **Old cache methods**: Removed from basetag.py after extraction
+- **Old cache methods**: Removed from sparsetag.py after extraction
   - `_query_to_key()`, `_should_cache_result()`, `_get_cache_memory_mb()`
   - Now handled by QueryCacheManager class
-- **Unused imports**: Removed `hashlib` and `json` from basetag.py
+- **Unused imports**: Removed `hashlib` and `json` from sparsetag.py
   - Moved to cache_manager.py where they're actually used
 
 ### Improved
@@ -86,7 +86,7 @@ All notable changes to BaseTag will be documented in this file.
   - InvalidOperatorError shows the invalid operator
   - InvalidValueError explains why value is invalid
 - **Maintainability**: Reduced cognitive load
-  - basetag.py reduced from 982 to ~730 lines
+  - sparsetag.py reduced from 982 to ~730 lines
   - benchmark.py reduced from 808 to ~700 lines
   - Cleaner method signatures and responsibilities
 - **Test coverage**: 173 tests (was 137), 36 new tests added
@@ -345,10 +345,10 @@ if bt.shape[0] < 65536:
 Fully backward compatible. Enable caching:
 ```python
 # Old (still works)
-bt = BaseTag.create_random(1000, ['Tag1'], 0.01)
+bt = SparseTag.create_random(1000, ['Tag1'], 0.01)
 
 # New (with caching)
-bt = BaseTag.create_random(1000, ['Tag1'], 0.01, enable_cache=True)
+bt = SparseTag.create_random(1000, ['Tag1'], 0.01, enable_cache=True)
 ```
 
 ### Migrating from v1.0.0 to v2.0.0

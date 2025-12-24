@@ -1,7 +1,7 @@
 """Comprehensive tests for all query operations and operators."""
 import pytest
 import numpy as np
-from src.basetag import BaseTag, TagConfidence
+from src.sparsetag import SparseTag, TagConfidence
 
 
 class TestComparisonOperators:
@@ -9,8 +9,8 @@ class TestComparisonOperators:
 
     @pytest.fixture
     def sample_data(self):
-        """Create sample BaseTag for testing."""
-        return BaseTag.create_random(1000, ['Tag1', 'Tag2', 'Tag3'], 0.1, seed=42)
+        """Create sample SparseTag for testing."""
+        return SparseTag.create_random(1000, ['Tag1', 'Tag2', 'Tag3'], 0.1, seed=42)
 
     def test_equality_operator(self, sample_data):
         """Test == operator."""
@@ -82,7 +82,7 @@ class TestINOperator:
 
     def test_in_operator_multiple_values(self):
         """Test IN with multiple values."""
-        bt = BaseTag.create_random(500, ['Tag1'], 0.1, seed=42)
+        bt = SparseTag.create_random(500, ['Tag1'], 0.1, seed=42)
         result = bt.query({
             'column': 'Tag1',
             'op': 'IN',
@@ -97,14 +97,14 @@ class TestINOperator:
 
     def test_in_operator_single_value(self):
         """Test IN with single value (should work like ==)."""
-        bt = BaseTag.create_random(500, ['Tag1'], 0.1, seed=42)
+        bt = SparseTag.create_random(500, ['Tag1'], 0.1, seed=42)
         result_in = bt.query({'column': 'Tag1', 'op': 'IN', 'values': [TagConfidence.HIGH]})
         result_eq = bt.query({'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH})
         assert result_in.count == result_eq.count
 
     def test_in_operator_all_values(self):
         """Test IN with all possible values."""
-        bt = BaseTag.create_random(500, ['Tag1'], 0.1, seed=42)
+        bt = SparseTag.create_random(500, ['Tag1'], 0.1, seed=42)
         result = bt.query({
             'column': 'Tag1',
             'op': 'IN',
@@ -120,7 +120,7 @@ class TestLogicalOperators:
     @pytest.fixture
     def multi_col_data(self):
         """Create multi-column data for logical tests."""
-        return BaseTag.create_random(1000, ['A', 'B', 'C'], 0.1, seed=42)
+        return SparseTag.create_random(1000, ['A', 'B', 'C'], 0.1, seed=42)
 
     def test_and_operator_two_conditions(self, multi_col_data):
         """Test AND with two conditions."""
@@ -198,7 +198,7 @@ class TestLogicalOperators:
     def test_not_excludes_all_zero_rows(self):
         """Test that NOT excludes rows with no data."""
         # Create sparse matrix with some all-zero rows
-        bt = BaseTag.create_random(100, ['Tag1'], 0.5, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.5, seed=42)
 
         # NOT query should only operate on rows with data
         result_not = bt.query({
@@ -218,7 +218,7 @@ class TestNestedQueries:
 
     def test_nested_and_or(self):
         """Test nested AND within OR."""
-        bt = BaseTag.create_random(1000, ['A', 'B', 'C'], 0.1, seed=42)
+        bt = SparseTag.create_random(1000, ['A', 'B', 'C'], 0.1, seed=42)
 
         # (A==HIGH AND B>=MED) OR (C==HIGH)
         result = bt.query({
@@ -238,7 +238,7 @@ class TestNestedQueries:
 
     def test_complex_multi_level_nesting(self):
         """Test deep nesting of queries."""
-        bt = BaseTag.create_random(1000, ['A', 'B', 'C', 'D'], 0.1, seed=42)
+        bt = SparseTag.create_random(1000, ['A', 'B', 'C', 'D'], 0.1, seed=42)
 
         # ((A==HIGH AND B==HIGH) OR (C==HIGH)) AND D>=LOW
         result = bt.query({
@@ -268,7 +268,7 @@ class TestQueryResultMethods:
 
     def test_query_result_properties(self):
         """Test QueryResult basic properties."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42)
         result = bt.query({'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH})
 
         assert hasattr(result, 'count')
@@ -276,20 +276,20 @@ class TestQueryResultMethods:
         assert hasattr(result, 'mask')
         assert len(result) == result.count
 
-    def test_query_result_to_basetag(self):
-        """Test converting QueryResult to BaseTag."""
-        bt = BaseTag.create_random(100, ['Tag1', 'Tag2'], 0.2, seed=42)
+    def test_query_result_to_sparse_tag(self):
+        """Test converting QueryResult to SparseTag."""
+        bt = SparseTag.create_random(100, ['Tag1', 'Tag2'], 0.2, seed=42)
         result = bt.query({'column': 'Tag1', 'op': '>=', 'value': TagConfidence.MEDIUM})
 
         if result.count > 0:
-            filtered = result.to_basetag()
+            filtered = result.to_sparsetag()
             assert filtered.shape[0] == result.count
             assert filtered.shape[1] == bt.shape[1]
             assert filtered.column_names == bt.column_names
 
     def test_empty_query_result(self):
         """Test QueryResult with no matches."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.01, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.01, seed=42)
         # Query that likely returns no results
         result = bt.query({
             'operator': 'AND',

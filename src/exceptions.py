@@ -1,17 +1,17 @@
-"""Custom exceptions for BaseTag library."""
+"""Custom exceptions for SparseTag library."""
 
 
-class BaseTagError(Exception):
-    """Base exception for all BaseTag errors."""
+class SparseTagError(Exception):
+    """Base exception for all SparseTag errors."""
     pass
 
 
-class ValidationError(BaseTagError, ValueError):
+class ValidationError(SparseTagError, ValueError):
     """Raised when input validation fails. Inherits from ValueError for backward compatibility."""
     pass
 
 
-class QueryError(BaseTagError):
+class QueryError(SparseTagError):
     """Raised when query execution fails."""
     pass
 
@@ -41,6 +41,6 @@ class MatrixSizeError(ValidationError):
     pass
 
 
-class DataIntegrityError(BaseTagError):
+class DataIntegrityError(SparseTagError):
     """Raised when data validation fails."""
     pass

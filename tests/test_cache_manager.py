@@ -2,7 +2,7 @@
 import pytest
 import numpy as np
 from src.cache_manager import QueryCacheManager, QueryEncoder
-from src.basetag import BaseTag, TagConfidence, QueryResult
+from src.sparsetag import SparseTag, TagConfidence, QueryResult
 import json
 
 
@@ -19,7 +19,7 @@ class TestCacheManager:
     def test_get_put_cycle(self):
         """Test storing and retrieving results."""
         cm = QueryCacheManager()
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=False)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=False)
         query = {'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH}
         result = QueryResult(np.array([1, 2, 3]), bt)
 
@@ -37,7 +37,7 @@ class TestCacheManager:
     def test_cache_hit_miss_tracking(self):
         """Test hit/miss statistics are tracked correctly."""
         cm = QueryCacheManager()
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=False)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=False)
 
         query1 = {'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH}
         query2 = {'column': 'Tag1', 'op': '==', 'value': TagConfidence.LOW}
@@ -71,7 +71,7 @@ class TestCacheManager:
     def test_memory_bounds(self):
         """Test cache respects memory limits."""
         cm = QueryCacheManager(max_memory_mb=0.001)  # Very small limit (1KB)
-        bt = BaseTag.create_random(10000, ['Tag1'], 0.1, seed=42, enable_cache=False)
+        bt = SparseTag.create_random(10000, ['Tag1'], 0.1, seed=42, enable_cache=False)
         result = QueryResult(np.arange(5000), bt)  # Large result (~40KB)
 
         query = {'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH}
@@ -84,7 +84,7 @@ class TestCacheManager:
     def test_entry_limit(self):
         """Test cache respects entry limits."""
         cm = QueryCacheManager(max_entries=3)
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=False)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=False)
 
         # Add 3 entries (should all be cached)
         for i in range(3):
@@ -106,7 +106,7 @@ class TestCacheManager:
     def test_clear(self):
         """Test cache clearing."""
         cm = QueryCacheManager()
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=False)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=False)
         result = QueryResult(np.array([1, 2, 3]), bt)
         query = {'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH}
 
@@ -176,7 +176,7 @@ class TestCacheManager:
     def test_stats_accuracy(self):
         """Test that stats accurately reflect cache state."""
         cm = QueryCacheManager()
-        bt = BaseTag.create_random(1000, ['Tag1'], 0.1, seed=42, enable_cache=False)
+        bt = SparseTag.create_random(1000, ['Tag1'], 0.1, seed=42, enable_cache=False)
 
         # Add multiple entries
         for i in range(5):
@@ -193,7 +193,7 @@ class TestCacheManager:
     def test_large_result_threshold(self):
         """Test that large results are not cached based on threshold."""
         cm = QueryCacheManager(large_result_threshold_mb=0.001)  # 1KB threshold
-        bt = BaseTag.create_random(10000, ['Tag1'], 0.1, seed=42, enable_cache=False)
+        bt = SparseTag.create_random(10000, ['Tag1'], 0.1, seed=42, enable_cache=False)
 
         # Small result (should be cached)
         small_result = QueryResult(np.array([1, 2, 3]), bt)

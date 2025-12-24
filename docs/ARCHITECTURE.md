@@ -1,4 +1,4 @@
-# BaseTag Architecture
+# SparseTag Architecture
 
 ## Design Principles
 
@@ -9,9 +9,9 @@
 
 ## Core Components
 
-### BaseTag Class
+### SparseTag Class
 - **Purpose**: Main sparse matrix container for tag confidence data
-- **Location**: `src/basetag.py:171-900`
+- **Location**: `src/sparsetag.py:171-900`
 - **Responsibilities**:
   - Data storage in sparse CSC format
   - Query execution and optimization
@@ -41,18 +41,18 @@
 
 ### QueryResult Class
 - **Purpose**: Encapsulates query results with lazy evaluation
-- **Location**: `src/basetag.py:115-169`
+- **Location**: `src/sparsetag.py:115-169`
 - **Pattern**: Lazy mask computation for memory efficiency
 - **Properties**:
   - `indices`: Matching row indices (primary storage)
   - `count`: Number of matches
   - `mask`: Boolean array (computed on demand)
 - **Methods**:
-  - `to_basetag()`: Convert result to new BaseTag instance
+  - `to_sparsetag()`: Convert result to new SparseTag instance
 
 ### TagConfidence Enum
 - **Purpose**: Type-safe confidence levels
-- **Location**: `src/basetag.py:102-113`
+- **Location**: `src/sparsetag.py:102-113`
 - **Values**:
   - `NONE = 0`: No tag confidence (implicit zero in sparse)
   - `LOW = 1`: Low confidence
@@ -240,7 +240,7 @@ class RedisCacheManager(QueryCacheManager):
         return self.redis.get(key)
 
 # Usage:
-bt = BaseTag(..., enable_cache=False)
+bt = SparseTag(..., enable_cache=False)
 bt._cache_manager = RedisCacheManager(redis_client)
 ```
 
@@ -254,7 +254,7 @@ elif op == 'BETWEEN':
 ### 3. Additional Factory Methods
 ```python
 @classmethod
-def from_parquet(cls, path: str, column_names: List[str]) -> 'BaseTag':
+def from_parquet(cls, path: str, column_names: List[str]) -> 'SparseTag':
     """Load from Parquet file."""
     # ... implementation ...
 ```
@@ -305,7 +305,7 @@ def to_hdf5(self, path: str) -> None:
 ### Exception Hierarchy
 
 ```
-BaseTagError
+SparseTagError
 ├── ValidationError (ValueError)
 │   ├── MatrixSizeError
 │   └── DataIntegrityError

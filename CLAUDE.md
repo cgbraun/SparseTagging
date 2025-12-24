@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-BaseTag is a high-performance sparse array library for tag confidence data with intelligent query caching. It provides 95% memory savings and 100-170x speedups for sparse tag confidence queries through scipy sparse arrays and intelligent caching.
+SparseTag is a high-performance sparse array library for tag confidence data with intelligent query caching. It provides 95% memory savings and 100-170x speedups for sparse tag confidence queries through scipy sparse arrays and intelligent caching.
 
 **Current Version:** v2.4.0
 
@@ -43,7 +43,7 @@ pytest --cov=src tests/
 pytest --cov=src --cov-report=html tests/
 
 # Run type checking
-mypy src/basetag.py src/cache_manager.py src/exceptions.py
+mypy src/sparsetag.py src/cache_manager.py src/exceptions.py
 
 # Run benchmarks (from project root)
 cd src
@@ -76,22 +76,22 @@ The library is built around **sparse CSC arrays** (Compressed Sparse Column) fro
 
 ### Key Components
 
-**1. TagConfidence Enum** (`src/basetag.py:58-68`)
+**1. TagConfidence Enum** (`src/sparsetag.py:94-106`)
 - IntEnum with values: NONE=0, LOW=1, MEDIUM=2, HIGH=3
 - Sparse matrices only store non-zero values (1-3)
 - Zero means "no data" not "data with value zero"
 
-**2. BaseTag Class** (`src/basetag.py:127+`)
+**2. SparseTag Class** (`src/sparsetag.py:164+`)
 - Main sparse matrix container
 - Stores data as `scipy.sparse.csc_array` (uint8 dtype)
 - Column names mapped via `_column_index` dict
 - Query caching system with automatic invalidation
 
-**3. QueryResult Class** (`src/basetag.py:71-124`)
+**3. QueryResult Class** (`src/sparsetag.py:107-162`)
 - Returns from query operations
 - Stores row indices (not full boolean masks)
 - Lazy mask computation for memory efficiency
-- Provides `.count`, `.indices`, `.to_basetag()` methods
+- Provides `.count`, `.indices`, `.to_sparse_tag()` methods
 
 **4. Query Engine**
 - Single-column queries: Direct sparse column access
@@ -100,7 +100,7 @@ The library is built around **sparse CSC arrays** (Compressed Sparse Column) fro
 - Logical operators: AND, OR, NOT
 - Queries work directly on sparse matrix internals (no dense conversion)
 
-**5. Caching System** (`src/basetag.py:198-227`)
+**5. Caching System** (`src/cache_manager.py`)
 - SHA256 hash-based query cache
 - Automatic invalidation via `@invalidates_cache` decorator
 - Memory bounds: max_entries=256, max_memory_mb=10.0
@@ -136,20 +136,20 @@ The library is built around **sparse CSC arrays** (Compressed Sparse Column) fro
 
 ## Code Patterns
 
-### Creating BaseTag Instances
+### Creating SparseTag Instances
 
 ```python
 # From random data (for testing)
-bt = BaseTag.create_random(n_rows, column_names, fill_percent, seed, enable_cache=True)
+st = SparseTag.create_random(n_rows, column_names, fill_percent, seed, enable_cache=True)
 
 # From numpy array
-bt = BaseTag.from_array(dense_array, column_names)
+st = SparseTag.from_dense(dense_array, column_names)
 
 # From sparse matrix
-bt = BaseTag.from_sparse(sparse_matrix, column_names)
+st = SparseTag.from_sparse(sparse_matrix, column_names)
 
-# From dictionary
-bt = BaseTag.from_dict(data_dict, column_names, n_rows)
+# From empty matrix
+st = SparseTag.from_empty(n_rows, column_names)
 ```
 
 ### Query Structure
@@ -183,7 +183,7 @@ When adding data modification methods (e.g., `set_column`, `add_rows`), use the 
 
 ```python
 @invalidates_cache
-def set_column(self, column_name: str, values: np.ndarray) -> 'BaseTag':
+def set_column(self, column_name: str, values: np.ndarray) -> 'SparseTag':
     """Set values for a column (auto-invalidates cache)."""
     # ... modify self._data_internal ...
     return self  # Method chaining supported
@@ -195,7 +195,7 @@ This project enforces type safety with mypy strict mode:
 
 ```bash
 # Check core modules
-mypy src/basetag.py src/cache_manager.py src/exceptions.py
+mypy src/sparsetag.py src/cache_manager.py src/exceptions.py
 
 # Check all source files
 mypy src/
@@ -213,7 +213,7 @@ mypy src/
 # Use TYPE_CHECKING to avoid circular imports
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from .basetag import QueryResult
+    from .sparsetag import QueryResult
 
 # Use Any for NumPy types to avoid scipy typing issues
 from typing import Any

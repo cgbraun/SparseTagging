@@ -1,6 +1,6 @@
-# BaseTag Quick Start Guide
+# SparseTag Quick Start Guide
 
-Get started with BaseTag in 5 minutes.
+Get started with SparseTag in 5 minutes.
 
 ## Installation (30 seconds)
 
@@ -14,10 +14,10 @@ cd SparseTagging/src
 ## Your First Query (2 minutes)
 
 ```python
-from basetag import BaseTag, TagConfidence
+from sparsetag import SparseTag, TagConfidence
 
 # Create a sparse matrix with tag confidence data
-bt = BaseTag.create_random(
+bt = SparseTag.create_random(
     n_rows=100_000,           # 100K rows
     column_names=['Toxicity', 'Spam', 'Profanity'],
     fill_percent=0.01,        # 99% sparse
@@ -150,8 +150,8 @@ print(f"Matches: {result.count}")
 # Get row indices
 print(f"Indices: {result.indices}")
 
-# Convert result to new BaseTag with only matching rows
-filtered_bt = result.to_basetag()
+# Convert result to new SparseTag with only matching rows
+filtered_bt = result.to_sparsetag()
 print(f"Filtered shape: {filtered_bt.shape}")
 ```
 
@@ -175,7 +175,7 @@ result = bt.query(query_dict, use_cache=False)
 ## Tag Confidence Values
 
 ```python
-from basetag import TagConfidence
+from sparsetag import TagConfidence
 
 TagConfidence.NONE = 0      # No confidence / no data
 TagConfidence.LOW = 1       # Low confidence
@@ -194,7 +194,7 @@ TagConfidence.HIGH = 3      # High confidence
 
 | Operation | Code |
 |-----------|------|
-| Create | `BaseTag.create_random(n, cols, 0.01, enable_cache=True)` |
+| Create | `SparseTag.create_random(n, cols, 0.01, enable_cache=True)` |
 | Query | `bt.query({'column': 'Tag1', 'op': '==', 'value': 3})` |
 | Cache stats | `bt.cache_stats()` |
 | Clear cache | `bt.clear_cache()` |
@@ -219,12 +219,12 @@ TagConfidence.HIGH = 3      # High confidence
 
 ```python
 # ❌ Enabling cache for all-unique queries hurts performance
-bt = BaseTag.create_random(1000, ['Tag1'], 0.01, enable_cache=True)
+bt = SparseTag.create_random(1000, ['Tag1'], 0.01, enable_cache=True)
 for i in range(1000):
     bt.query({'column': 'Tag1', 'op': '==', 'value': i})  # All unique
 
 # ✅ Disable cache if queries don't repeat
-bt = BaseTag.create_random(1000, ['Tag1'], 0.01, enable_cache=False)
+bt = SparseTag.create_random(1000, ['Tag1'], 0.01, enable_cache=False)
 ```
 
 ### Memory for Large Result Sets

@@ -39,7 +39,7 @@ pip install "sparsetagging>=2.4.0,<3.0.0"
 
 **Interactive Dashboards** (enable caching):
 ```python
-bt = BaseTag.create_random(
+bt = SparseTag.create_random(
     n_rows=1000000,
     column_names=['Tag1', 'Tag2', 'Tag3'],
     fill_percent=0.01,
@@ -49,7 +49,7 @@ bt = BaseTag.create_random(
 
 **Batch Processing** (disable caching to save memory):
 ```python
-bt = BaseTag.from_array(
+bt = SparseTag.from_array(
     data_array,
     column_names=['Tag1', 'Tag2'],
     enable_cache=False  # Disable for one-time queries
@@ -60,7 +60,7 @@ bt = BaseTag.from_array(
 ```python
 from src.cache_manager import QueryCacheManager
 
-bt = BaseTag.from_sparse(sparse_matrix, column_names)
+bt = SparseTag.from_sparse(sparse_matrix, column_names)
 bt._cache_manager = QueryCacheManager(
     max_entries=512,        # Double default
     max_memory_mb=20.0,     # Double default
@@ -72,7 +72,7 @@ bt._cache_manager = QueryCacheManager(
 
 **Optimize Index Dtype** (for datasets with <65K rows):
 ```python
-bt = BaseTag.create_random(50000, ['Tag1', 'Tag2'], 0.01)
+bt = SparseTag.create_random(50000, ['Tag1', 'Tag2'], 0.01)
 
 # Check potential savings
 memory_before = bt.memory_usage()['indices']
@@ -268,7 +268,7 @@ if bt.sparsity < 0.5:
 **Solutions**:
 1. Enable caching for repeated queries:
    ```python
-   bt = BaseTag(..., enable_cache=True)
+   bt = SparseTag(..., enable_cache=True)
    ```
 
 2. Simplify query structure:
@@ -291,7 +291,7 @@ if bt.sparsity < 0.5:
 **Solutions**:
 1. Run mypy to catch issues early:
    ```bash
-   mypy src/basetag.py src/cache_manager.py
+   mypy src/sparsetag.py src/cache_manager.py
    ```
 
 2. Use type guard for conversions:
@@ -325,7 +325,7 @@ if bt.sparsity < 0.5:
 **Example**:
 ```python
 # Large sparse dataset
-bt = BaseTag.create_random(
+bt = SparseTag.create_random(
     n_rows=10_000_000,
     column_names=['Tag1', 'Tag2', 'Tag3'],
     fill_percent=0.001,  # 0.1% density
@@ -370,17 +370,17 @@ print(f"Memory: {bt.memory_usage()['total'] / 1024**3:.2f} GB")
 ```python
 import pickle
 
-# Serialize BaseTag
-with open('basetag.pkl', 'wb') as f:
+# Serialize SparseTag
+with open('sparsetag.pkl', 'wb') as f:
     pickle.dump(bt, f)
 
 # Deserialize in another process
-with open('basetag.pkl', 'rb') as f:
+with open('sparsetag.pkl', 'rb') as f:
     bt = pickle.load(f)
 ```
 
 **Considerations**:
-- Use process-local BaseTag instances (not thread-safe)
+- Use process-local SparseTag instances (not thread-safe)
 - Consider readonly cache for workers
 - Serialize data separately from cache
 
@@ -389,7 +389,7 @@ with open('basetag.pkl', 'rb') as f:
 from multiprocessing import Pool
 
 def process_partition(data_slice):
-    bt = BaseTag.from_array(data_slice, column_names)
+    bt = SparseTag.from_array(data_slice, column_names)
     results = []
     for query in queries:
         result = bt.query(query)
@@ -430,13 +430,13 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('basetag.log'),
+        logging.FileHandler('sparsetag.log'),
         logging.StreamHandler()
     ]
 )
 
-# Adjust BaseTag logging level
-logging.getLogger('src.basetag').setLevel(logging.DEBUG)
+# Adjust SparseTag logging level
+logging.getLogger('src.sparsetag').setLevel(logging.DEBUG)
 logging.getLogger('src.cache_manager').setLevel(logging.INFO)
 ```
 

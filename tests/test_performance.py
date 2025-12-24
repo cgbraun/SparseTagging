@@ -1,7 +1,7 @@
 """Performance regression tests."""
 import pytest
 import numpy as np
-from src.basetag import BaseTag, TagConfidence
+from src.sparsetag import SparseTag, TagConfidence
 
 
 class TestPerformanceOptimizations:
@@ -9,7 +9,7 @@ class TestPerformanceOptimizations:
 
     def test_cache_memory_tracking_is_accurate(self):
         """Incremental tracking matches actual memory."""
-        bt = BaseTag.create_random(10000, ['Tag1'], 0.01, seed=42, enable_cache=True)
+        bt = SparseTag.create_random(10000, ['Tag1'], 0.01, seed=42, enable_cache=True)
 
         # Populate cache
         for val in [TagConfidence.LOW, TagConfidence.MEDIUM, TagConfidence.HIGH]:
@@ -26,7 +26,7 @@ class TestPerformanceOptimizations:
     @pytest.mark.slow
     def test_no_performance_regression(self):
         """Ensure bug fixes don't slow queries."""
-        bt = BaseTag.create_random(100000, ['Tag1', 'Tag2'], 0.01, seed=42)
+        bt = SparseTag.create_random(100000, ['Tag1', 'Tag2'], 0.01, seed=42)
 
         import time
         query = {'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH}

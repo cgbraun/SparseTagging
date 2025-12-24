@@ -2,7 +2,7 @@
 import pytest
 import numpy as np
 from scipy import sparse
-from src.basetag import BaseTag, TagConfidence
+from src.sparsetag import SparseTag, TagConfidence
 
 
 class TestDataImmutability:
@@ -10,7 +10,7 @@ class TestDataImmutability:
 
     def test_query_does_not_modify_original(self):
         """Test that querying doesn't modify original data."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42)
         original_data = bt._data.toarray().copy()
 
         # Perform query
@@ -21,7 +21,7 @@ class TestDataImmutability:
 
     def test_query_result_indices_reference(self):
         """Test that QueryResult indices behavior is documented."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42)
         result = bt.query({'column': 'Tag1', 'op': '>=', 'value': TagConfidence.LOW})
 
         if result.count > 0:
@@ -31,13 +31,13 @@ class TestDataImmutability:
             assert len(indices) == result.count
             assert isinstance(indices, np.ndarray)
 
-    def test_to_basetag_creates_independent_copy(self):
-        """Test that to_basetag() creates independent data."""
-        bt = BaseTag.create_random(100, ['Tag1', 'Tag2'], 0.2, seed=42)
+    def test_to_sparse_tag_creates_independent_copy(self):
+        """Test that to_sparse_tag() creates independent data."""
+        bt = SparseTag.create_random(100, ['Tag1', 'Tag2'], 0.2, seed=42)
         result = bt.query({'column': 'Tag1', 'op': '>=', 'value': TagConfidence.MEDIUM})
 
         if result.count > 0:
-            filtered = result.to_basetag()
+            filtered = result.to_sparsetag()
 
             # Modifying filtered should not affect original
             # (In practice, we can't modify sparse matrix directly, but test structure)
@@ -47,7 +47,7 @@ class TestDataImmutability:
 
     def test_optimize_dtype_inplace_false_preserves_original(self):
         """Test that optimize with inplace=False doesn't modify original."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42)
         original_dtype = bt._data.indices.dtype
         original_data = bt._data.toarray().copy()
 
@@ -60,7 +60,7 @@ class TestDataImmutability:
 
     def test_optimize_dtype_inplace_true_modifies_original(self):
         """Test that optimize with inplace=True modifies in place."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42)
         original_id = id(bt._data)
 
         # Optimize with inplace=True
@@ -77,7 +77,7 @@ class TestCacheInvalidation:
 
     def test_cache_exists_after_query(self):
         """Test that cache is populated after query."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=True)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=True)
 
         # First query
         bt.query({'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH})
@@ -87,7 +87,7 @@ class TestCacheInvalidation:
 
     def test_repeated_query_uses_cache(self):
         """Test that repeated queries hit cache."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=True)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=True)
 
         query = {'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH}
 
@@ -102,7 +102,7 @@ class TestCacheInvalidation:
 
     def test_clear_cache_empties_cache(self):
         """Test that clear_cache() removes all entries."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=True)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=True)
 
         # Populate cache
         bt.query({'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH})
@@ -117,7 +117,7 @@ class TestCacheInvalidation:
 
     def test_cache_disabled_no_caching(self):
         """Test that cache can be disabled."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=False)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=False)
 
         # Query multiple times
         bt.query({'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH})
@@ -129,7 +129,7 @@ class TestCacheInvalidation:
 
     def test_use_cache_false_bypasses_cache(self):
         """Test that use_cache=False bypasses cache."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=True)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=True)
 
         query = {'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH}
 
@@ -150,7 +150,7 @@ class TestSparsityConsistency:
 
     def test_sparsity_matches_nnz(self):
         """Test sparsity percentage matches actual non-zero count."""
-        bt = BaseTag.create_random(1000, ['Tag1', 'Tag2'], 0.1, seed=42)
+        bt = SparseTag.create_random(1000, ['Tag1', 'Tag2'], 0.1, seed=42)
 
         total_elements = bt.shape[0] * bt.shape[1]
         nnz = bt._data.nnz
@@ -160,19 +160,19 @@ class TestSparsityConsistency:
 
     def test_empty_matrix_100_percent_sparse(self):
         """Test empty matrix reports 100% sparsity (1.0)."""
-        bt = BaseTag.create_empty(100, ['Tag1', 'Tag2'])
+        bt = SparseTag.create_empty(100, ['Tag1', 'Tag2'])
         assert bt.sparsity == 1.0
 
     def test_full_matrix_zero_percent_sparse(self):
         """Test completely filled matrix reports 0% sparsity (0.0)."""
         data = np.full((10, 3), TagConfidence.HIGH, dtype=np.uint8)
-        bt = BaseTag.from_dense(data, ['A', 'B', 'C'])
+        bt = SparseTag.from_dense(data, ['A', 'B', 'C'])
 
         assert bt.sparsity == 0.0
 
     def test_sparsity_after_optimization(self):
         """Test sparsity unchanged after dtype optimization."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42)
         original_sparsity = bt.sparsity
 
         bt.optimize_indices_dtype(inplace=True)
@@ -185,7 +185,7 @@ class TestInternalDataConsistency:
 
     def test_column_index_matches_column_names(self):
         """Test _column_index dict matches column_names."""
-        bt = BaseTag.create_random(100, ['A', 'B', 'C'], 0.1, seed=42)
+        bt = SparseTag.create_random(100, ['A', 'B', 'C'], 0.1, seed=42)
 
         assert len(bt._column_index) == len(bt.column_names)
         for i, name in enumerate(bt.column_names):
@@ -193,7 +193,7 @@ class TestInternalDataConsistency:
 
     def test_shape_matches_data_shape(self):
         """Test shape property matches actual data shape."""
-        bt = BaseTag.create_random(100, ['Tag1', 'Tag2'], 0.1, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1', 'Tag2'], 0.1, seed=42)
 
         assert bt.shape == bt._data.shape
         assert bt.shape[0] == 100
@@ -201,7 +201,7 @@ class TestInternalDataConsistency:
 
     def test_nnz_matches_data_nnz(self):
         """Test that nnz count is consistent."""
-        bt = BaseTag.create_random(1000, ['Tag1'], 0.05, seed=42)
+        bt = SparseTag.create_random(1000, ['Tag1'], 0.05, seed=42)
 
         # Count non-zeros manually
         manual_nnz = np.count_nonzero(bt._data.toarray())
@@ -210,7 +210,7 @@ class TestInternalDataConsistency:
 
     def test_csc_format_maintained(self):
         """Test that CSC format is maintained throughout operations."""
-        bt = BaseTag.create_random(100, ['Tag1', 'Tag2'], 0.1, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1', 'Tag2'], 0.1, seed=42)
 
         # Check format before query
         assert bt._data.format == 'csc'
@@ -225,7 +225,7 @@ class TestInternalDataConsistency:
 
     def test_dtype_maintained(self):
         """Test that uint8 dtype is maintained."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42)
 
         assert bt._data.dtype == np.uint8
 
@@ -239,14 +239,14 @@ class TestQueryResultConsistency:
 
     def test_count_matches_indices_length(self):
         """Test that count matches len(indices)."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.2, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.2, seed=42)
         result = bt.query({'column': 'Tag1', 'op': '>=', 'value': TagConfidence.MEDIUM})
 
         assert result.count == len(result.indices)
 
     def test_mask_nnz_matches_count(self):
         """Test that mask non-zero count matches result count."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.2, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.2, seed=42)
         result = bt.query({'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH})
 
         mask = result.mask
@@ -254,14 +254,14 @@ class TestQueryResultConsistency:
 
     def test_len_matches_count(self):
         """Test that len(result) matches count."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.2, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.2, seed=42)
         result = bt.query({'column': 'Tag1', 'op': '>=', 'value': TagConfidence.LOW})
 
         assert len(result) == result.count
 
     def test_indices_are_sorted(self):
         """Test that result indices are in sorted order."""
-        bt = BaseTag.create_random(1000, ['Tag1'], 0.1, seed=42)
+        bt = SparseTag.create_random(1000, ['Tag1'], 0.1, seed=42)
         result = bt.query({'column': 'Tag1', 'op': '>=', 'value': TagConfidence.LOW})
 
         if result.count > 1:
@@ -269,7 +269,7 @@ class TestQueryResultConsistency:
 
     def test_indices_within_bounds(self):
         """Test that all indices are within valid range."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.2, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.2, seed=42)
         result = bt.query({'column': 'Tag1', 'op': '>=', 'value': TagConfidence.LOW})
 
         if result.count > 0:
@@ -282,7 +282,7 @@ class TestMemoryConsistency:
 
     def test_memory_usage_returns_dict(self):
         """Test memory_usage returns expected structure."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42)
         mem = bt.memory_usage()
 
         assert isinstance(mem, dict)
@@ -291,7 +291,7 @@ class TestMemoryConsistency:
 
     def test_memory_usage_positive(self):
         """Test that memory usage is positive."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42)
         mem = bt.memory_usage()
 
         # All memory values should be positive
@@ -301,7 +301,7 @@ class TestMemoryConsistency:
 
     def test_cache_memory_tracking_accuracy(self):
         """Test cache memory tracking matches actual."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=True)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42, enable_cache=True)
 
         # Populate cache
         bt.query({'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH})
@@ -319,15 +319,15 @@ class TestFactoryMethodConsistency:
 
     def test_create_random_with_same_seed_identical(self):
         """Test same seed produces identical matrices."""
-        bt1 = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42)
-        bt2 = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42)
+        bt1 = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42)
+        bt2 = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42)
 
         assert np.array_equal(bt1._data.toarray(), bt2._data.toarray())
 
     def test_create_random_different_seed_different(self):
         """Test different seeds produce different matrices."""
-        bt1 = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42)
-        bt2 = BaseTag.create_random(100, ['Tag1'], 0.1, seed=99)
+        bt1 = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42)
+        bt2 = SparseTag.create_random(100, ['Tag1'], 0.1, seed=99)
 
         # Should be different (with high probability)
         assert not np.array_equal(bt1._data.toarray(), bt2._data.toarray())
@@ -340,7 +340,7 @@ class TestFactoryMethodConsistency:
             [3, 0, 1]
         ], dtype=np.uint8)
 
-        bt = BaseTag.from_dense(original, ['A', 'B', 'C'])
+        bt = SparseTag.from_dense(original, ['A', 'B', 'C'])
         result = bt._data.toarray()
 
         assert np.array_equal(original, result)
@@ -349,6 +349,6 @@ class TestFactoryMethodConsistency:
         """Test from_sparse preserves data values."""
         data = sparse.csc_array(np.array([[1, 2], [3, 0], [0, 2]], dtype=np.uint8))
 
-        bt = BaseTag.from_sparse(data, ['Tag1', 'Tag2'])
+        bt = SparseTag.from_sparse(data, ['Tag1', 'Tag2'])
 
         assert np.array_equal(data.toarray(), bt._data.toarray())

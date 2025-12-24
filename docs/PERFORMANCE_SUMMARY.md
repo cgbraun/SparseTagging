@@ -1,4 +1,4 @@
-# BaseTag v2.1.1 - Final Performance Report
+# SparseTag v2.1.1 - Final Performance Report
 
 **Complete benchmarks with NOT operator fix and memory optimization**
 
@@ -10,7 +10,7 @@ Version: 2.1.1
 
 ## Executive Summary
 
-BaseTag v2.1.1 delivers exceptional performance for sparse tag confidence data:
+SparseTag v2.1.1 delivers exceptional performance for sparse tag confidence data:
 
 - **169x faster** than dense arrays (cached, 1M rows)
 - **95% memory savings** vs dense (consistent across all sizes)
@@ -142,7 +142,7 @@ BaseTag v2.1.1 delivers exceptional performance for sparse tag confidence data:
 
 **All configurations: 5/5 tests passed** ✅
 
-1. ✅ BaseTag Construction
+1. ✅ SparseTag Construction
 2. ✅ Basic Query  
 3. ✅ Cache Functionality
 4. ✅ Dense vs Sparse Consistency
@@ -246,7 +246,7 @@ For matrices <65,536 rows, `optimize_indices_dtype()` converts indices from int3
 
 ```python
 # Production setup for large matrices
-bt = BaseTag.create_random(
+bt = SparseTag.create_random(
     n_rows=1_000_000,
     column_names=['Tag1', 'Tag2'],
     fill_percent=0.01,
@@ -262,7 +262,7 @@ if bt.shape[0] < 65536:
 
 ## Conclusion
 
-BaseTag v2.1.1 is production-ready with:
+SparseTag v2.1.1 is production-ready with:
 
 - ✅ **Correct NOT semantics** (matches sparse data behavior)
 - ✅ **Exceptional performance** (169x speedup at scale)
@@ -270,13 +270,13 @@ BaseTag v2.1.1 is production-ready with:
 - ✅ **Reliable** (100% test pass rate)
 - ✅ **Optimized** (50% indices savings available)
 
-**Bottom Line:** For matrices >100K rows with >90% sparsity and repeated queries, BaseTag v2.1.1 is the clear winner.
+**Bottom Line:** For matrices >100K rows with >90% sparsity and repeated queries, SparseTag v2.1.1 is the clear winner.
 
 ---
 
 ## Files Included
 
-- `src/basetag.py` - Core library with all fixes
+- `src/sparsetag.py` - Core library with all fixes
 - `src/benchmark.py` - Comprehensive benchmark suite
 - `docs/performance_report_small_*.txt` - Detailed small matrix results
 - `docs/performance_report_medium_*.txt` - Detailed medium matrix results
@@ -288,6 +288,6 @@ BaseTag v2.1.1 is production-ready with:
 ---
 
 **Report Generated:** 2025-12-19 23:31:05  
-**BaseTag Version:** 2.1.1  
+**SparseTag Version:** 2.1.1  
 **Status:** All Tests Passed ✅  
 **Confidence:** 1.0 (Production Ready)

@@ -1,8 +1,8 @@
 """SparseTagging - High-performance sparse array library for tag confidence data."""
 
-from .basetag import BaseTag, TagConfidence, QueryResult
+from .sparsetag import SparseTag, TagConfidence, QueryResult
 from .exceptions import (
-    BaseTagError,
+    SparseTagError,
     ValidationError,
     QueryError,
     InvalidQueryStructureError,
@@ -14,10 +14,10 @@ from .exceptions import (
 )
 
 __all__ = [
-    'BaseTag',
+    'SparseTag',
     'TagConfidence',
     'QueryResult',
-    'BaseTagError',
+    'SparseTagError',
     'ValidationError',
     'QueryError',
     'InvalidQueryStructureError',

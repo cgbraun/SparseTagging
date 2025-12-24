@@ -2,7 +2,7 @@
 import pytest
 import numpy as np
 from scipy import sparse
-from src.basetag import BaseTag, TagConfidence
+from src.sparsetag import SparseTag, TagConfidence
 
 
 class TestBasicWorkflows:
@@ -11,16 +11,16 @@ class TestBasicWorkflows:
     def test_create_query_filter_workflow(self):
         """Test: Create → Query → Filter → Extract workflow."""
         # Create data
-        bt = BaseTag.create_random(1000, ['Tag1', 'Tag2', 'Tag3'], 0.1, seed=42)
+        bt = SparseTag.create_random(1000, ['Tag1', 'Tag2', 'Tag3'], 0.1, seed=42)
         assert bt.shape == (1000, 3)
 
         # Query for high confidence tags
         result = bt.query({'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH})
         assert result.count >= 0
 
-        # Filter to new BaseTag
+        # Filter to new SparseTag
         if result.count > 0:
-            filtered = result.to_basetag()
+            filtered = result.to_sparsetag()
             assert filtered.shape[0] == result.count
             assert filtered.shape[1] == 3
             assert filtered.column_names == ['Tag1', 'Tag2', 'Tag3']
@@ -31,13 +31,13 @@ class TestBasicWorkflows:
 
     def test_multi_stage_filtering(self):
         """Test: Multiple query stages to progressively filter data."""
-        bt = BaseTag.create_random(1000, ['A', 'B', 'C'], 0.2, seed=42)
+        bt = SparseTag.create_random(1000, ['A', 'B', 'C'], 0.2, seed=42)
 
         # Stage 1: Filter by column A
         result1 = bt.query({'column': 'A', 'op': '>=', 'value': TagConfidence.MEDIUM})
 
         if result1.count > 0:
-            filtered1 = result1.to_basetag()
+            filtered1 = result1.to_sparsetag()
 
             # Stage 2: Filter result by column B
             result2 = filtered1.query({'column': 'B', 'op': '==', 'value': TagConfidence.HIGH})
@@ -48,7 +48,7 @@ class TestBasicWorkflows:
     def test_create_optimize_query_workflow(self):
         """Test: Create → Optimize → Query workflow."""
         # Create small matrix
-        bt = BaseTag.create_random(200, ['Tag1', 'Tag2'], 0.1, seed=42)
+        bt = SparseTag.create_random(200, ['Tag1', 'Tag2'], 0.1, seed=42)
 
         # Optimize indices
         bt.optimize_indices_dtype(inplace=True)
@@ -66,7 +66,7 @@ class TestCachingWorkflows:
 
     def test_repeated_query_workflow(self):
         """Test workflow with repeated queries (cache hits)."""
-        bt = BaseTag.create_random(1000, ['Tag1'], 0.1, seed=42, enable_cache=True)
+        bt = SparseTag.create_random(1000, ['Tag1'], 0.1, seed=42, enable_cache=True)
 
         query = {'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH}
 
@@ -86,7 +86,7 @@ class TestCachingWorkflows:
 
     def test_query_pattern_workflow(self):
         """Test realistic query pattern with partial cache hits."""
-        bt = BaseTag.create_random(1000, ['A', 'B'], 0.1, seed=42, enable_cache=True)
+        bt = SparseTag.create_random(1000, ['A', 'B'], 0.1, seed=42, enable_cache=True)
 
         queries = [
             {'column': 'A', 'op': '==', 'value': TagConfidence.HIGH},
@@ -105,7 +105,7 @@ class TestCachingWorkflows:
 
     def test_cache_clear_workflow(self):
         """Test workflow with cache clearing."""
-        bt = BaseTag.create_random(500, ['Tag1'], 0.1, seed=42, enable_cache=True)
+        bt = SparseTag.create_random(500, ['Tag1'], 0.1, seed=42, enable_cache=True)
 
         # Populate cache
         bt.query({'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH})
@@ -126,7 +126,7 @@ class TestComplexQueryWorkflows:
 
     def test_progressive_and_refinement(self):
         """Test progressively refining with AND conditions."""
-        bt = BaseTag.create_random(1000, ['A', 'B', 'C', 'D'], 0.15, seed=42)
+        bt = SparseTag.create_random(1000, ['A', 'B', 'C', 'D'], 0.15, seed=42)
 
         # Start with single condition
         result1 = bt.query({'column': 'A', 'op': '>=', 'value': TagConfidence.MEDIUM})
@@ -159,7 +159,7 @@ class TestComplexQueryWorkflows:
 
     def test_or_expansion_workflow(self):
         """Test expanding results with OR conditions."""
-        bt = BaseTag.create_random(1000, ['A', 'B'], 0.1, seed=42)
+        bt = SparseTag.create_random(1000, ['A', 'B'], 0.1, seed=42)
 
         # Single column
         result1 = bt.query({'column': 'A', 'op': '==', 'value': TagConfidence.HIGH})
@@ -180,7 +180,7 @@ class TestComplexQueryWorkflows:
 
     def test_complex_nested_workflow(self):
         """Test complex nested query workflow."""
-        bt = BaseTag.create_random(1000, ['A', 'B', 'C'], 0.15, seed=42)
+        bt = SparseTag.create_random(1000, ['A', 'B', 'C'], 0.15, seed=42)
 
         # Complex query: (A==HIGH OR B==HIGH) AND C>=MEDIUM
         result = bt.query({
@@ -216,19 +216,19 @@ class TestDataTransformationWorkflows:
 
     @pytest.mark.skip(reason="from_dict not yet implemented")
     def test_dict_to_query_workflow(self):
-        """Test: Dict → BaseTag → Query workflow (placeholder)."""
+        """Test: Dict → SparseTag → Query workflow (placeholder)."""
         pass
 
     def test_array_to_sparse_workflow(self):
-        """Test: Dense array → BaseTag → Sparse operations."""
+        """Test: Dense array → SparseTag → Sparse operations."""
         # Create dense array
         dense = np.zeros((100, 3), dtype=np.uint8)
         dense[::10, 0] = TagConfidence.HIGH
         dense[::5, 1] = TagConfidence.MEDIUM
         dense[::2, 2] = TagConfidence.LOW
 
-        # Convert to BaseTag
-        bt = BaseTag.from_dense(dense, ['A', 'B', 'C'])
+        # Convert to SparseTag
+        bt = SparseTag.from_dense(dense, ['A', 'B', 'C'])
 
         # Verify sparsity (ratio 0-1, not percentage)
         assert bt.sparsity > 0.5  # > 50% sparse
@@ -239,13 +239,13 @@ class TestDataTransformationWorkflows:
 
     def test_sparse_to_filtered_sparse_workflow(self):
         """Test: Sparse → Query → Filtered sparse → Query again."""
-        bt = BaseTag.create_random(1000, ['A', 'B', 'C'], 0.1, seed=42)
+        bt = SparseTag.create_random(1000, ['A', 'B', 'C'], 0.1, seed=42)
 
         # First filter
         result1 = bt.query({'column': 'A', 'op': '>=', 'value': TagConfidence.MEDIUM})
 
         if result1.count > 10:
-            filtered = result1.to_basetag()
+            filtered = result1.to_sparsetag()
 
             # Second filter on filtered data
             result2 = filtered.query({'column': 'B', 'op': '==', 'value': TagConfidence.HIGH})
@@ -261,7 +261,7 @@ class TestMemoryOptimizationWorkflows:
     def test_create_large_optimize_workflow(self):
         """Test creating large sparse matrix and optimizing."""
         # Create large sparse matrix
-        bt = BaseTag.create_random(50000, ['Tag1'], 0.01, seed=42)
+        bt = SparseTag.create_random(50000, ['Tag1'], 0.01, seed=42)
 
         original_indices_bytes = bt._data.indices.nbytes
 
@@ -281,7 +281,7 @@ class TestMemoryOptimizationWorkflows:
 
     def test_memory_tracking_workflow(self):
         """Test tracking memory through operations."""
-        bt = BaseTag.create_random(10000, ['Tag1', 'Tag2'], 0.05, seed=42, enable_cache=True)
+        bt = SparseTag.create_random(10000, ['Tag1', 'Tag2'], 0.05, seed=42, enable_cache=True)
 
         # Initial memory
         mem1 = bt.memory_usage()
@@ -302,7 +302,7 @@ class TestRealWorldScenarios:
     def test_tag_filtering_dashboard_scenario(self):
         """Simulate tag filtering dashboard: multiple filters, caching."""
         # Simulate 10K items with 10 tag columns
-        bt = BaseTag.create_random(
+        bt = SparseTag.create_random(
             10000,
             [f'Tag{i}' for i in range(10)],
             0.05,
@@ -338,7 +338,7 @@ class TestRealWorldScenarios:
     def test_batch_processing_scenario(self):
         """Simulate batch processing: load, filter, export."""
         # Load data
-        bt = BaseTag.create_random(5000, ['Quality', 'Relevance', 'Safety'], 0.1, seed=42)
+        bt = SparseTag.create_random(5000, ['Quality', 'Relevance', 'Safety'], 0.1, seed=42)
 
         # Filter: High quality AND high relevance
         result = bt.query({
@@ -351,7 +351,7 @@ class TestRealWorldScenarios:
 
         # Export filtered subset
         if result.count > 0:
-            filtered = result.to_basetag()
+            filtered = result.to_sparsetag()
 
             # Verify exported data
             assert filtered.shape[0] == result.count
@@ -364,19 +364,19 @@ class TestRealWorldScenarios:
 
     def test_incremental_analysis_scenario(self):
         """Simulate incremental analysis: multiple queries building on each other."""
-        bt = BaseTag.create_random(2000, ['A', 'B', 'C', 'D'], 0.1, seed=42)
+        bt = SparseTag.create_random(2000, ['A', 'B', 'C', 'D'], 0.1, seed=42)
 
         # Analysis step 1: Find all HIGH in A
         high_a = bt.query({'column': 'A', 'op': '==', 'value': TagConfidence.HIGH})
 
         # Analysis step 2: Of those, how many have HIGH in B?
         if high_a.count > 0:
-            filtered_a = high_a.to_basetag()
+            filtered_a = high_a.to_sparsetag()
             high_b = filtered_a.query({'column': 'B', 'op': '==', 'value': TagConfidence.HIGH})
 
             # Analysis step 3: Of those, how many have HIGH in C?
             if high_b.count > 0:
-                filtered_b = high_b.to_basetag()
+                filtered_b = high_b.to_sparsetag()
                 high_c = filtered_b.query({'column': 'C', 'op': '==', 'value': TagConfidence.HIGH})
 
                 # Should be progressively smaller
@@ -387,7 +387,7 @@ class TestRealWorldScenarios:
     def test_large_scale_workflow(self):
         """Test large-scale workflow (100K+ rows)."""
         # Create large dataset
-        bt = BaseTag.create_random(
+        bt = SparseTag.create_random(
             100000,
             ['Tag1', 'Tag2', 'Tag3'],
             0.01,

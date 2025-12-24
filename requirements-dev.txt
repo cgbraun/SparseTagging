@@ -1,0 +1,20 @@
+# Development dependencies for SparseTag library
+# Install with: pip install -r requirements-dev.txt
+
+# Include runtime dependencies
+-r requirements.txt
+
+# Testing framework
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# Type checking
+mypy>=1.0.0
+
+# Optional: Type stubs for better scipy type checking
+# scipy-stubs>=1.14.0
+
+# Optional: Code formatting and linting (if desired)
+# black>=23.0.0
+# ruff>=0.1.0
+# isort>=5.12.0

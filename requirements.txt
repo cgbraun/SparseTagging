@@ -1,3 +1,16 @@
+# Core runtime dependencies for SparseTag library
+# Tested with Python 3.9+
+
+# NumPy - Array operations and numerical computing
+# Version 1.20.0+ required for modern array API
+# Version 2.0+ recommended for better performance
 numpy>=1.20.0
-scipy>=1.7.0
+
+# SciPy - Sparse matrix operations
+# Version 1.8.0+ required for sparse.csc_array support
+# Version 1.14+ recommended for complete sparse array API
+scipy>=1.8.0
+
+# psutil - System and process utilities for memory tracking
+# Version 5.8.0+ required for cross-platform memory monitoring
 psutil>=5.8.0

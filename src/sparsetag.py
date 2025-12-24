@@ -1,6 +1,6 @@
 """
-Optimized BaseTag Implementation v2
-====================================
+Optimized SparseTag Implementation v2
+======================================
 This version works directly with sparse matrix internals for maximum performance.
 
 Key optimizations:
@@ -32,11 +32,13 @@ from .exceptions import (
     InvalidQueryStructureError
 )
 from .cache_manager import QueryCacheManager
+from .sparse_protocol import CSCArrayProtocol, SparseInputProtocol
 
 logger = logging.getLogger(__name__)
 
 # Type alias for backward compatibility during sparse matrix → array migration
 # Supports both deprecated sparse.spmatrix and current sparse.sparray formats
+# Note: We use SparseInputProtocol for type hints to work around scipy's incomplete type stubs
 SparseType = Union[sparse.spmatrix, sparse.sparray]
 
 
@@ -103,31 +105,32 @@ class TagConfidence(enum.IntEnum):
 
 
 class QueryResult:
-    """Result object from BaseTag query operations."""
+    """Result object from SparseTag query operations."""
     
-    def __init__(self, indices: np.ndarray, parent: 'BaseTag'):
+    def __init__(self, indices: np.ndarray, parent: 'SparseTag'):
         """
         Initialize QueryResult from row indices.
-        
+
         Args:
             indices: Array of matching row indices
-            parent: Parent BaseTag instance
+            parent: Parent SparseTag instance
         """
         self._indices = np.asarray(indices, dtype=np.int64)
         self._parent = parent
-        self._mask_cache = None
+        self._mask_cache: Optional[CSCArrayProtocol] = None
         
     @property
-    def mask(self) -> sparse.sparray:
+    def mask(self) -> CSCArrayProtocol:
         """Get sparse boolean mask of matching rows."""
         if self._mask_cache is None:
             # Create sparse mask from indices
             n_rows = self._parent.shape[0]
-            mask = np.zeros(n_rows, dtype=bool)
+            mask: np.ndarray = np.zeros(n_rows, dtype=bool)
             if len(self._indices) > 0:
                 mask[self._indices] = True
             # Return as sparse column vector
-            self._mask_cache = sparse.csc_array(mask.reshape(-1, 1), dtype=bool)
+            mask_csc: CSCArrayProtocol = sparse.csc_array(mask.reshape(-1, 1), dtype=bool)
+            self._mask_cache = mask_csc
         return self._mask_cache
     
     @property
@@ -144,21 +147,21 @@ class QueryResult:
         """Return count of matches."""
         return self.count
     
-    def to_basetag(self) -> 'BaseTag':
-        """Create new BaseTag containing only matching rows."""
+    def to_sparsetag(self) -> 'SparseTag':
+        """Create new SparseTag containing only matching rows."""
         if self.count == 0:
-            logger.warning("Creating empty BaseTag from zero matches")
-            return BaseTag.create_empty(0, self._parent.column_names)
+            logger.warning("Creating empty SparseTag from zero matches")
+            return SparseTag.create_empty(0, self._parent.column_names)
         
         # Extract matching rows efficiently
         filtered_data = self._parent._data[self._indices, :]
-        return BaseTag.from_sparse(filtered_data, self._parent.column_names)
+        return SparseTag.from_sparse(filtered_data, self._parent.column_names)
     
     def __repr__(self) -> str:
         return f"QueryResult(matches={self.count})"
 
 
-class BaseTag:
+class SparseTag:
     """
     OPTIMIZED sparse matrix container for tag confidence data.
     
@@ -166,36 +169,37 @@ class BaseTag:
     """
     
     @staticmethod
-    def _ensure_csc_format(data: SparseType) -> sparse.sparray:
+    def _ensure_csc_format(data: SparseInputProtocol) -> CSCArrayProtocol:
         """
         Ensure data is in CSC sparse array format.
-        
+
         Accepts both sparse matrix (deprecated) and sparse array formats
         for backward compatibility, but always returns sparse array.
-        
+
         Args:
             data: Sparse matrix or array
-            
+
         Returns:
             CSC sparse array
-            
+
         Raises:
             ValueError: If data is not sparse
         """
         if not sparse.issparse(data):
             raise ValidationError("Data must be a scipy sparse matrix or array")
-        
+
         # Convert to CSC array if needed (handles both matrix and wrong format)
         if data.format != 'csc' or isinstance(data, sparse.spmatrix):
             logger.debug(f"Converting sparse {type(data).__name__} (format={data.format}) to CSC array")
-            data = sparse.csc_array(data)
-        
-        return data
+            result: CSCArrayProtocol = sparse.csc_array(data)
+            return result
+
+        return data  # type: ignore[return-value]
     
-    def __init__(self, data: SparseType, column_names: List[str], 
+    def __init__(self, data: SparseInputProtocol, column_names: List[str],
                  *, enable_cache: bool = True):
         """
-        Initialize BaseTag with optional query caching.
+        Initialize SparseTag with optional query caching.
         
         Args:
             data: Sparse matrix (will convert to CSC if needed)
@@ -233,18 +237,18 @@ class BaseTag:
         self._data_version = 0              # Track modifications (increments on changes)
         
         logger.info(
-            f"Created BaseTag: shape={data.shape}, "
+            f"Created SparseTag: shape={data.shape}, "
             f"nnz={data.nnz}, sparsity={1 - data.nnz / (data.shape[0] * data.shape[1]):.2%}, "
             f"cache_enabled={enable_cache}"
         )
     
     @property
-    def _data(self) -> sparse.sparray:
+    def _data(self) -> CSCArrayProtocol:
         """Get sparse array data."""
         return self._data_internal
-    
+
     @_data.setter
-    def _data(self, new_data: SparseType) -> None:
+    def _data(self, new_data: SparseInputProtocol) -> None:
         """
         Set sparse array data.
         Automatically invalidates cache on direct assignment.
@@ -253,7 +257,7 @@ class BaseTag:
             new_data: New sparse matrix or array (will convert to CSC array)
             
         Example:
-            >>> bt = BaseTag.create_random(1000, ['Tag1'], 0.01)
+            >>> bt = SparseTag.create_random(1000, ['Tag1'], 0.01)
             >>> bt._data = sparse.csc_array(...)  # Cache auto-cleared
         """
         # Validate and convert to CSC array
@@ -268,15 +272,15 @@ class BaseTag:
         logger.info(f"Data directly assigned - cache invalidated (version {self._data_version})")
     
     @classmethod
-    def from_sparse(cls, sparse_matrix: SparseType,
-                    column_names: List[str], **kwargs: Any) -> 'BaseTag':
-        """Create BaseTag from existing sparse matrix or array."""
+    def from_sparse(cls, sparse_matrix: SparseInputProtocol,
+                    column_names: List[str], **kwargs: Any) -> 'SparseTag':
+        """Create SparseTag from existing sparse matrix or array."""
         return cls(sparse_matrix, column_names, **kwargs)
     
     @classmethod
     def from_dense(cls, dense_array: np.ndarray, column_names: List[str],
-                   sparsity_threshold: float = 0.1, **kwargs: Any) -> 'BaseTag':
-        """Create BaseTag from dense numpy array."""
+                   sparsity_threshold: float = 0.1, **kwargs: Any) -> 'SparseTag':
+        """Create SparseTag from dense numpy array."""
         if not isinstance(dense_array, np.ndarray):
             dense_array = np.array(dense_array)
         
@@ -295,8 +299,8 @@ class BaseTag:
         return cls(sparse_matrix, column_names, **kwargs)
     
     @classmethod
-    def create_empty(cls, n_rows: int, column_names: List[str], **kwargs: Any) -> 'BaseTag':
-        """Create empty BaseTag with all zeros."""
+    def create_empty(cls, n_rows: int, column_names: List[str], **kwargs: Any) -> 'SparseTag':
+        """Create empty SparseTag with all zeros."""
         n_cols = len(column_names)
         sparse_matrix = sparse.csc_array((n_rows, n_cols), dtype=np.uint8)
         return cls(sparse_matrix, column_names, **kwargs)
@@ -305,8 +309,8 @@ class BaseTag:
     def create_random(cls, n_rows: int, column_names: List[str],
                      fill_percent: float = 0.1,
                      seed: Optional[int] = None,
-                     enable_cache: bool = True) -> 'BaseTag':
-        """Create BaseTag with random test data."""
+                     enable_cache: bool = True) -> 'SparseTag':
+        """Create SparseTag with random test data."""
         if not 0 <= fill_percent <= 1:
             raise ValidationError("fill_percent must be between 0 and 1")
         
@@ -390,7 +394,7 @@ class BaseTag:
             InvalidColumnError: If column name is not found in the matrix
 
         Example:
-            >>> bt = BaseTag.create_random(100, ['Tag1', 'Tag2'], 0.1)
+            >>> bt = SparseTag.create_random(100, ['Tag1', 'Tag2'], 0.1)
             >>> bt._get_column_index('Tag1')
             0
             >>> bt._get_column_index('NonExistent')
@@ -438,7 +442,7 @@ class BaseTag:
             Inner dictionaries map TagConfidence values to integer counts.
 
         Example:
-            >>> bt = BaseTag.create_random(100, ['Tag1', 'Tag2'], 0.1, seed=42)
+            >>> bt = SparseTag.create_random(100, ['Tag1', 'Tag2'], 0.1, seed=42)
             >>> counts = bt.get_value_counts('Tag1')
             >>> counts['Tag1'][TagConfidence.HIGH]
             3
@@ -496,7 +500,7 @@ class BaseTag:
             InvalidOperatorError: If operator is unknown
 
         Example:
-            >>> bt = BaseTag.create_random(100, ['Tag1'], 0.1)
+            >>> bt = SparseTag.create_random(100, ['Tag1'], 0.1)
             >>> bt._transform_comparison('>=', TagConfidence.MEDIUM)
             {2, 3}  # MEDIUM and HIGH
             >>> bt._transform_comparison('!=', TagConfidence.LOW)
@@ -686,7 +690,7 @@ class BaseTag:
             ValueError: If query structure is invalid
             
         Example:
-            >>> bt = BaseTag.create_random(1000, ['Tag1'], 0.01)
+            >>> bt = SparseTag.create_random(1000, ['Tag1'], 0.01)
             >>> # First call - cache miss (~0.4ms)
             >>> result1 = bt.query({'column': 'Tag1', 'op': '==', 'value': HIGH})
             >>> # Second call - cache hit (~0.01ms, 40x faster!)
@@ -753,7 +757,7 @@ class BaseTag:
         - When you know queries won't repeat
 
         Example:
-            >>> bt = BaseTag.create_random(1000, ['Tag1'], 0.01)
+            >>> bt = SparseTag.create_random(1000, ['Tag1'], 0.01)
             >>> result = bt.query({'column': 'Tag1', 'op': '==', 'value': HIGH})
             >>> bt.clear_cache()
             >>> stats = bt.cache_stats()
@@ -779,7 +783,7 @@ class BaseTag:
             - enabled: Whether caching is enabled
 
         Example:
-            >>> bt = BaseTag.create_random(1000, ['Tag1'], 0.01)
+            >>> bt = SparseTag.create_random(1000, ['Tag1'], 0.01)
             >>> for _ in range(10):
             ...     bt.query({'column': 'Tag1', 'op': '==', 'value': HIGH})
             >>> stats = bt.cache_stats()
@@ -807,10 +811,10 @@ class BaseTag:
                 'enabled': False
             }
     
-    def filter(self, query_dict: Dict) -> 'BaseTag':
-        """Filter BaseTag and return new BaseTag with matching rows."""
+    def filter(self, query_dict: Dict) -> 'SparseTag':
+        """Filter SparseTag and return new SparseTag with matching rows."""
         result = self.query(query_dict)
-        return result.to_basetag()
+        return result.to_sparsetag()
     
     def to_dense(self) -> np.ndarray:
         """Convert to dense numpy array. WARNING: Memory intensive!"""
@@ -842,7 +846,7 @@ class BaseTag:
             'total': data_bytes + indices_bytes + indptr_bytes + column_names_bytes
         }
     
-    def optimize_indices_dtype(self, inplace: bool = True) -> Optional['BaseTag']:
+    def optimize_indices_dtype(self, inplace: bool = True) -> Optional['SparseTag']:
         """
         Optimize indices dtype to reduce memory usage.
         
@@ -854,13 +858,13 @@ class BaseTag:
         This can reduce indices memory by 50-75%.
         
         Args:
-            inplace: If True, modify in place. If False, return new BaseTag.
-            
+            inplace: If True, modify in place. If False, return new SparseTag.
+
         Returns:
-            None if inplace=True, new BaseTag if inplace=False
+            None if inplace=True, new SparseTag if inplace=False
             
         Example:
-            >>> bt = BaseTag.create_random(10000, ['Tag1'], 0.01)
+            >>> bt = SparseTag.create_random(10000, ['Tag1'], 0.01)
             >>> mem_before = bt.memory_usage()
             >>> bt.optimize_indices_dtype()
             >>> mem_after = bt.memory_usage()
@@ -881,7 +885,7 @@ class BaseTag:
             # Already optimal (int32 needed)
             if inplace:
                 return None
-            return BaseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
+            return SparseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
 
         # CRITICAL: Validate actual index values fit in target dtype
         # This prevents data corruption when sparse data is concentrated in high row indices
@@ -894,7 +898,7 @@ class BaseTag:
                 )
                 if inplace:
                     return None
-                return BaseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
+                return SparseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
 
         # Validate indptr values (column pointers can also overflow)
         if len(self._data.indptr) > 0:
@@ -905,13 +909,13 @@ class BaseTag:
                 )
                 if inplace:
                     return None
-                return BaseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
+                return SparseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
 
         # Check if already optimal
         if self._data.indices.dtype == target_dtype:
             if inplace:
                 return None
-            return BaseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
+            return SparseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
 
         # Safe to convert - all validation passed
         old_mem = self._data.indices.nbytes
@@ -927,11 +931,11 @@ class BaseTag:
         if inplace:
             self._data = new_data
             return None
-        return BaseTag(new_data, self._column_names, enable_cache=self._cache_manager is not None)
+        return SparseTag(new_data, self._column_names, enable_cache=self._cache_manager is not None)
     
     
     def __repr__(self) -> str:
         return (
-            f"BaseTag(shape={self.shape}, nnz={self.nnz}, "
+            f"SparseTag(shape={self.shape}, nnz={self.nnz}, "
             f"sparsity={self.sparsity:.2%}, columns={len(self._column_names)})"
         )

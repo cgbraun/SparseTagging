@@ -7,7 +7,7 @@ from typing import Dict, Optional, Union, TYPE_CHECKING, Any
 import numpy as np
 
 if TYPE_CHECKING:
-    from .basetag import QueryResult, TagConfidence
+    from .sparsetag import QueryResult, TagConfidence
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class QueryEncoder(json.JSONEncoder):
     """
     def default(self, obj: Any) -> Any:
         # Import here to avoid circular dependency
-        from .basetag import TagConfidence
+        from .sparsetag import TagConfidence
 
         if isinstance(obj, TagConfidence):
             return int(obj)
@@ -123,7 +123,7 @@ class QueryCacheManager:
     def _generate_key(self, query_dict: Dict[str, Any]) -> str:
         """Generate MD5 cache key from query dictionary."""
         # Import here to avoid circular dependency
-        from .basetag import TagConfidence
+        from .sparsetag import TagConfidence
 
         # Fast path for simple single-column queries
         if 'column' in query_dict and 'operator' not in query_dict:

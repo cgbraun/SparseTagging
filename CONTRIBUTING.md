@@ -1,4 +1,4 @@
-# Contributing to BaseTag
+# Contributing to SparseTag
 
 ## Development Setup
 
@@ -41,7 +41,7 @@ pytest --cov=src --cov-report=html tests/
 
 ```bash
 # Check core modules
-mypy src/basetag.py src/cache_manager.py src/exceptions.py
+mypy src/sparsetag.py src/cache_manager.py src/exceptions.py
 
 # Check all source files
 mypy src/
@@ -108,7 +108,7 @@ class TestFeatureName:
     def test_basic_functionality(self):
         """Test normal operation."""
         # Arrange
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1, seed=42)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1, seed=42)
 
         # Act
         result = bt.query({'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH})
@@ -118,7 +118,7 @@ class TestFeatureName:
 
     def test_error_handling(self):
         """Test error conditions."""
-        bt = BaseTag.create_random(100, ['Tag1'], 0.1)
+        bt = SparseTag.create_random(100, ['Tag1'], 0.1)
 
         with pytest.raises(InvalidColumnError):
             bt.query({'column': 'NonExistent', 'op': '==', 'value': TagConfidence.HIGH})

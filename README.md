@@ -1,4 +1,4 @@
-# BaseTag v2.4.0
+# SparseTag v2.4.0
 
 High-performance sparse array library for tag confidence data with intelligent query caching.
 
@@ -44,24 +44,40 @@ High-performance sparse array library for tag confidence data with intelligent q
 
 ## Installation
 
+### For Users (Runtime Only)
+
 ```bash
 pip install -r requirements.txt
 ```
 
+### For Developers (Includes Testing Tools)
+
+```bash
+pip install -r requirements-dev.txt
+```
+
 ### Requirements
 
-- Python 3.7+
-- NumPy ≥ 1.20
-- SciPy ≥ 1.7
-- psutil (for memory tracking)
+**Runtime:**
+- Python 3.9+
+- NumPy ≥ 1.20 (2.0+ recommended)
+- SciPy ≥ 1.8 (required for `sparse.csc_array`)
+- psutil ≥ 5.8 (for memory tracking)
+
+**Development (additional):**
+- pytest ≥ 7.0
+- pytest-cov ≥ 4.0
+- mypy ≥ 1.0
+
+See [REQUIREMENTS_GUIDE.md](docs/REQUIREMENTS_GUIDE.md) for detailed dependency information.
 
 ## Quick Start
 
 ```python
-from src.basetag import BaseTag, TagConfidence
+from src.sparsetag import SparseTag, TagConfidence
 
 # Create sparse matrix (1M rows, 99% sparse)
-bt = BaseTag.create_random(
+bt = SparseTag.create_random(
     n_rows=1_000_000,
     column_names=['Tag1', 'Tag2', 'Tag3'],
     fill_percent=0.01,
@@ -89,7 +105,7 @@ result = bt.query({
 # Memory optimization for smaller matrices
 if bt.shape[0] < 65536:
     bt.optimize_indices_dtype()  # Saves 50% indices memory
-    
+
 # Check cache statistics
 stats = bt.cache_stats()
 print(f"Hit rate: {stats['hit_rate']:.1%}")
@@ -169,7 +185,7 @@ bt.query({
 
 ```python
 # Enable/disable at construction
-bt = BaseTag.create_random(1000, ['Tag1'], 0.01, enable_cache=True)
+bt = SparseTag.create_random(1000, ['Tag1'], 0.01, enable_cache=True)
 
 # Disable per query
 result = bt.query(query_dict, use_cache=False)
@@ -202,7 +218,7 @@ bt_optimized = bt.optimize_indices_dtype(inplace=False)
 
 ```python
 # 100% type hint coverage with mypy enforcement
-from src.basetag import BaseTag, TagConfidence
+from src.sparsetag import SparseTag, TagConfidence
 from src.exceptions import ValidationError, InvalidColumnError
 
 # PEP 561 compliant - includes py.typed marker
@@ -223,21 +239,21 @@ except InvalidColumnError as e:  # Also catchable as KeyError
 
 ```python
 # From random data
-bt = BaseTag.create_random(n_rows, column_names, fill_percent, seed)
+bt = SparseTag.create_random(n_rows, column_names, fill_percent, seed)
 
 # From numpy array
-bt = BaseTag.from_array(dense_array, column_names)
+bt = SparseTag.from_array(dense_array, column_names)
 
 # From sparse matrix
-bt = BaseTag.from_sparse(sparse_matrix, column_names)
+bt = SparseTag.from_sparse(sparse_matrix, column_names)
 
 # From dictionary
-bt = BaseTag.from_dict(data_dict, column_names, n_rows)
+bt = SparseTag.from_dict(data_dict, column_names, n_rows)
 ```
 
 ## API Reference
 
-### BaseTag Class
+### SparseTag Class
 
 **Properties:**
 - `shape` - (n_rows, n_columns)
@@ -303,7 +319,7 @@ Default cache settings:
 
 ```python
 # Enable cache with defaults
-bt = BaseTag.create_random(100000, ['Tag1'], 0.01, enable_cache=True)
+bt = SparseTag.create_random(100000, ['Tag1'], 0.01, enable_cache=True)
 
 # Default cache limits:
 # - max_entries: 256
@@ -311,7 +327,7 @@ bt = BaseTag.create_random(100000, ['Tag1'], 0.01, enable_cache=True)
 # - large_result_threshold_mb: 1.0
 ```
 
-For custom cache configuration, modify the cache parameters in the BaseTag constructor (future enhancement).
+For custom cache configuration, modify the cache parameters in the SparseTag constructor (future enhancement).
 
 ## Performance Tips
 
@@ -354,7 +370,7 @@ MIT License - See [LICENSE](LICENSE) file for details.
 
 ## Authors
 
-BaseTag development team
+SparseTag development team
 
 ## Version History
 
