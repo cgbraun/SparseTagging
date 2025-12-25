@@ -1,0 +1,26 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 85%  # Match pytest --cov-fail-under
+        threshold: 1%  # Allow 1% decrease
+        if_ci_failed: error
+
+    patch:
+      default:
+        target: 85%  # New code should also be 85%+
+        threshold: 5%
+
+comment:
+  layout: "reach,diff,flags,tree"
+  behavior: default
+  require_changes: true
+  require_base: false
+  require_head: true
+
+ignore:
+  - "tests/*"  # Don't track coverage of tests themselves
+  - "src/benchmark.py"  # Benchmark script not critical
+
+github_checks:
+  annotations: true

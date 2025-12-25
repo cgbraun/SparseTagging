@@ -3,11 +3,12 @@
 import hashlib
 import json
 import logging
-from typing import Dict, Optional, Union, TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional, Union
+
 import numpy as np
 
 if TYPE_CHECKING:
-    from .sparsetag import QueryResult, TagConfidence
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -24,15 +25,16 @@ class QueryEncoder(json.JSONEncoder):
     Handles TagConfidence enums and NumPy types that aren't natively JSON serializable.
     This ensures cache keys can be generated for all valid query structures.
     """
+
     def default(self, obj: Any) -> Any:
         # Import here to avoid circular dependency
         from .sparsetag import TagConfidence
 
         if isinstance(obj, TagConfidence):
             return int(obj)
-        elif isinstance(obj, (np.integer, np.floating)):
+        if isinstance(obj, (np.integer, np.floating)):
             return int(obj) if isinstance(obj, np.integer) else float(obj)
-        elif isinstance(obj, np.ndarray):
+        if isinstance(obj, np.ndarray):
             return obj.tolist()
         return super().default(obj)
 
@@ -52,9 +54,9 @@ class QueryCacheManager:
         self,
         max_entries: int = DEFAULT_CACHE_MAX_ENTRIES,
         max_memory_mb: float = DEFAULT_CACHE_MAX_MEMORY_MB,
-        large_result_threshold_mb: float = DEFAULT_LARGE_RESULT_THRESHOLD_MB
+        large_result_threshold_mb: float = DEFAULT_LARGE_RESULT_THRESHOLD_MB,
     ) -> None:
-        self._cache: Dict[str, Any] = {}  # query_hash → QueryResult
+        self._cache: dict[str, Any] = {}  # query_hash → QueryResult
         self._cache_hits = 0
         self._cache_misses = 0
         self._cache_memory_bytes = 0
@@ -62,7 +64,7 @@ class QueryCacheManager:
         self._max_memory_mb = max_memory_mb
         self._large_result_threshold_mb = large_result_threshold_mb
 
-    def get(self, query_dict: Dict[str, Any]) -> Optional[Any]:
+    def get(self, query_dict: dict[str, Any]) -> Optional[Any]:
         """Get cached result for query, or None if not cached."""
         key = self._generate_key(query_dict)
         if key in self._cache:
@@ -72,7 +74,7 @@ class QueryCacheManager:
         self._cache_misses += 1
         return None
 
-    def put(self, query_dict: Dict[str, Any], result: Any) -> None:
+    def put(self, query_dict: dict[str, Any], result: Any) -> None:
         """Store query result in cache if it meets caching criteria."""
         if not self._should_cache(result):
             return
@@ -90,23 +92,21 @@ class QueryCacheManager:
         self._cache_memory_bytes = 0
         logger.info(f"Cache cleared: {old_size} entries removed")
 
-    def stats(self) -> Dict[str, Union[int, float, bool]]:
+    def stats(self) -> dict[str, Union[int, float, bool]]:
         """Get cache performance statistics."""
         total = self._cache_hits + self._cache_misses
         hit_rate = self._cache_hits / total if total > 0 else 0
 
         # Recalculate actual size for accuracy
-        size_bytes = sum(
-            r.indices.nbytes + CACHE_OVERHEAD_BYTES for r in self._cache.values()
-        )
+        size_bytes = sum(r.indices.nbytes + CACHE_OVERHEAD_BYTES for r in self._cache.values())
 
         return {
-            'hits': self._cache_hits,
-            'misses': self._cache_misses,
-            'hit_rate': hit_rate,
-            'size_entries': len(self._cache),
-            'size_bytes': size_bytes,
-            'size_mb': size_bytes / (1024**2)
+            "hits": self._cache_hits,
+            "misses": self._cache_misses,
+            "hit_rate": hit_rate,
+            "size_entries": len(self._cache),
+            "size_bytes": size_bytes,
+            "size_mb": size_bytes / (1024**2),
         }
 
     @property
@@ -120,21 +120,27 @@ class QueryCacheManager:
         """Get current cache memory usage in MB."""
         return self._cache_memory_bytes / (1024**2)
 
-    def _generate_key(self, query_dict: Dict[str, Any]) -> str:
+    def _generate_key(self, query_dict: dict[str, Any]) -> str:
         """Generate MD5 cache key from query dictionary."""
         # Import here to avoid circular dependency
         from .sparsetag import TagConfidence
 
         # Fast path for simple single-column queries
-        if 'column' in query_dict and 'operator' not in query_dict:
-            col = query_dict['column']
-            op = query_dict.get('op', '==')
+        if "column" in query_dict and "operator" not in query_dict:
+            col = query_dict["column"]
+            op = query_dict.get("op", "==")
 
-            if 'value' in query_dict:
-                val = int(query_dict['value']) if isinstance(query_dict['value'], TagConfidence) else query_dict['value']
+            if "value" in query_dict:
+                val = (
+                    int(query_dict["value"])
+                    if isinstance(query_dict["value"], TagConfidence)
+                    else query_dict["value"]
+                )
                 key_str = f"{col}|{op}|{val}"
-            elif 'values' in query_dict:
-                vals = tuple(int(v) if isinstance(v, TagConfidence) else v for v in query_dict['values'])
+            elif "values" in query_dict:
+                vals = tuple(
+                    int(v) if isinstance(v, TagConfidence) else v for v in query_dict["values"]
+                )
                 key_str = f"{col}|{op}|{vals}"
             else:
                 key_str = f"{col}|{op}"

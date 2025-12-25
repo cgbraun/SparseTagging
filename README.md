@@ -1,5 +1,10 @@
 # SparseTag v2.4.0
 
+![CI Status](https://github.com/your-org/sparsetagging/workflows/CI/badge.svg)
+![Coverage](https://codecov.io/gh/your-org/sparsetagging/branch/main/graph/badge.svg)
+![Python Versions](https://img.shields.io/badge/python-3.9%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 High-performance sparse array library for tag confidence data with intelligent query caching.
 
 ## What's New in v2.4.0
@@ -120,7 +125,7 @@ print(f"Cache memory: {stats['size_mb']:.3f} MB")
 class TagConfidence(IntEnum):
     NONE = 0    # No confidence / no data
     LOW = 1     # Low confidence
-    MEDIUM = 2  # Medium confidence  
+    MEDIUM = 2  # Medium confidence
     HIGH = 3    # High confidence
 ```
 
@@ -360,9 +365,23 @@ See `docs/` for:
 - Query plan optimization
 - Custom cache configuration API
 
+## Development
+
+This project uses modern DevOps practices:
+
+- **Testing**: pytest with ≥85% coverage requirement
+- **Type Safety**: mypy with strict mode, 100% type hint coverage
+- **Code Quality**: ruff for linting and formatting
+- **Pre-commit**: Automated quality checks before commit
+- **CI/CD**: GitHub Actions testing on Python 3.9-3.13
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and [docs/DEVOPS.md](docs/DEVOPS.md) for detailed tooling documentation.
+
 ## Contributing
 
 This is a research/prototype library. For production use, thorough testing is recommended.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
 ## License
 

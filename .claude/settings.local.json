@@ -27,7 +27,14 @@
       "Bash(for file in tests/*.py)",
       "Bash(do sed -i 's/from src\\\\.basetag import/from src.sparsetag import/g; s/BaseTag/SparseTag/g; s/BaseTagError/SparseTagError/g' \"$file\")",
       "Bash(ls:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(ruff check:*)",
+      "Bash(ruff format:*)",
+      "Bash(pytest:*)",
+      "Bash(pre-commit install:*)",
+      "Bash(find:*)",
+      "Bash(pre-commit run:*)",
+      "Bash(git add:*)"
     ]
   }
 }

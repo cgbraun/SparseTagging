@@ -11,7 +11,8 @@ Why this is needed:
 - Explicitly documents the sparse array interface we depend on
 """
 
-from typing import Protocol, Any, Tuple
+from typing import Any, Protocol
+
 import numpy as np
 from numpy.typing import NDArray
 
@@ -32,7 +33,7 @@ class CSCArrayProtocol(Protocol):
 
     # Array properties
     @property
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
         """Shape of the sparse array (rows, cols)."""
         ...
 
@@ -62,11 +63,11 @@ class CSCArrayProtocol(Protocol):
     """Column pointer array (length = ncols + 1)."""
 
     # Methods
-    def astype(self, dtype: Any) -> 'CSCArrayProtocol':
+    def astype(self, dtype: Any) -> "CSCArrayProtocol":
         """Convert to different dtype."""
         ...
 
-    def copy(self) -> 'CSCArrayProtocol':
+    def copy(self) -> "CSCArrayProtocol":
         """Create a deep copy."""
         ...
 
@@ -93,7 +94,7 @@ class SparseInputProtocol(Protocol):
         ...
 
     @property
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
         """Shape of the sparse array."""
         ...
 

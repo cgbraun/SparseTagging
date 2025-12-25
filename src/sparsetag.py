@@ -17,21 +17,20 @@ Performance improvements over v1:
 
 import enum
 import logging
+from functools import wraps
+from typing import Any, Callable, Optional, Union
+
 import numpy as np
 from scipy import sparse
-from typing import List, Dict, Union, Optional, Tuple, Set, Callable, Any
-import warnings
-from scipy.sparse import SparseEfficiencyWarning
-from functools import wraps
 
+from .cache_manager import QueryCacheManager
 from .exceptions import (
-    ValidationError,
     InvalidColumnError,
     InvalidOperatorError,
+    InvalidQueryStructureError,
     InvalidValueError,
-    InvalidQueryStructureError
+    ValidationError,
 )
-from .cache_manager import QueryCacheManager
 from .sparse_protocol import CSCArrayProtocol, SparseInputProtocol
 
 logger = logging.getLogger(__name__)
@@ -52,8 +51,8 @@ MAX_INT16_VALUE = 32767
 MAX_INT32_VALUE = 2147483647
 
 # Matrix size thresholds for dtype optimization
-INT8_THRESHOLD = 256      # Matrices with <256 rows can use int8 indices
-INT16_THRESHOLD = 65536   # Matrices with <65,536 rows can use int16 indices
+INT8_THRESHOLD = 256  # Matrices with <256 rows can use int8 indices
+INT16_THRESHOLD = 65536  # Matrices with <65,536 rows can use int16 indices
 
 # Cache configuration defaults
 DEFAULT_CACHE_MAX_ENTRIES = 256
@@ -82,22 +81,25 @@ def invalidates_cache(func: Callable[..., Any]) -> Callable[..., Any]:
             # ... modify data ...
             return self
     """
+
     @wraps(func)
     def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
         result = func(self, *args, **kwargs)
         self._invalidate_cache()
         logger.debug(f"{func.__name__} invalidated cache (version {self._data_version})")
         return result
+
     return wrapper
 
 
 class TagConfidence(enum.IntEnum):
     """Enumerated confidence levels for tags."""
+
     NONE = 0
     LOW = 1
     MEDIUM = 2
     HIGH = 3
-    
+
     @classmethod
     def get_valid_values(cls) -> set:
         """Return set of valid non-zero confidence values."""
@@ -106,8 +108,8 @@ class TagConfidence(enum.IntEnum):
 
 class QueryResult:
     """Result object from SparseTag query operations."""
-    
-    def __init__(self, indices: np.ndarray, parent: 'SparseTag'):
+
+    def __init__(self, indices: np.ndarray, parent: "SparseTag"):
         """
         Initialize QueryResult from row indices.
 
@@ -118,7 +120,7 @@ class QueryResult:
         self._indices = np.asarray(indices, dtype=np.int64)
         self._parent = parent
         self._mask_cache: Optional[CSCArrayProtocol] = None
-        
+
     @property
     def mask(self) -> CSCArrayProtocol:
         """Get sparse boolean mask of matching rows."""
@@ -132,31 +134,31 @@ class QueryResult:
             mask_csc: CSCArrayProtocol = sparse.csc_array(mask.reshape(-1, 1), dtype=bool)
             self._mask_cache = mask_csc
         return self._mask_cache
-    
+
     @property
     def indices(self) -> np.ndarray:
         """Get array of row indices where match."""
         return self._indices
-    
+
     @property
     def count(self) -> int:
         """Get count of matching rows."""
         return len(self._indices)
-    
+
     def __len__(self) -> int:
         """Return count of matches."""
         return self.count
-    
-    def to_sparsetag(self) -> 'SparseTag':
+
+    def to_sparsetag(self) -> "SparseTag":
         """Create new SparseTag containing only matching rows."""
         if self.count == 0:
             logger.warning("Creating empty SparseTag from zero matches")
             return SparseTag.create_empty(0, self._parent.column_names)
-        
+
         # Extract matching rows efficiently
         filtered_data = self._parent._data[self._indices, :]
         return SparseTag.from_sparse(filtered_data, self._parent.column_names)
-    
+
     def __repr__(self) -> str:
         return f"QueryResult(matches={self.count})"
 
@@ -164,10 +166,10 @@ class QueryResult:
 class SparseTag:
     """
     OPTIMIZED sparse matrix container for tag confidence data.
-    
+
     This version works directly with sparse matrix internals for maximum speed.
     """
-    
+
     @staticmethod
     def _ensure_csc_format(data: SparseInputProtocol) -> CSCArrayProtocol:
         """
@@ -189,59 +191,62 @@ class SparseTag:
             raise ValidationError("Data must be a scipy sparse matrix or array")
 
         # Convert to CSC array if needed (handles both matrix and wrong format)
-        if data.format != 'csc' or isinstance(data, sparse.spmatrix):
-            logger.debug(f"Converting sparse {type(data).__name__} (format={data.format}) to CSC array")
+        if data.format != "csc" or isinstance(data, sparse.spmatrix):
+            logger.debug(
+                f"Converting sparse {type(data).__name__} (format={data.format}) to CSC array"
+            )
             result: CSCArrayProtocol = sparse.csc_array(data)
             return result
 
         return data  # type: ignore[return-value]
-    
-    def __init__(self, data: SparseInputProtocol, column_names: List[str],
-                 *, enable_cache: bool = True):
+
+    def __init__(
+        self, data: SparseInputProtocol, column_names: list[str], *, enable_cache: bool = True
+    ):
         """
         Initialize SparseTag with optional query caching.
-        
+
         Args:
             data: Sparse matrix (will convert to CSC if needed)
             column_names: List of column names
             enable_cache: Enable query result caching (default: True)
-            
+
         Raises:
             ValueError: If data validation fails
         """
         # Validate and convert to CSC array format
         data = self._ensure_csc_format(data)
-        
+
         if data.dtype != np.uint8:
             logger.debug(f"Converting data from {data.dtype} to uint8")
             data = data.astype(np.uint8)
-        
+
         if len(column_names) != data.shape[1]:
             raise ValidationError(
-                f"Column count mismatch: {len(column_names)} names "
-                f"for {data.shape[1]} columns"
+                f"Column count mismatch: {len(column_names)} names for {data.shape[1]} columns"
             )
-        
+
         # Validate all values are 0-3
-        if data.data.size > 0:
-            if np.any(data.data > 3):
-                raise ValidationError("All values must be 0-3 (TagConfidence range)")
-        
+        if data.data.size > 0 and np.any(data.data > 3):
+            raise ValidationError("All values must be 0-3 (TagConfidence range)")
+
         # Store data using internal variable (property provides access with auto-invalidation)
         self._data_internal = data
         self._column_names = list(column_names)
         self._column_index = {name: idx for idx, name in enumerate(column_names)}
 
         # Cache infrastructure - delegate to QueryCacheManager
-        self._cache_manager: Optional[QueryCacheManager] = QueryCacheManager() if enable_cache else None
-        self._data_version = 0              # Track modifications (increments on changes)
-        
+        self._cache_manager: Optional[QueryCacheManager] = (
+            QueryCacheManager() if enable_cache else None
+        )
+        self._data_version = 0  # Track modifications (increments on changes)
+
         logger.info(
             f"Created SparseTag: shape={data.shape}, "
             f"nnz={data.nnz}, sparsity={1 - data.nnz / (data.shape[0] * data.shape[1]):.2%}, "
             f"cache_enabled={enable_cache}"
         )
-    
+
     @property
     def _data(self) -> CSCArrayProtocol:
         """Get sparse array data."""
@@ -252,70 +257,78 @@ class SparseTag:
         """
         Set sparse array data.
         Automatically invalidates cache on direct assignment.
-        
+
         Args:
             new_data: New sparse matrix or array (will convert to CSC array)
-            
+
         Example:
             >>> bt = SparseTag.create_random(1000, ['Tag1'], 0.01)
             >>> bt._data = sparse.csc_array(...)  # Cache auto-cleared
         """
         # Validate and convert to CSC array
         new_data = self._ensure_csc_format(new_data)
-        
+
         if new_data.dtype != np.uint8:
             logger.debug(f"Converting from {new_data.dtype} to uint8")
             new_data = new_data.astype(np.uint8)
-        
+
         self._data_internal = new_data
         self._invalidate_cache()
         logger.info(f"Data directly assigned - cache invalidated (version {self._data_version})")
-    
+
     @classmethod
-    def from_sparse(cls, sparse_matrix: SparseInputProtocol,
-                    column_names: List[str], **kwargs: Any) -> 'SparseTag':
+    def from_sparse(
+        cls, sparse_matrix: SparseInputProtocol, column_names: list[str], **kwargs: Any
+    ) -> "SparseTag":
         """Create SparseTag from existing sparse matrix or array."""
         return cls(sparse_matrix, column_names, **kwargs)
-    
+
     @classmethod
-    def from_dense(cls, dense_array: np.ndarray, column_names: List[str],
-                   sparsity_threshold: float = 0.1, **kwargs: Any) -> 'SparseTag':
+    def from_dense(
+        cls,
+        dense_array: np.ndarray,
+        column_names: list[str],
+        sparsity_threshold: float = 0.1,
+        **kwargs: Any,
+    ) -> "SparseTag":
         """Create SparseTag from dense numpy array."""
         if not isinstance(dense_array, np.ndarray):
             dense_array = np.array(dense_array)
-        
+
         dense_array = dense_array.astype(np.uint8)
-        
+
         total_elements = dense_array.size
         nonzero_elements = np.count_nonzero(dense_array)
         sparsity = 1 - (nonzero_elements / total_elements)
-        
+
         if sparsity < sparsity_threshold:
-            logger.warning(
-                f"Low sparsity ({sparsity:.2%}). Sparse format may not be efficient."
-            )
-        
+            logger.warning(f"Low sparsity ({sparsity:.2%}). Sparse format may not be efficient.")
+
         sparse_matrix = sparse.csc_array(dense_array, dtype=np.uint8)
         return cls(sparse_matrix, column_names, **kwargs)
-    
+
     @classmethod
-    def create_empty(cls, n_rows: int, column_names: List[str], **kwargs: Any) -> 'SparseTag':
+    def create_empty(cls, n_rows: int, column_names: list[str], **kwargs: Any) -> "SparseTag":
         """Create empty SparseTag with all zeros."""
         n_cols = len(column_names)
         sparse_matrix = sparse.csc_array((n_rows, n_cols), dtype=np.uint8)
         return cls(sparse_matrix, column_names, **kwargs)
-    
+
     @classmethod
-    def create_random(cls, n_rows: int, column_names: List[str],
-                     fill_percent: float = 0.1,
-                     seed: Optional[int] = None,
-                     enable_cache: bool = True) -> 'SparseTag':
+    def create_random(
+        cls,
+        n_rows: int,
+        column_names: list[str],
+        fill_percent: float = 0.1,
+        seed: Optional[int] = None,
+        enable_cache: bool = True,
+    ) -> "SparseTag":
         """Create SparseTag with random test data."""
         if not 0 <= fill_percent <= 1:
             raise ValidationError("fill_percent must be between 0 and 1")
-        
+
         n_cols = len(column_names)
-        
+
         # Use local RNG instead of global state (thread-safe, no side effects)
         rng = np.random.default_rng(seed=seed)
 
@@ -332,54 +345,54 @@ class SparseTag:
 
         if nnz < 0:
             raise ValidationError(
-                f"Integer overflow detected in nnz calculation. Matrix dimensions too large."
+                "Integer overflow detected in nnz calculation. Matrix dimensions too large."
             )
 
         if n_rows <= 0 or n_cols <= 0:
-            raise ValidationError(f"Matrix dimensions must be positive: rows={n_rows}, cols={n_cols}")
+            raise ValidationError(
+                f"Matrix dimensions must be positive: rows={n_rows}, cols={n_cols}"
+            )
 
         if nnz == 0:
-            logger.warning(f"Creating empty matrix: nnz=0")
+            logger.warning("Creating empty matrix: nnz=0")
             return cls.create_empty(n_rows, column_names, enable_cache=enable_cache)
 
         # Generate random data using local RNG
         rows = rng.integers(0, n_rows, size=nnz, dtype=np.int64)
         cols = rng.integers(0, n_cols, size=nnz, dtype=np.int64)
         values = rng.integers(1, 4, size=nnz, dtype=np.uint8)
-        
+
         sparse_matrix = sparse.csc_array(
-            (values, (rows, cols)), 
-            shape=(n_rows, n_cols),
-            dtype=np.uint8
+            (values, (rows, cols)), shape=(n_rows, n_cols), dtype=np.uint8
         )
-        
+
         sparse_matrix.sum_duplicates()
         sparse_matrix.data = np.clip(sparse_matrix.data, 0, 3)
-        
+
         logger.debug(f"Created random matrix: actual_nnz={sparse_matrix.nnz}")
-        
+
         return cls(sparse_matrix, column_names, enable_cache=enable_cache)
-    
+
     @property
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
         """Get (n_rows, n_cols) shape."""
         return self._data.shape
-    
+
     @property
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         """Get list of column names."""
         return self._column_names.copy()
-    
+
     @property
     def nnz(self) -> int:
         """Get number of non-zero elements."""
         return self._data.nnz
-    
+
     @property
     def sparsity(self) -> float:
         """Get sparsity ratio (0-1, higher is more sparse)."""
         return 1 - (self.nnz / (self.shape[0] * self.shape[1]))
-    
+
     def _get_column_index(self, column_name: str) -> int:
         """
         Get column index from name with validation.
@@ -402,8 +415,7 @@ class SparseTag:
         """
         if column_name not in self._column_index:
             raise InvalidColumnError(
-                f"Column '{column_name}' not found. "
-                f"Available: {', '.join(self._column_names)}"
+                f"Column '{column_name}' not found. Available: {', '.join(self._column_names)}"
             )
         return self._column_index[column_name]
 
@@ -426,7 +438,9 @@ class SparseTag:
             return TagConfidence(value)
         raise InvalidValueError(f"Invalid TagConfidence value: {value} (must be 0-3)")
 
-    def get_value_counts(self, columns: Optional[Union[str, List[str]]] = None) -> Dict[str, Dict[TagConfidence, int]]:
+    def get_value_counts(
+        self, columns: Optional[Union[str, list[str]]] = None
+    ) -> dict[str, dict[TagConfidence, int]]:
         """
         Get distribution of TagConfidence values per column.
 
@@ -458,30 +472,30 @@ class SparseTag:
             columns = self._column_names
         elif isinstance(columns, str):
             columns = [columns]
-        
+
         results = {}
-        
+
         for col_name in columns:
             col_idx = self._get_column_index(col_name)
-            
+
             # Work with sparse column data directly
             col_start = self._data.indptr[col_idx]
             col_end = self._data.indptr[col_idx + 1]
             col_values = self._data.data[col_start:col_end]
-            
+
             # Count non-zero values
             counts = {
                 TagConfidence.HIGH: int(np.sum(col_values == TagConfidence.HIGH)),
                 TagConfidence.MEDIUM: int(np.sum(col_values == TagConfidence.MEDIUM)),
                 TagConfidence.LOW: int(np.sum(col_values == TagConfidence.LOW)),
-                TagConfidence.NONE: int(self.shape[0] - len(col_values))  # Implicit zeros
+                TagConfidence.NONE: int(self.shape[0] - len(col_values)),  # Implicit zeros
             }
-            
+
             results[col_name] = counts
-        
+
         return results
-    
-    def _transform_comparison(self, op: str, value: TagConfidence) -> Set[int]:
+
+    def _transform_comparison(self, op: str, value: TagConfidence) -> set[int]:
         """
         Transform comparison operators to value sets for efficient IN-style queries.
 
@@ -510,54 +524,54 @@ class SparseTag:
             raise InvalidValueError(
                 "Cannot compare to NONE/zero value. This would create dense matrix."
             )
-        
+
         valid = {int(v) for v in TagConfidence.get_valid_values()}
         value_int = int(value)
-        
-        if op == '==':
+
+        if op == "==":
             result = {value_int}
-        elif op == '!=':
+        elif op == "!=":
             result = valid - {value_int}
             logger.debug(f"Transformed '!= {value.name}' to 'IN {result}'")
-        elif op == '>':
+        elif op == ">":
             result = {v for v in valid if v > value_int}
-        elif op == '>=':
+        elif op == ">=":
             result = {v for v in valid if v >= value_int}
-        elif op == '<':
+        elif op == "<":
             result = {v for v in valid if v < value_int}
-        elif op == '<=':
+        elif op == "<=":
             result = {v for v in valid if v <= value_int}
         else:
             raise InvalidOperatorError(f"Unknown operator: {op}")
-        
+
         return result
-    
-    def _evaluate_condition_optimized(self, condition: Dict) -> np.ndarray:
+
+    def _evaluate_condition_optimized(self, condition: dict) -> np.ndarray:
         """
         OPTIMIZED: Evaluate condition and return row indices directly.
-        
+
         Works with sparse matrix internals - only examines non-zero values.
-        
+
         Args:
             condition: Dictionary with 'column', 'op', and 'value'/'values'
-            
+
         Returns:
             Array of row indices that match the condition
         """
-        col_name = condition['column']
+        col_name = condition["column"]
         col_idx = self._get_column_index(col_name)
-        
+
         # Extract sparse column data using CSC internals
         col_start = self._data.indptr[col_idx]
         col_end = self._data.indptr[col_idx + 1]
         col_values = self._data.data[col_start:col_end]  # Only non-zero values!
         col_row_indices = self._data.indices[col_start:col_end]  # Their row positions
-        
-        op = condition.get('op', '==')
-        
-        if op == 'IN':
+
+        op = condition.get("op", "==")
+
+        if op == "IN":
             # Handle IN operator
-            values = condition.get('values', [])
+            values = condition.get("values", [])
             if not values:
                 raise InvalidQueryStructureError("IN operator requires 'values' list")
 
@@ -565,14 +579,14 @@ class SparseTag:
             value_ints = {int(v) for v in values}
             if TagConfidence.NONE in values:
                 raise InvalidValueError("Cannot use NONE in IN operator")
-            
+
             # Only check the non-zero values!
             matching_mask = np.isin(col_values, list(value_ints))
             matching_rows = col_row_indices[matching_mask]
-            
+
         else:
             # Handle comparison operators
-            value = condition.get('value')
+            value = condition.get("value")
             if value is None:
                 raise InvalidQueryStructureError(f"Operator '{op}' requires 'value' field")
 
@@ -581,7 +595,7 @@ class SparseTag:
 
             # Transform to value set
             value_set = self._transform_comparison(op, value)
-            
+
             if not value_set:
                 # Empty set - no matches
                 logger.debug(f"Condition {col_name} {op} {value.name} yields empty set")
@@ -590,7 +604,7 @@ class SparseTag:
                 # Check membership - only among non-zero values!
                 matching_mask = np.isin(col_values, list(value_set))
                 matching_rows = col_row_indices[matching_mask]
-        
+
         return matching_rows
 
     def _get_rows_with_any_data(self) -> np.ndarray:
@@ -624,39 +638,39 @@ class SparseTag:
             return np.unique(np.concatenate(all_indices_list))
         return np.array([], dtype=np.int64)
 
-    def _evaluate_query_optimized(self, query: Dict) -> np.ndarray:
+    def _evaluate_query_optimized(self, query: dict) -> np.ndarray:
         """
         OPTIMIZED v2: Recursively evaluate query using NumPy operations.
-        
+
         Uses NumPy set operations instead of Python sets for 5-10x speedup.
-        
+
         Returns:
             Array of row indices that match the query
         """
-        if 'operator' in query:
+        if "operator" in query:
             # Nested logical operation
-            operator = query['operator'].upper()
-            conditions = query.get('conditions', [])
+            operator = query["operator"].upper()
+            conditions = query.get("conditions", [])
 
             if not conditions:
                 raise InvalidQueryStructureError(f"{operator} operator requires 'conditions' list")
-            
+
             # Evaluate all sub-conditions to get row index arrays (already sorted from sparse)
             row_arrays = [self._evaluate_query_optimized(cond) for cond in conditions]
-            
+
             # Combine based on operator using NumPy operations (much faster than Python sets!)
-            if operator == 'AND':
+            if operator == "AND":
                 # NumPy intersection - much faster for large arrays
                 result = row_arrays[0]
                 for arr in row_arrays[1:]:
                     if len(result) == 0:  # Short-circuit if empty
                         break
                     result = np.intersect1d(result, arr, assume_unique=True)
-            elif operator == 'OR':
+            elif operator == "OR":
                 # NumPy union - concatenate and find unique sorted
                 result = np.concatenate(row_arrays)
                 result = np.unique(result)  # Sorted unique values
-            elif operator == 'NOT':
+            elif operator == "NOT":
                 if len(row_arrays) != 1:
                     raise InvalidQueryStructureError("NOT operator requires exactly one condition")
 
@@ -666,29 +680,28 @@ class SparseTag:
                 result = np.setdiff1d(universe, row_arrays[0], assume_unique=True)
             else:
                 raise InvalidOperatorError(f"Unknown operator: {operator}")
-            
+
             return result
-        else:
-            # Single condition
-            return self._evaluate_condition_optimized(query)
-    
-    def query(self, query_dict: Dict, *, use_cache: bool = True) -> QueryResult:
+        # Single condition
+        return self._evaluate_condition_optimized(query)
+
+    def query(self, query_dict: dict, *, use_cache: bool = True) -> QueryResult:
         """
         Execute query and return results.
-        
+
         OPTIMIZED: Works directly with sparse matrix internals.
         CACHED: Results are cached for repeated queries (v2.1).
-        
+
         Args:
             query_dict: Query specification dictionary
             use_cache: Whether to use/populate cache (default: True)
-            
+
         Returns:
             QueryResult with matching rows
-            
+
         Raises:
             ValueError: If query structure is invalid
-            
+
         Example:
             >>> bt = SparseTag.create_random(1000, ['Tag1'], 0.01)
             >>> # First call - cache miss (~0.4ms)
@@ -697,7 +710,7 @@ class SparseTag:
             >>> result2 = bt.query({'column': 'Tag1', 'op': '==', 'value': HIGH})
             >>> # Disable cache for specific query
             >>> result3 = bt.query({'column': 'Tag1', 'op': '>', 'value': LOW}, use_cache=False)
-        
+
         Note:
             Cache is automatically invalidated when data is modified.
             Cache overhead is <5% even for uncached queries.
@@ -726,11 +739,11 @@ class SparseTag:
         self._cache_manager.put(query_dict, result)
 
         return result
-    
+
     # ========================================================================
     # Cache Management Methods
     # ========================================================================
-    
+
     def _invalidate_cache(self) -> None:
         """
         Clear query cache when data is modified.
@@ -746,7 +759,7 @@ class SparseTag:
             self._cache_manager.clear()
         self._data_version += 1
         logger.debug(f"Cache invalidated (version → {self._data_version})")
-    
+
     def clear_cache(self) -> None:
         """
         Manually clear query cache.
@@ -766,8 +779,8 @@ class SparseTag:
         """
         if self._cache_manager:
             self._cache_manager.clear()
-    
-    def cache_stats(self) -> Dict[str, Union[int, float, bool]]:
+
+    def cache_stats(self) -> dict[str, Union[int, float, bool]]:
         """
         Get cache performance statistics.
 
@@ -796,38 +809,37 @@ class SparseTag:
         """
         if self._cache_manager:
             stats = self._cache_manager.stats()
-            stats['data_version'] = self._data_version
-            stats['enabled'] = True
+            stats["data_version"] = self._data_version
+            stats["enabled"] = True
             return stats
-        else:
-            return {
-                'hits': 0,
-                'misses': 0,
-                'hit_rate': 0.0,
-                'size_entries': 0,
-                'size_bytes': 0,
-                'size_mb': 0.0,
-                'data_version': self._data_version,
-                'enabled': False
-            }
-    
-    def filter(self, query_dict: Dict) -> 'SparseTag':
+        return {
+            "hits": 0,
+            "misses": 0,
+            "hit_rate": 0.0,
+            "size_entries": 0,
+            "size_bytes": 0,
+            "size_mb": 0.0,
+            "data_version": self._data_version,
+            "enabled": False,
+        }
+
+    def filter(self, query_dict: dict) -> "SparseTag":
         """Filter SparseTag and return new SparseTag with matching rows."""
         result = self.query(query_dict)
         return result.to_sparsetag()
-    
+
     def to_dense(self) -> np.ndarray:
         """Convert to dense numpy array. WARNING: Memory intensive!"""
         logger.warning("Converting sparse matrix to dense - memory intensive!")
         return self._data.toarray()
-    
-    def memory_usage(self) -> Dict[str, int]:
+
+    def memory_usage(self) -> dict[str, int]:
         """
         Calculate memory usage in bytes.
-        
+
         Returns:
             Dict with breakdown: data, indices, indptr, column_names, total
-            
+
         Note:
             Indices typically use int32 (4 bytes) per element, which is 4x larger
             than uint8 data. For matrices <65K rows, indices can be optimized to
@@ -837,32 +849,32 @@ class SparseTag:
         indices_bytes = self._data.indices.nbytes
         indptr_bytes = self._data.indptr.nbytes
         column_names_bytes = sum(len(s.encode()) for s in self._column_names)
-        
+
         return {
-            'data': data_bytes,
-            'indices': indices_bytes,
-            'indptr': indptr_bytes,
-            'column_names': column_names_bytes,
-            'total': data_bytes + indices_bytes + indptr_bytes + column_names_bytes
+            "data": data_bytes,
+            "indices": indices_bytes,
+            "indptr": indptr_bytes,
+            "column_names": column_names_bytes,
+            "total": data_bytes + indices_bytes + indptr_bytes + column_names_bytes,
         }
-    
-    def optimize_indices_dtype(self, inplace: bool = True) -> Optional['SparseTag']:
+
+    def optimize_indices_dtype(self, inplace: bool = True) -> Optional["SparseTag"]:
         """
         Optimize indices dtype to reduce memory usage.
-        
+
         CSC sparse matrices use int32 (4 bytes) for indices by default.
         For smaller matrices, we can use smaller dtypes:
         - int16 (2 bytes): matrices with <65,536 rows
         - int8 (1 byte): matrices with <256 rows
-        
+
         This can reduce indices memory by 50-75%.
-        
+
         Args:
             inplace: If True, modify in place. If False, return new SparseTag.
 
         Returns:
             None if inplace=True, new SparseTag if inplace=False
-            
+
         Example:
             >>> bt = SparseTag.create_random(10000, ['Tag1'], 0.01)
             >>> mem_before = bt.memory_usage()
@@ -885,7 +897,9 @@ class SparseTag:
             # Already optimal (int32 needed)
             if inplace:
                 return None
-            return SparseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
+            return SparseTag(
+                self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None
+            )
 
         # CRITICAL: Validate actual index values fit in target dtype
         # This prevents data corruption when sparse data is concentrated in high row indices
@@ -898,7 +912,11 @@ class SparseTag:
                 )
                 if inplace:
                     return None
-                return SparseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
+                return SparseTag(
+                    self._data.copy(),
+                    self._column_names,
+                    enable_cache=self._cache_manager is not None,
+                )
 
         # Validate indptr values (column pointers can also overflow)
         if len(self._data.indptr) > 0:
@@ -909,13 +927,19 @@ class SparseTag:
                 )
                 if inplace:
                     return None
-                return SparseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
+                return SparseTag(
+                    self._data.copy(),
+                    self._column_names,
+                    enable_cache=self._cache_manager is not None,
+                )
 
         # Check if already optimal
         if self._data.indices.dtype == target_dtype:
             if inplace:
                 return None
-            return SparseTag(self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None)
+            return SparseTag(
+                self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None
+            )
 
         # Safe to convert - all validation passed
         old_mem = self._data.indices.nbytes
@@ -925,15 +949,16 @@ class SparseTag:
         new_mem = new_data.indices.nbytes
         savings = (old_mem - new_mem) / old_mem * 100
 
-        logger.info(f"Optimized indices dtype: {self._data.indices.dtype} → {target_dtype}, "
-                   f"saved {savings:.1f}% indices memory")
+        logger.info(
+            f"Optimized indices dtype: {self._data.indices.dtype} → {target_dtype}, "
+            f"saved {savings:.1f}% indices memory"
+        )
 
         if inplace:
             self._data = new_data
             return None
         return SparseTag(new_data, self._column_names, enable_cache=self._cache_manager is not None)
-    
-    
+
     def __repr__(self) -> str:
         return (
             f"SparseTag(shape={self.shape}, nnz={self.nnz}, "

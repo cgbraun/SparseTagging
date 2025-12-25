@@ -11,10 +11,11 @@ pytest-cov>=4.0.0
 # Type checking
 mypy>=1.0.0
 
+# Code quality and formatting
+ruff>=0.1.14
+
+# Pre-commit hooks
+pre-commit>=3.6.0
+
 # Optional: Type stubs for better scipy type checking
 # scipy-stubs>=1.14.0
-
-# Optional: Code formatting and linting (if desired)
-# black>=23.0.0
-# ruff>=0.1.0
-# isort>=5.12.0

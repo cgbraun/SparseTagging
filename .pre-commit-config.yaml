@@ -1,0 +1,58 @@
+# Pre-commit hooks for code quality
+# Install: pip install pre-commit
+# Setup: pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^reports/
+      - id: end-of-file-fixer
+        exclude: ^reports/
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+
+  # Ruff linter and formatter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      # Run the formatter first
+      - id: ruff-format
+        types_or: [python, pyi]
+      # Then run the linter
+      - id: ruff
+        types_or: [python, pyi]
+        args: [--fix, --exit-non-zero-on-fix]
+
+  # Type checking with mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: mypy
+        language: system  # Use locally installed mypy
+        types: [python]
+        require_serial: true
+        pass_filenames: false
+        args: [src/sparsetag.py, src/cache_manager.py, src/exceptions.py]
+        additional_dependencies: []
+
+  # Run pytest with coverage
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: pytest
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
+        args: [tests/, --cov=sparsetagging, --cov-report=term-missing, --cov-fail-under=85, --cov-config=pyproject.toml, -v]

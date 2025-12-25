@@ -16,7 +16,26 @@
    ```
 5. Install dev dependencies:
    ```bash
-   pip install pytest pytest-cov mypy
+   pip install -r requirements-dev.txt
+   ```
+6. Install pre-commit hooks:
+   ```bash
+   pre-commit install
+   ```
+
+   This will automatically run quality checks before each commit:
+   - Ruff formatting and linting
+   - Mypy type checking
+   - Pytest tests with coverage
+
+   To run checks manually without committing:
+   ```bash
+   pre-commit run --all-files
+   ```
+
+   To skip pre-commit hooks (not recommended):
+   ```bash
+   git commit --no-verify
    ```
 
 ## Running Tests
@@ -137,11 +156,21 @@ class TestFeatureName:
    - Update docstrings
 
 3. Ensure quality checks pass:
+
+   Pre-commit hooks will run automatically, but you can also run manually:
+
    ```bash
-   pytest tests/              # All tests pass
-   pytest --cov=src tests/    # Coverage ≥85%
-   mypy src/                  # No type errors
+   # Run all pre-commit checks
+   pre-commit run --all-files
+
+   # Or run individual tools
+   ruff check src/ tests/        # Linting
+   ruff format src/ tests/        # Formatting
+   mypy src/                      # Type checking
+   pytest tests/ --cov=src        # Tests + coverage
    ```
+
+   All checks must pass before merging.
 
 4. Update CHANGELOG.md:
    - Add entry under `[Unreleased]` section
