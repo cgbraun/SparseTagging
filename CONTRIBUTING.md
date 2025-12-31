@@ -143,6 +143,45 @@ class TestFeatureName:
             bt.query({'column': 'NonExistent', 'op': '==', 'value': TagConfidence.HIGH})
 ```
 
+## Quality Requirements
+
+All pull requests must pass these automated checks:
+
+### Code Quality (Pre-commit Hooks)
+- ✅ Ruff linting (zero errors)
+- ✅ Ruff formatting (black-compatible)
+- ✅ Mypy type checking (strict mode, zero errors)
+- ✅ Pytest (all 177 tests pass, ≥85% coverage)
+
+### Code Quality (CI Pipeline)
+- ✅ SonarCloud Quality Gate (must pass)
+  - Security Rating: A (zero vulnerabilities)
+  - Coverage: ≥90% for new code
+  - Cognitive Complexity: ≤15 per function
+  - Code Duplication: ≤3%
+
+### Security
+- ✅ No BLOCKER or CRITICAL issues
+- ✅ All Security Hotspots reviewed
+- ✅ No known CVEs in dependencies
+
+### Pull Request Checklist
+
+Before requesting review:
+- [ ] Pre-commit hooks pass locally
+- [ ] Tests added for new functionality
+- [ ] Documentation updated (docstrings, README, etc.)
+- [ ] CI pipeline passes (all jobs green)
+- [ ] SonarCloud Quality Gate passes
+- [ ] No merge conflicts with main
+
+If SonarCloud reports issues:
+1. Click "Details" on failed check
+2. Review issues in SonarCloud dashboard
+3. Fix BLOCKER/CRITICAL issues (required)
+4. Fix or justify MAJOR issues
+5. Consider fixing MINOR issues (optional)
+
 ## Submitting Changes
 
 1. Create feature branch from `main`:

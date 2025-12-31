@@ -169,6 +169,151 @@ git commit --no-verify
 
 **Dashboard**: https://codecov.io/gh/your-org/sparsetagging
 
+## SonarCloud Quality Monitoring
+
+**What it does:**
+- Comprehensive code quality and security analysis
+- Detects vulnerabilities (OWASP Top 10, CWE coverage)
+- Tracks code complexity and duplication
+- Monitors technical debt over time
+- Blocks PRs that don't meet quality standards
+
+**Configuration**: `sonar-project.properties`
+
+**Dashboard**: https://sonarcloud.io/project/overview?id=vonbraun_SparseTagging
+
+### Weekly Quality Review (15 min)
+
+**Schedule**: Every Monday at 9 AM
+
+**Steps:**
+1. **Dashboard Overview**
+   - Go to https://sonarcloud.io/project/overview?id=vonbraun_SparseTagging
+   - Check Quality Gate status (pass/fail)
+   - Review trend graphs (last 30 days)
+
+2. **Security Tab**
+   - Filter: Severity = BLOCKER or CRITICAL
+   - Review new vulnerabilities (if any)
+   - Create GitHub issues for non-trivial fixes
+   - Assign to team member
+
+3. **Measures Tab**
+   - Coverage: Trending up/down? (target: maintain 88%+)
+   - Complexity: New spikes? (investigate functions >15)
+   - Duplication: Increasing? (refactor opportunities)
+   - Technical Debt: Growing? (schedule cleanup sprint)
+
+4. **Issues Tab**
+   - Filter: Assigned to you
+   - Prioritize: BLOCKER > CRITICAL > MAJOR > MINOR
+   - Resolve or defer
+
+### Metrics Glossary
+
+| Metric | Definition | Target |
+|--------|------------|--------|
+| **Security Rating** | A-E scale based on vulnerability count/severity | A (zero vulnerabilities) |
+| **Reliability Rating** | A-E scale based on bug count/severity | A (zero bugs) |
+| **Maintainability Rating** | A-E scale based on technical debt ratio | A (≤5% debt) |
+| **Coverage** | % of code executed by tests | ≥85% overall, ≥90% new |
+| **Cognitive Complexity** | How hard code is to understand (per function) | ≤15 |
+| **Cyclomatic Complexity** | Number of code paths (per function) | ≤10 |
+| **Code Smells** | Maintainability issues (style, complexity, etc.) | <50 overall, <5 new |
+| **Technical Debt** | Estimated time to fix all code smells | <1 day overall |
+| **Duplicated Lines** | % of code duplicated elsewhere | ≤3% |
+
+### Interpreting Ratings
+
+**Security/Reliability/Maintainability Ratings:**
+- **A**: 0 issues (excellent)
+- **B**: ≥1 minor issue
+- **C**: ≥1 major issue
+- **D**: ≥1 critical issue
+- **E**: ≥1 blocker issue
+
+**Coverage:**
+- **Green**: ≥85%
+- **Yellow**: 70-84%
+- **Red**: <70%
+
+### Common Fixes
+
+**Cognitive Complexity >15:**
+```python
+# Before (complexity: 25)
+def execute_query(query):
+    if 'operator' in query:
+        if query['operator'] == 'AND':
+            # 15 lines of logic
+        elif query['operator'] == 'OR':
+            # 15 lines of logic
+        elif query['operator'] == 'NOT':
+            # 10 lines of logic
+    else:
+        # 10 lines of single-column logic
+
+# After (complexity: 5 each)
+def execute_query(query):
+    if 'operator' in query:
+        return _execute_multi_column_query(query)
+    return _execute_single_column_query(query)
+
+def _execute_multi_column_query(query):
+    handlers = {'AND': _handle_and, 'OR': _handle_or, 'NOT': _handle_not}
+    return handlers[query['operator']](query)
+```
+
+**Code Duplication:**
+```python
+# Before (duplicated in 3 places)
+def test_query_high():
+    st = SparseTag.create_random(1000, ['Tag1'], 1.0, seed=42)
+    result = st.query({'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH})
+    # assertions...
+
+# After (DRY)
+@pytest.fixture
+def sample_sparse_tag():
+    return SparseTag.create_random(1000, ['Tag1'], 1.0, seed=42)
+
+def test_query_high(sample_sparse_tag):
+    result = sample_sparse_tag.query({'column': 'Tag1', 'op': '==', 'value': TagConfidence.HIGH})
+    # assertions...
+```
+
+### CVE Scanning (GitHub Dependabot)
+
+**What it does:**
+- Monitors numpy, scipy, psutil for security vulnerabilities
+- Creates automated PRs for dependency updates
+- Groups security patches for easier review
+
+**Configuration**: `.github/dependabot.yml`
+
+**Handling CVE Alerts:**
+1. Dependabot creates PR with title `chore(deps): bump [package] from X to Y`
+2. Review PR description for CVE details and severity
+3. Check changelog for breaking changes
+4. Run tests locally: `pytest tests/`
+5. If tests pass, merge immediately
+6. If tests fail, investigate compatibility and create fix
+
+**Manual CVE Check:**
+```bash
+# Install pip-audit
+pip install pip-audit
+
+# Scan for CVEs
+pip-audit -r requirements.txt
+
+# Output shows:
+# - CVE ID (e.g., CVE-2024-12345)
+# - Severity (CRITICAL, HIGH, MEDIUM, LOW)
+# - Affected version range
+# - Fixed version
+```
+
 ## Development Workflow
 
 ### Initial Setup

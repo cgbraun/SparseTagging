@@ -66,3 +66,7 @@ env/
 # Package managers
 poetry.lock
 Pipfile.lock
+
+# SonarCloud
+.scannerwork/
+.sonar/

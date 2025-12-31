@@ -30,6 +30,62 @@ pip install -r requirements.txt
 # - psutil>=5.8.0
 ```
 
+## Code Quality & Security
+
+### SonarCloud Integration
+
+SparseTag uses SonarCloud for continuous code quality and security monitoring.
+
+**Dashboard**: https://sonarcloud.io/project/overview?id=vonbraun_SparseTagging
+
+**Quality Standards:**
+- Zero security vulnerabilities (Security Rating: A)
+- 90% coverage for new code (85% for overall)
+- Cognitive complexity ≤15 per function
+- Max 3% code duplication
+
+**Pre-commit Checks:**
+- Ruff: Linting and formatting
+- Mypy: Type checking (strict mode)
+- Pytest: 177 tests with 85%+ coverage
+- SonarCloud: Runs in CI (not pre-commit)
+
+**Viewing SonarCloud Results:**
+1. Push branch and create PR
+2. Wait for CI to complete (~5 min)
+3. Click "Details" next to "SonarCloud" check
+4. Review issues in dashboard
+5. Fix blockers/criticals before merging
+
+### CVE Scanning
+
+**GitHub Dependabot:**
+- Monitors numpy, scipy, psutil for CVEs
+- Creates PRs automatically for security updates
+- Configured in `.github/dependabot.yml`
+
+**Handling CVE Alerts:**
+1. Dependabot creates PR with title `chore(deps): bump [package] from X to Y`
+2. Review changelog for breaking changes
+3. Run tests locally: `pytest tests/`
+4. If tests pass, merge immediately
+5. If tests fail, investigate compatibility issues
+
+**Manual CVE Check:**
+```bash
+# Install pip-audit
+pip install pip-audit
+
+# Scan for CVEs
+pip-audit -r requirements.txt
+
+# Output shows:
+# - CVE ID
+# - Severity (HIGH, MEDIUM, LOW)
+# - Affected version range
+# - Fixed version
+```
+
 ## Running Tests and Benchmarks
 
 ```bash

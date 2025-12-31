@@ -34,7 +34,22 @@
       "Bash(pre-commit install:*)",
       "Bash(find:*)",
       "Bash(pre-commit run:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(bandit:*)",
+      "Bash(git log:*)",
+      "Bash(dir:*)",
+      "Bash(ruff:*)",
+      "Bash(wc:*)",
+      "Bash(if [ -f \"coverage.xml\" ])",
+      "Bash(then echo \"✅ coverage.xml generated successfully\")",
+      "Bash(else echo \"❌ coverage.xml not found\")",
+      "Bash(then echo \"✅ coverage.xml exists\")",
+      "Bash(then echo \"   ✅ coverage.xml exists \\(540 lines\\)\")",
+      "Bash(else echo \"   ❌ coverage.xml missing\")",
+      "Bash(if [ -f \".github/dependabot.yml\" ])",
+      "Bash(then echo \"   ✅ .github/dependabot.yml exists\")",
+      "Bash(else echo \"   ❌ .github/dependabot.yml missing\")",
+      "Bash(echo:*)"
     ]
   }
 }

@@ -5,7 +5,24 @@
 ![Python Versions](https://img.shields.io/badge/python-3.9%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=vonbraun_SparseTagging&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=vonbraun_SparseTagging)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=vonbraun_SparseTagging&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=vonbraun_SparseTagging)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=vonbraun_SparseTagging&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=vonbraun_SparseTagging)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=vonbraun_SparseTagging&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=vonbraun_SparseTagging)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=vonbraun_SparseTagging&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=vonbraun_SparseTagging)
+
 High-performance sparse array library for tag confidence data with intelligent query caching.
+
+## Quality & Security
+
+SparseTag maintains high code quality standards:
+- ✅ **Zero security vulnerabilities** (SonarCloud Security Rating: A)
+- ✅ **88%+ test coverage** (177 tests across 9 test modules)
+- ✅ **100% type hints** (mypy strict mode)
+- ✅ **Automated dependency scanning** (GitHub Dependabot)
+- ✅ **CI/CD enforcement** (Ruff, mypy, pytest, SonarCloud)
+
+All pull requests must pass quality gates before merging.
 
 ## What's New in v2.4.0
 
