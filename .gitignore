@@ -70,3 +70,5 @@ Pipfile.lock
 # SonarCloud
 .scannerwork/
 .sonar/
+/.output.txt
+/nul
