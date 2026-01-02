@@ -67,7 +67,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # Added in Phase 1
         with:
           args: >
-            -Dsonar.projectKey=vonbraun_SparseTagging
+            -Dsonar.projectKey=cgbraun_SparseTagging
             -Dsonar.organization=vonbraun
 
   test:

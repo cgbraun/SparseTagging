@@ -893,6 +893,35 @@ class SparseTag:
             "total": data_bytes + indices_bytes + indptr_bytes + column_names_bytes,
         }
 
+    def _return_unchanged(self, inplace: bool) -> "SparseTag | None":
+        """Return unchanged matrix based on inplace flag."""
+        if inplace:
+            return None
+        return SparseTag(
+            self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None
+        )
+
+    def _can_optimize_to_dtype(self, target_dtype: Any, max_value: int, n_rows: int) -> bool:
+        """Check if indices can safely be converted to target dtype."""
+        if len(self._data.indices) > 0:
+            max_index: Any = np.max(self._data.indices)
+            if max_index > max_value:
+                logger.warning(
+                    f"Cannot optimize to {target_dtype}: max index {max_index} exceeds {max_value}. "
+                    f"Matrix has {n_rows} rows but data exists in row indices beyond {target_dtype} range."
+                )
+                return False
+
+        if len(self._data.indptr) > 0:
+            max_indptr: Any = np.max(self._data.indptr)
+            if max_indptr > max_value:
+                logger.warning(
+                    f"Cannot optimize to {target_dtype}: max indptr {max_indptr} exceeds {max_value}"
+                )
+                return False
+
+        return True
+
     def optimize_indices_dtype(self, inplace: bool = True) -> "SparseTag | None":
         """
         Optimize indices dtype to reduce memory usage.
@@ -930,51 +959,15 @@ class SparseTag:
             max_value = MAX_INT16_VALUE
         else:
             # Already optimal (int32 needed)
-            if inplace:
-                return None
-            return SparseTag(
-                self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None
-            )
-
-        # CRITICAL: Validate actual index values fit in target dtype
-        # This prevents data corruption when sparse data is concentrated in high row indices
-        if len(self._data.indices) > 0:
-            max_index: Any = np.max(self._data.indices)
-            if max_index > max_value:
-                logger.warning(
-                    f"Cannot optimize to {target_dtype}: max index {max_index} exceeds {max_value}. "
-                    f"Matrix has {n_rows} rows but data exists in row indices beyond {target_dtype} range."
-                )
-                if inplace:
-                    return None
-                return SparseTag(
-                    self._data.copy(),
-                    self._column_names,
-                    enable_cache=self._cache_manager is not None,
-                )
-
-        # Validate indptr values (column pointers can also overflow)
-        if len(self._data.indptr) > 0:
-            max_indptr: Any = np.max(self._data.indptr)
-            if max_indptr > max_value:
-                logger.warning(
-                    f"Cannot optimize to {target_dtype}: max indptr {max_indptr} exceeds {max_value}"
-                )
-                if inplace:
-                    return None
-                return SparseTag(
-                    self._data.copy(),
-                    self._column_names,
-                    enable_cache=self._cache_manager is not None,
-                )
+            return self._return_unchanged(inplace)
 
         # Check if already optimal
         if self._data.indices.dtype == target_dtype:
-            if inplace:
-                return None
-            return SparseTag(
-                self._data.copy(), self._column_names, enable_cache=self._cache_manager is not None
-            )
+            return self._return_unchanged(inplace)
+
+        # CRITICAL: Validate actual index values fit in target dtype
+        if not self._can_optimize_to_dtype(target_dtype, max_value, n_rows):
+            return self._return_unchanged(inplace)
 
         # Safe to convert - all validation passed
         old_mem = self._data.indices.nbytes
@@ -985,8 +978,7 @@ class SparseTag:
         savings = (old_mem - new_mem) / old_mem * 100
 
         logger.info(
-            f"Optimized indices dtype: {self._data.indices.dtype} → {target_dtype}, "
-            f"saved {savings:.1f}% indices memory"
+            f"Optimized indices dtype: {self._data.indices.dtype} → {target_dtype}, saved {savings:.1f}% indices memory"
         )
 
         if inplace:

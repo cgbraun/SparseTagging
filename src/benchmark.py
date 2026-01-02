@@ -172,6 +172,36 @@ class PerformanceBenchmark:
 
         return float(np.mean(times)), float(np.std(times)), count
 
+    def _build_dense_mask(self, col_idx: int, op: str, cond: dict[str, Any]) -> Any:
+        """Build mask for a single condition on dense array."""
+        if op == "==":
+            return self.dense[:, col_idx] == cond["value"]
+        if op == ">":
+            return self.dense[:, col_idx] > cond["value"]
+        if op == ">=":
+            return self.dense[:, col_idx] >= cond["value"]
+        if op == "IN":
+            return np.isin(self.dense[:, col_idx], cond["values"])
+        raise ValueError(f"Unsupported op: {op}")
+
+    def _combine_dense_masks(self, operator: str, masks: list[Any]) -> Any:
+        """Combine masks based on operator."""
+        if operator == "AND":
+            result = masks[0]
+            for m in masks[1:]:
+                result = result & m
+            return result
+        if operator == "OR":
+            result = masks[0]
+            for m in masks[1:]:
+                result = result | m
+            return result
+        if operator == "NOT":
+            # CRITICAL: Match sparse semantics
+            has_data_mask = np.any(self.dense != 0, axis=1)
+            return has_data_mask & ~masks[0]
+        raise ValueError(f"Unsupported operator: {operator}")
+
     def _query_dense_multi(
         self, query_dict: dict[str, Any], iterations: int, warmup: int
     ) -> tuple[float, float, int | None]:
@@ -197,39 +227,13 @@ class PerformanceBenchmark:
             masks = []
             for cond in conditions:
                 if "operator" in cond:
-                    # Nested - skip for now
-                    continue
+                    continue  # Nested - skip for now
                 col_name = str(cond["column"])
                 col_idx = self.bt_cached._column_index[col_name]
-                op = cond["op"]
-
-                if op == "==":
-                    mask = self.dense[:, col_idx] == cond["value"]
-                elif op == ">":
-                    mask = self.dense[:, col_idx] > cond["value"]
-                elif op == ">=":
-                    mask = self.dense[:, col_idx] >= cond["value"]
-                elif op == "IN":
-                    mask = np.isin(self.dense[:, col_idx], cond["values"])
-                else:
-                    raise ValueError(f"Unsupported op: {op}")
+                mask = self._build_dense_mask(col_idx, cond["op"], cond)
                 masks.append(mask)
 
-            if operator == "AND":
-                result_mask = masks[0]
-                for m in masks[1:]:
-                    result_mask = result_mask & m
-            elif operator == "OR":
-                result_mask = masks[0]
-                for m in masks[1:]:
-                    result_mask = result_mask | m
-            elif operator == "NOT":
-                # CRITICAL: Match sparse semantics
-                # Universe = rows with ANY non-zero value (not all zeros)
-                has_data_mask = np.any(self.dense != 0, axis=1)
-                # Apply NOT only to rows with data
-                result_mask = has_data_mask & ~masks[0]
-
+            result_mask = self._combine_dense_masks(operator, masks)
             return int(np.sum(result_mask))
 
         return self._execute_timed_query(execute_query, iterations, warmup)
@@ -359,6 +363,20 @@ class PerformanceBenchmark:
 
         self.results["single_column"] = results
 
+    def _run_dense_benchmark(self, query: dict[str, Any]) -> tuple[bool, float | None, int | None]:
+        """Run dense benchmark and return results."""
+        try:
+            time_dense, std_dense, count_dense = self._query_dense_multi(
+                query, self.iterations, self.warmup
+            )
+            self._log(
+                f"  Dense:             {time_dense:7.3f}ms ± {std_dense:.3f}ms ({count_dense:5d} matches)"
+            )
+            return True, time_dense, count_dense
+        except Exception as e:
+            self._log(f"  Dense:             [skipped: {e}]")
+            return False, None, None
+
     def benchmark_multi_column_queries(self) -> None:
         """Benchmark multi-column query operations."""
         self._header("Multi-Column Query Benchmarks", level=1)
@@ -396,21 +414,7 @@ class PerformanceBenchmark:
             self._log(f"\nTest: {name}")
 
             # Dense (if columns exist in test case)
-            try:
-                time_dense: float | None
-                count_dense: int | None
-                time_dense, std_dense, count_dense = self._query_dense_multi(
-                    query, self.iterations, self.warmup
-                )
-                self._log(
-                    f"  Dense:             {time_dense:7.3f}ms ± {std_dense:.3f}ms ({count_dense:5d} matches)"
-                )
-                has_dense = True
-            except Exception as e:
-                self._log(f"  Dense:             [skipped: {e}]")
-                time_dense = None
-                count_dense = None
-                has_dense = False
+            has_dense, time_dense, count_dense = self._run_dense_benchmark(query)
 
             # Sparse uncached
             time_uncached, std_uncached, count_uncached = self._query_sparse(
@@ -653,51 +657,60 @@ class PerformanceBenchmark:
             "total": tests_passed + tests_failed,
         }
 
+    def _summarize_single_column(self) -> None:
+        """Summarize single-column query performance."""
+        if "single_column" not in self.results:
+            return
+
+        self._log("\nSingle-Column Query Performance:")
+        self._log(f"{'Query':<25} {'Dense':<12} {'Sparse':<12} {'Cached':<12} {'Speedup':<10}")
+        self._log(f"{'':<25} {'(ms)':<12} {'(ms)':<12} {'(ms)':<12} {'(vs Dense)':<10}")
+        self._log("-" * 75)
+
+        for r in self.results["single_column"]:
+            speedup = r["dense_ms"] / r["cached_ms"]
+            self._log(
+                f"{r['name']:<25} "
+                f"{r['dense_ms']:>7.3f}      "
+                f"{r['uncached_ms']:>7.3f}      "
+                f"{r['cached_ms']:>7.3f}      "
+                f"{speedup:>6.1f}x"
+            )
+
+    def _summarize_multi_column(self) -> None:
+        """Summarize multi-column query performance."""
+        if "multi_column" not in self.results:
+            return
+
+        self._log("\nMulti-Column Query Performance:")
+        self._log(
+            f"{'Query':<30} {'Dense':<12} {'Uncached':<12} {'Cached':<12} {'Speedup':<10}"
+        )
+        self._log(f"{'':<30} {'(ms)':<12} {'(ms)':<12} {'(ms)':<12} {'(vs Dense)':<10}")
+        self._log("-" * 77)
+
+        for r in self.results["multi_column"]:
+            if r["dense_ms"] is not None:
+                speedup = r["dense_ms"] / r["cached_ms"]
+                dense_str = f"{r['dense_ms']:>7.3f}"
+            else:
+                speedup = r["uncached_ms"] / r["cached_ms"]
+                dense_str = "    N/A"
+
+            self._log(
+                f"{r['name']:<30} "
+                f"{dense_str}      "
+                f"{r['uncached_ms']:>7.3f}      "
+                f"{r['cached_ms']:>7.3f}      "
+                f"{speedup:>6.1f}x"
+            )
+
     def generate_summary(self) -> None:
         """Generate summary report."""
         self._header("Performance Summary", level=1)
 
-        # Single-column summary table
-        if "single_column" in self.results:
-            self._log("\nSingle-Column Query Performance:")
-            self._log(f"{'Query':<25} {'Dense':<12} {'Sparse':<12} {'Cached':<12} {'Speedup':<10}")
-            self._log(f"{'':<25} {'(ms)':<12} {'(ms)':<12} {'(ms)':<12} {'(vs Dense)':<10}")
-            self._log("-" * 75)
-
-            for r in self.results["single_column"]:
-                speedup = r["dense_ms"] / r["cached_ms"]  # How many times faster (Dense/Cached)
-                self._log(
-                    f"{r['name']:<25} "
-                    f"{r['dense_ms']:>7.3f}      "
-                    f"{r['uncached_ms']:>7.3f}      "
-                    f"{r['cached_ms']:>7.3f}      "
-                    f"{speedup:>6.1f}x"
-                )
-
-        # Multi-column summary
-        if "multi_column" in self.results:
-            self._log("\nMulti-Column Query Performance:")
-            self._log(
-                f"{'Query':<30} {'Dense':<12} {'Uncached':<12} {'Cached':<12} {'Speedup':<10}"
-            )
-            self._log(f"{'':<30} {'(ms)':<12} {'(ms)':<12} {'(ms)':<12} {'(vs Dense)':<10}")
-            self._log("-" * 77)
-
-            for r in self.results["multi_column"]:
-                if r["dense_ms"] is not None:
-                    speedup = r["dense_ms"] / r["cached_ms"]
-                    dense_str = f"{r['dense_ms']:>7.3f}"
-                else:
-                    speedup = r["uncached_ms"] / r["cached_ms"]
-                    dense_str = "    N/A"
-
-                self._log(
-                    f"{r['name']:<30} "
-                    f"{dense_str}      "
-                    f"{r['uncached_ms']:>7.3f}      "
-                    f"{r['cached_ms']:>7.3f}      "
-                    f"{speedup:>6.1f}x"
-                )
+        self._summarize_single_column()
+        self._summarize_multi_column()
 
         # Cache summary
         if "cache" in self.results:

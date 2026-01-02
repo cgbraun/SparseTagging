@@ -17,5 +17,10 @@ ruff>=0.1.14
 # Pre-commit hooks
 pre-commit>=3.6.0
 
+# Security and quality tools
+pip-audit>=2.6.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+
 # Optional: Type stubs for better scipy type checking
 # scipy-stubs>=1.14.0

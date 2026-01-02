@@ -62,7 +62,6 @@ class TestDataImmutability:
     def test_optimize_dtype_inplace_true_modifies_original(self):
         """Test that optimize with inplace=True modifies in place."""
         bt = SparseTag.create_random(100, ["Tag1"], 0.1, seed=42)
-        id(bt._data)
 
         # Optimize with inplace=True
         bt.optimize_indices_dtype(inplace=True)

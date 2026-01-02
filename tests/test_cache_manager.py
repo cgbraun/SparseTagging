@@ -223,7 +223,7 @@ class TestQueryEncoder:
 
         query = {"value": TagConfidence.HIGH}
         result = json.dumps(query, cls=QueryEncoder)
-        assert "3" in result  # HIGH = 3
+        assert "3" in result  # TagConfidence.HIGH has value 3
 
     def test_encode_numpy_types(self):
         """Test encoding NumPy integer and float types."""
