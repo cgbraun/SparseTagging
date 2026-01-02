@@ -49,7 +49,8 @@
       "Bash(if [ -f \".github/dependabot.yml\" ])",
       "Bash(then echo \"   ✅ .github/dependabot.yml exists\")",
       "Bash(else echo \"   ❌ .github/dependabot.yml missing\")",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }
