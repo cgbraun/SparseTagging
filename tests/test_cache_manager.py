@@ -3,6 +3,7 @@
 import json
 
 import numpy as np
+import pytest
 from sparsetagging.cache_manager import QueryCacheManager, QueryEncoder
 from sparsetagging.sparsetag import QueryResult, SparseTag, TagConfidence
 
@@ -14,8 +15,8 @@ class TestCacheManager:
         """Test cache manager initializes correctly."""
         cm = QueryCacheManager(max_entries=100, max_memory_mb=5.0)
         assert cm.stats()["size_entries"] == 0
-        assert cm.hit_rate == 0.0
-        assert cm.memory_mb == 0.0
+        assert cm.hit_rate == pytest.approx(0.0)
+        assert cm.memory_mb == pytest.approx(0.0)
 
     def test_get_put_cycle(self):
         """Test storing and retrieving results."""
@@ -61,7 +62,7 @@ class TestCacheManager:
         stats = cm.stats()
         assert stats["hits"] == 1
         assert stats["misses"] == 1
-        assert stats["hit_rate"] == 0.5
+        assert stats["hit_rate"] == pytest.approx(0.5)
 
         # Different query - miss
         assert cm.get(query2) is None
@@ -116,7 +117,7 @@ class TestCacheManager:
 
         cm.clear()
         assert cm.stats()["size_entries"] == 0
-        assert cm.memory_mb == 0.0
+        assert cm.memory_mb == pytest.approx(0.0)
 
     def test_key_generation_simple_query(self):
         """Test fast path for simple single-column queries."""

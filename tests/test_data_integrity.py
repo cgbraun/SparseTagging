@@ -1,6 +1,7 @@
 """Tests for data integrity and mutation safety."""
 
 import numpy as np
+import pytest
 from scipy import sparse
 from sparsetagging.sparsetag import SparseTag, TagConfidence
 
@@ -161,14 +162,14 @@ class TestSparsityConsistency:
     def test_empty_matrix_100_percent_sparse(self):
         """Test empty matrix reports 100% sparsity (1.0)."""
         bt = SparseTag.create_empty(100, ["Tag1", "Tag2"])
-        assert bt.sparsity == 1.0
+        assert bt.sparsity == pytest.approx(1.0)
 
     def test_full_matrix_zero_percent_sparse(self):
         """Test completely filled matrix reports 0% sparsity (0.0)."""
         data = np.full((10, 3), TagConfidence.HIGH, dtype=np.uint8)
         bt = SparseTag.from_dense(data, ["A", "B", "C"])
 
-        assert bt.sparsity == 0.0
+        assert bt.sparsity == pytest.approx(0.0)
 
     def test_sparsity_after_optimization(self):
         """Test sparsity unchanged after dtype optimization."""

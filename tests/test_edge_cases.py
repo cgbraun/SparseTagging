@@ -14,7 +14,7 @@ class TestEmptyMatrices:
         bt = SparseTag.create_empty(100, ["Tag1", "Tag2"])
         assert bt.shape == (100, 2)
         assert bt._data.nnz == 0
-        assert bt.sparsity == 1.0  # 100% sparse = 1.0
+        assert bt.sparsity == pytest.approx(1.0)  # 100% sparse = 1.0
 
     def test_query_on_empty_matrix(self):
         """Test querying empty matrix."""
