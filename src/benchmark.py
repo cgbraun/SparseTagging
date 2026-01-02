@@ -52,7 +52,7 @@ class PerformanceBenchmark:
 
         self.size_config = size_config
         self.n_rows, self.n_cols, self.iterations, self.warmup = self.sizes[size_config]
-        self.fill_percent = 0.01  # 1% fill = 99% sparse (optimal)
+        self.fill_percent = 0.01  # 1% fill equal to 99% sparse (optimal for testing)
         self.seed = 42
 
         self.results = {}

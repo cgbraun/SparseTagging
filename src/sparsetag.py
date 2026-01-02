@@ -528,21 +528,23 @@ class SparseTag:
         valid = {int(v) for v in TagConfidence.get_valid_values()}
         value_int = int(value)
 
-        if op == "==":
-            result = {value_int}
-        elif op == "!=":
-            result = valid - {value_int}
-            logger.debug(f"Transformed '!= {value.name}' to 'IN {result}'")
-        elif op == ">":
-            result = {v for v in valid if v > value_int}
-        elif op == ">=":
-            result = {v for v in valid if v >= value_int}
-        elif op == "<":
-            result = {v for v in valid if v < value_int}
-        elif op == "<=":
-            result = {v for v in valid if v <= value_int}
-        else:
+        # Map operators to their filter functions
+        operators = {
+            "==": lambda v: {value_int},
+            "!=": lambda v: valid - {value_int},
+            ">": lambda v: {x for x in valid if x > value_int},
+            ">=": lambda v: {x for x in valid if x >= value_int},
+            "<": lambda v: {x for x in valid if x < value_int},
+            "<=": lambda v: {x for x in valid if x <= value_int},
+        }
+
+        if op not in operators:
             raise InvalidOperatorError(f"Unknown operator: {op}")
+
+        result = operators[op](value_int)
+
+        if op == "!=":
+            logger.debug(f"Transformed '!= {value.name}' to 'IN {result}'")
 
         return result
 
@@ -638,6 +640,55 @@ class SparseTag:
             return np.unique(np.concatenate(all_indices_list))
         return np.array([], dtype=np.int64)
 
+    def _apply_and_operator(self, row_arrays: list[np.ndarray]) -> np.ndarray:
+        """
+        Apply AND logic to multiple row arrays.
+
+        Args:
+            row_arrays: List of row index arrays from sub-conditions
+
+        Returns:
+            Array of row indices present in all input arrays
+        """
+        result = row_arrays[0]
+        for arr in row_arrays[1:]:
+            if len(result) == 0:
+                break
+            result = np.intersect1d(result, arr, assume_unique=True)
+        return result
+
+    def _apply_or_operator(self, row_arrays: list[np.ndarray]) -> np.ndarray:
+        """
+        Apply OR logic to multiple row arrays.
+
+        Args:
+            row_arrays: List of row index arrays from sub-conditions
+
+        Returns:
+            Array of row indices present in any input array
+        """
+        result = np.concatenate(row_arrays)
+        return np.unique(result)
+
+    def _apply_not_operator(self, row_arrays: list[np.ndarray]) -> np.ndarray:
+        """
+        Apply NOT logic to a single row array.
+
+        Args:
+            row_arrays: List with exactly one row index array
+
+        Returns:
+            Array of row indices in universe but not in input
+
+        Raises:
+            InvalidQueryStructureError: If row_arrays doesn't have exactly one element
+        """
+        if len(row_arrays) != 1:
+            raise InvalidQueryStructureError("NOT operator requires exactly one condition")
+
+        universe = self._get_rows_with_any_data()
+        return np.setdiff1d(universe, row_arrays[0], assume_unique=True)
+
     def _evaluate_query_optimized(self, query: dict) -> np.ndarray:
         """
         OPTIMIZED v2: Recursively evaluate query using NumPy operations.
@@ -647,43 +698,27 @@ class SparseTag:
         Returns:
             Array of row indices that match the query
         """
-        if "operator" in query:
-            # Nested logical operation
-            operator = query["operator"].upper()
-            conditions = query.get("conditions", [])
+        if "operator" not in query:
+            return self._evaluate_condition_optimized(query)
 
-            if not conditions:
-                raise InvalidQueryStructureError(f"{operator} operator requires 'conditions' list")
+        operator = query["operator"].upper()
+        conditions = query.get("conditions", [])
 
-            # Evaluate all sub-conditions to get row index arrays (already sorted from sparse)
-            row_arrays = [self._evaluate_query_optimized(cond) for cond in conditions]
+        if not conditions:
+            raise InvalidQueryStructureError(f"{operator} operator requires 'conditions' list")
 
-            # Combine based on operator using NumPy operations (much faster than Python sets!)
-            if operator == "AND":
-                # NumPy intersection - much faster for large arrays
-                result = row_arrays[0]
-                for arr in row_arrays[1:]:
-                    if len(result) == 0:  # Short-circuit if empty
-                        break
-                    result = np.intersect1d(result, arr, assume_unique=True)
-            elif operator == "OR":
-                # NumPy union - concatenate and find unique sorted
-                result = np.concatenate(row_arrays)
-                result = np.unique(result)  # Sorted unique values
-            elif operator == "NOT":
-                if len(row_arrays) != 1:
-                    raise InvalidQueryStructureError("NOT operator requires exactly one condition")
+        row_arrays = [self._evaluate_query_optimized(cond) for cond in conditions]
 
-                # NOT operates only on rows with ANY non-zero data (sparse semantics)
-                # Excludes all-zero rows since they have no tag confidence
-                universe = self._get_rows_with_any_data()
-                result = np.setdiff1d(universe, row_arrays[0], assume_unique=True)
-            else:
-                raise InvalidOperatorError(f"Unknown operator: {operator}")
+        operator_handlers = {
+            "AND": self._apply_and_operator,
+            "OR": self._apply_or_operator,
+            "NOT": self._apply_not_operator,
+        }
 
-            return result
-        # Single condition
-        return self._evaluate_condition_optimized(query)
+        if operator not in operator_handlers:
+            raise InvalidOperatorError(f"Unknown operator: {operator}")
+
+        return operator_handlers[operator](row_arrays)
 
     def query(self, query_dict: dict, *, use_cache: bool = True) -> QueryResult:
         """
