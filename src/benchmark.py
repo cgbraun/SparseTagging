@@ -17,6 +17,7 @@ Generates detailed performance report with:
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Callable
 
 import numpy as np
 from scipy import sparse
@@ -55,15 +56,20 @@ class PerformanceBenchmark:
         self.fill_percent = 0.01  # 1% fill equal to 99% sparse (optimal for testing)
         self.seed = 42
 
-        self.results = {}
-        self.report_lines = []
+        self.results: dict[str, Any] = {}
+        self.report_lines: list[str] = []
 
-    def _log(self, line: str = ""):
+        # Matrices initialized in initialize_data
+        self.bt_cached: SparseTag
+        self.bt_uncached: SparseTag
+        self.dense: np.ndarray
+
+    def _log(self, line: str = "") -> None:
         """Add line to report and print."""
         print(line)
         self.report_lines.append(line)
 
-    def _header(self, title: str, level: int = 1):
+    def _header(self, title: str, level: int = 1) -> None:
         """Add formatted header."""
         if level == 1:
             self._log(f"\n{'=' * 70}")
@@ -77,7 +83,7 @@ class PerformanceBenchmark:
             self._log(f"\n{title}")
             self._log("-" * len(title))
 
-    def initialize_data(self):
+    def initialize_data(self) -> None:
         """Create test data for all three scenarios."""
         self._header("Data Initialization")
 
@@ -138,8 +144,8 @@ class PerformanceBenchmark:
         }
 
     def _execute_timed_query(
-        self, query_func, iterations: int, warmup: int
-    ) -> tuple[float, float, int]:
+        self, query_func: Callable[[], Any], iterations: int, warmup: int
+    ) -> tuple[float, float, int | None]:
         """
         Execute query function with timing and warmup.
 
@@ -152,23 +158,23 @@ class PerformanceBenchmark:
             (avg_time_ms, std_time_ms, match_count)
         """
         # Warmup
-        count = None
+        count: int | None = None
         for _ in range(warmup):
             count = query_func()
 
         # Timed iterations
-        times = []
+        times: list[float] = []
         for _ in range(iterations):
             start = time.perf_counter()
             count = query_func()
             end = time.perf_counter()
-            times.append((end - start) * 1000)
+            times.append(float((end - start) * 1000))
 
-        return np.mean(times), np.std(times), count
+        return float(np.mean(times)), float(np.std(times)), count
 
     def _query_dense_multi(
-        self, query_dict: dict, iterations: int, warmup: int
-    ) -> tuple[float, float, int]:
+        self, query_dict: dict[str, Any], iterations: int, warmup: int
+    ) -> tuple[float, float, int | None]:
         """
         Execute multi-column query on dense array and time it.
 
@@ -181,19 +187,19 @@ class PerformanceBenchmark:
             (avg_time_ms, std_time_ms, match_count)
         """
         operator = query_dict.get("operator")
-        conditions = query_dict.get("conditions", [])
+        conditions: list[dict[str, Any]] = query_dict.get("conditions", [])
 
         if not operator or not conditions:
             raise ValueError("Multi-column query requires operator and conditions")
 
-        def execute_query():
+        def execute_query() -> int:
             """Execute the multi-column query on dense array."""
             masks = []
             for cond in conditions:
                 if "operator" in cond:
                     # Nested - skip for now
                     continue
-                col_name = cond["column"]
+                col_name = str(cond["column"])
                 col_idx = self.bt_cached._column_index[col_name]
                 op = cond["op"]
 
@@ -229,8 +235,8 @@ class PerformanceBenchmark:
         return self._execute_timed_query(execute_query, iterations, warmup)
 
     def _query_dense(
-        self, col_idx: int, op: str, value, iterations: int, warmup: int
-    ) -> tuple[float, float, int]:
+        self, col_idx: int, op: str, value: Any, iterations: int, warmup: int
+    ) -> tuple[float, float, int | None]:
         """
         Execute query on dense array and time it.
 
@@ -238,7 +244,7 @@ class PerformanceBenchmark:
             (avg_time_ms, std_time_ms, match_count)
         """
 
-        def execute_query():
+        def execute_query() -> int:
             """Execute the single-column query on dense array."""
             if op == "==":
                 mask = self.dense[:, col_idx] == value
@@ -255,8 +261,8 @@ class PerformanceBenchmark:
         return self._execute_timed_query(execute_query, iterations, warmup)
 
     def _query_sparse(
-        self, query_dict: dict, use_cache: bool, iterations: int, warmup: int
-    ) -> tuple[float, float, int]:
+        self, query_dict: dict[str, Any], use_cache: bool, iterations: int, warmup: int
+    ) -> tuple[float, float, int | None]:
         """
         Execute query on sparse array and time it.
 
@@ -265,18 +271,18 @@ class PerformanceBenchmark:
         """
         bt = self.bt_cached if use_cache else self.bt_uncached
 
-        def execute_query():
+        def execute_query() -> int:
             """Execute the sparse query."""
             result = bt.query(query_dict, use_cache=use_cache)
             return result.count
 
         return self._execute_timed_query(execute_query, iterations, warmup)
 
-    def benchmark_single_column_queries(self):
+    def benchmark_single_column_queries(self) -> None:
         """Benchmark single-column query operations."""
         self._header("Single-Column Query Benchmarks", level=1)
 
-        test_cases = [
+        test_cases: list[tuple[str, dict[str, Any], int, str, Any]] = [
             ("Tag1 == HIGH", {"column": "Tag1", "op": "==", "value": HIGH}, 0, "==", HIGH),
             ("Tag2 == MEDIUM", {"column": "Tag2", "op": "==", "value": MEDIUM}, 1, "==", MEDIUM),
             ("Tag3 > LOW", {"column": "Tag3", "op": ">", "value": LOW}, 2, ">", LOW),
@@ -353,11 +359,11 @@ class PerformanceBenchmark:
 
         self.results["single_column"] = results
 
-    def benchmark_multi_column_queries(self):
+    def benchmark_multi_column_queries(self) -> None:
         """Benchmark multi-column query operations."""
         self._header("Multi-Column Query Benchmarks", level=1)
 
-        test_cases = [
+        test_cases: list[tuple[str, dict[str, Any]]] = [
             (
                 "Tag1==HIGH AND Tag2>=MED",
                 {
@@ -391,6 +397,8 @@ class PerformanceBenchmark:
 
             # Dense (if columns exist in test case)
             try:
+                time_dense: float | None
+                count_dense: int | None
                 time_dense, std_dense, count_dense = self._query_dense_multi(
                     query, self.iterations, self.warmup
                 )
@@ -425,11 +433,15 @@ class PerformanceBenchmark:
             )
 
             # Calculate speedups
-            speedup_sparse = time_dense / time_uncached if has_dense else None
+            speedup_sparse = (
+                time_dense / time_uncached if has_dense and time_dense is not None else None
+            )
             speedup_cache_vs_uncached = time_uncached / time_cached
-            speedup_cache_vs_dense = time_dense / time_cached if has_dense else None
+            speedup_cache_vs_dense = (
+                time_dense / time_cached if has_dense and time_dense is not None else None
+            )
 
-            if has_dense:
+            if has_dense and speedup_sparse is not None and speedup_cache_vs_dense is not None:
                 self._log(f"  Speedup (sparse vs dense):  {speedup_sparse:5.1f}x")
                 self._log(f"  Speedup (cache vs dense):   {speedup_cache_vs_dense:5.1f}x")
             self._log(f"  Speedup (cache vs uncached): {speedup_cache_vs_uncached:5.1f}x")
@@ -459,7 +471,7 @@ class PerformanceBenchmark:
 
         self.results["multi_column"] = results
 
-    def benchmark_cache_performance(self):
+    def benchmark_cache_performance(self) -> None:
         """Detailed cache performance analysis."""
         self._header("Cache Performance Analysis", level=1)
 
@@ -469,11 +481,11 @@ class PerformanceBenchmark:
         self._log("\nRepeated Query Pattern (Q1 x 10):")
         self.bt_cached.clear_cache()
 
-        times = []
+        times: list[float] = []
         for i in range(10):
             t = time.perf_counter()
             self.bt_cached.query(query)
-            elapsed = (time.perf_counter() - t) * 1000
+            elapsed = float((time.perf_counter() - t) * 1000)
             times.append(elapsed)
             status = "MISS" if i == 0 else "HIT"
             self._log(f"  Query {i + 1:2d}: {elapsed:7.3f}ms ({status})")
@@ -525,13 +537,13 @@ class PerformanceBenchmark:
 
         self.results["cache"] = {
             "first_query_ms": times[0],
-            "subsequent_avg_ms": np.mean(times[1:]),
-            "speedup": times[0] / np.mean(times[1:]),
+            "subsequent_avg_ms": float(np.mean(times[1:])),
+            "speedup": times[0] / float(np.mean(times[1:])),
             "overhead_percent": overhead,
             "hit_rate": stats["hit_rate"],
         }
 
-    def run_unit_tests(self):
+    def run_unit_tests(self) -> None:
         """Run basic unit tests to verify correctness."""
         self._header("Unit Tests", level=1)
 
@@ -592,7 +604,7 @@ class PerformanceBenchmark:
             query = {"column": "Tag1", "op": "==", "value": HIGH}
             sparse_result = self.bt_cached.query(query, use_cache=False)
             dense_mask = self.dense[:, 0] == HIGH
-            dense_count = np.sum(dense_mask)
+            dense_count: int = int(np.sum(dense_mask))
 
             assert sparse_result.count == dense_count
             self._log(f"  ✓ PASSED (both found {dense_count} matches)")
@@ -641,7 +653,7 @@ class PerformanceBenchmark:
             "total": tests_passed + tests_failed,
         }
 
-    def generate_summary(self):
+    def generate_summary(self) -> None:
         """Generate summary report."""
         self._header("Performance Summary", level=1)
 
@@ -709,8 +721,8 @@ class PerformanceBenchmark:
         self._log("\nKey Findings:")
 
         if "single_column" in self.results:
-            avg_speedup_cache = np.mean(
-                [r["dense_ms"] / r["cached_ms"] for r in self.results["single_column"]]
+            avg_speedup_cache = float(
+                np.mean([r["dense_ms"] / r["cached_ms"] for r in self.results["single_column"]])
             )
             self._log(
                 f"  • Cached queries are {avg_speedup_cache:.0f}x faster than dense on average"
@@ -731,7 +743,7 @@ class PerformanceBenchmark:
             tests = self.results["unit_tests"]
             self._log(f"  • All {tests['passed']}/{tests['total']} unit tests passed")
 
-    def save_report(self, filename: str | Path):
+    def save_report(self, filename: str | Path) -> None:
         """Save report to file."""
         with open(filename, "w", encoding="utf-8") as f:
             f.write("\n".join(self.report_lines))
@@ -739,7 +751,7 @@ class PerformanceBenchmark:
         print(f"Report saved to: {filename}")
         print(f"{'=' * 70}")
 
-    def run_all(self) -> str:
+    def run_all(self) -> Path:
         """Run all benchmarks and return report filename."""
         print(f"\n{'#' * 70}")
         print("# SparseTag v2.1 - Comprehensive Performance Benchmark")
@@ -770,7 +782,7 @@ class PerformanceBenchmark:
         return filename
 
 
-def main():
+def main() -> list[Path]:
     """Run benchmarks for all size configurations."""
     print("\n" + "=" * 70)
     print("SparseTag v2.1 - Complete Performance Analysis")

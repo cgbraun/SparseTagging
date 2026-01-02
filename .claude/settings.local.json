@@ -50,7 +50,14 @@
       "Bash(then echo \"   ✅ .github/dependabot.yml exists\")",
       "Bash(else echo \"   ❌ .github/dependabot.yml missing\")",
       "Bash(echo:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:sonarcloud.io)",
+      "WebSearch",
+      "WebFetch(domain:docs.sonarsource.com)",
+      "Bash(findstr:*)",
+      "WebFetch(domain:gist.github.com)",
+      "Bash(powershell:*)",
+      "Bash(where /r \"C:\\\\Users\\\\cgbraun\" sonarlint)"
     ]
   }
 }

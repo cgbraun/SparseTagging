@@ -18,7 +18,7 @@ Performance improvements over v1:
 import enum
 import logging
 from functools import wraps
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable
 
 import numpy as np
 from scipy import sparse
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 # Type alias for backward compatibility during sparse matrix → array migration
 # Supports both deprecated sparse.spmatrix and current sparse.sparray formats
 # Note: We use SparseInputProtocol for type hints to work around scipy's incomplete type stubs
-SparseType = Union[sparse.spmatrix, sparse.sparray]
+SparseType = sparse.spmatrix | sparse.sparray
 
 
 # ========================================================================
@@ -119,7 +119,7 @@ class QueryResult:
         """
         self._indices = np.asarray(indices, dtype=np.int64)
         self._parent = parent
-        self._mask_cache: Optional[CSCArrayProtocol] = None
+        self._mask_cache: CSCArrayProtocol | None = None
 
     @property
     def mask(self) -> CSCArrayProtocol:
@@ -236,7 +236,7 @@ class SparseTag:
         self._column_index = {name: idx for idx, name in enumerate(column_names)}
 
         # Cache infrastructure - delegate to QueryCacheManager
-        self._cache_manager: Optional[QueryCacheManager] = (
+        self._cache_manager: QueryCacheManager | None = (
             QueryCacheManager() if enable_cache else None
         )
         self._data_version = 0  # Track modifications (increments on changes)
@@ -320,7 +320,7 @@ class SparseTag:
         n_rows: int,
         column_names: list[str],
         fill_percent: float = 0.1,
-        seed: Optional[int] = None,
+        seed: int | None = None,
         enable_cache: bool = True,
     ) -> "SparseTag":
         """Create SparseTag with random test data."""
@@ -419,7 +419,7 @@ class SparseTag:
             )
         return self._column_index[column_name]
 
-    def _ensure_tag_confidence(self, value: Union[int, TagConfidence]) -> TagConfidence:
+    def _ensure_tag_confidence(self, value: int | TagConfidence) -> TagConfidence:
         """
         Type-safe conversion to TagConfidence with validation.
 
@@ -439,7 +439,7 @@ class SparseTag:
         raise InvalidValueError(f"Invalid TagConfidence value: {value} (must be 0-3)")
 
     def get_value_counts(
-        self, columns: Optional[Union[str, list[str]]] = None
+        self, columns: str | list[str] | None = None
     ) -> dict[str, dict[TagConfidence, int]]:
         """
         Get distribution of TagConfidence values per column.
@@ -815,7 +815,7 @@ class SparseTag:
         if self._cache_manager:
             self._cache_manager.clear()
 
-    def cache_stats(self) -> dict[str, Union[int, float, bool]]:
+    def cache_stats(self) -> dict[str, int | float | bool]:
         """
         Get cache performance statistics.
 
@@ -893,7 +893,7 @@ class SparseTag:
             "total": data_bytes + indices_bytes + indptr_bytes + column_names_bytes,
         }
 
-    def optimize_indices_dtype(self, inplace: bool = True) -> Optional["SparseTag"]:
+    def optimize_indices_dtype(self, inplace: bool = True) -> "SparseTag | None":
         """
         Optimize indices dtype to reduce memory usage.
 
