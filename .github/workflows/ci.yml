@@ -67,10 +67,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Auto-provided by GitHub
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # Added in Phase 1
-        with:
-          args: >
-            -Dsonar.projectKey=cgbraun_SparseTagging
-            -Dsonar.organization=cgbraun
 
   test:
     name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
