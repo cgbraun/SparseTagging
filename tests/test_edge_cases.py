@@ -71,7 +71,7 @@ class TestBoundaryValues:
         bt = SparseTag.from_dense(data, ["A", "B", "C"])
 
         # Query for NONE should raise ValueError (would create dense matrix)
-        with pytest.raises(ValueError, match="NONE|zero|dense"):
+        with pytest.raises(ValueError, match=r"NONE|zero|dense"):
             bt.query({"column": "A", "op": "==", "value": 0})
 
     def test_max_confidence_value(self):

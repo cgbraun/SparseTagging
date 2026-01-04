@@ -85,12 +85,12 @@ class TestInvalidFillPercent:
 
     def test_negative_fill_percent(self):
         """Test that negative fill_percent raises error."""
-        with pytest.raises(ValueError, match="fill_percent|range|0|1"):
+        with pytest.raises(ValueError, match=r"fill_percent|range|0|1"):
             SparseTag.create_random(100, ["Tag1"], -0.1, seed=42)
 
     def test_fill_percent_greater_than_one(self):
         """Test that fill_percent > 1.0 raises error."""
-        with pytest.raises(ValueError, match="fill_percent|range|0|1"):
+        with pytest.raises(ValueError, match=r"fill_percent|range|0|1"):
             SparseTag.create_random(100, ["Tag1"], 1.5, seed=42)
 
     def test_fill_percent_exactly_one(self):

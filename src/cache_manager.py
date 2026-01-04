@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 import numpy as np
 
 if TYPE_CHECKING:
-    from .sparsetag import QueryResult
+    pass
 
 logger = logging.getLogger(__name__)
 
