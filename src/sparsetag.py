@@ -13,6 +13,8 @@ Key optimizations:
 Performance improvements over v1:
 - Single-column queries: 700-900x faster than original buggy implementation
 - Multi-column queries: 5-10x faster than v1 (via NumPy operations)
+
+CGBraun, Jan 2026.
 """
 
 import enum
