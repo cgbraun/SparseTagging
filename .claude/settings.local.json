@@ -58,7 +58,11 @@
       "WebFetch(domain:gist.github.com)",
       "Bash(powershell:*)",
       "Bash(where /r \"C:\\\\Users\\\\cgbraun\" sonarlint)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(git commit:*)",
+      "Bash(gh run watch:*)"
     ]
   }
 }

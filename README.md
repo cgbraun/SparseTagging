@@ -2,7 +2,7 @@
 
 ![CI Status](https://github.com/your-org/sparsetagging/workflows/CI/badge.svg)
 ![Coverage](https://codecov.io/gh/your-org/sparsetagging/branch/main/graph/badge.svg)
-![Python Versions](https://img.shields.io/badge/python-3.9%2B-blue)
+![Python Versions](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=vonbraun_SparseTagging&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=vonbraun_SparseTagging)
@@ -81,7 +81,7 @@ pip install -r requirements-dev.txt
 ### Requirements
 
 **Runtime:**
-- Python 3.9+
+- Python 3.10+
 - NumPy ≥ 1.20 (2.0+ recommended)
 - SciPy ≥ 1.8 (required for `sparse.csc_array`)
 - psutil ≥ 5.8 (for memory tracking)
@@ -390,7 +390,7 @@ This project uses modern DevOps practices:
 - **Type Safety**: mypy with strict mode, 100% type hint coverage
 - **Code Quality**: ruff for linting and formatting
 - **Pre-commit**: Automated quality checks before commit
-- **CI/CD**: GitHub Actions testing on Python 3.9-3.13
+- **CI/CD**: GitHub Actions testing on Python 3.10-3.13
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and [docs/DEVOPS.md](docs/DEVOPS.md) for detailed tooling documentation.
 

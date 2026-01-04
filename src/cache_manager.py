@@ -3,7 +3,7 @@
 import hashlib
 import json
 import logging
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -32,7 +32,7 @@ class QueryEncoder(json.JSONEncoder):
 
         if isinstance(obj, TagConfidence):
             return int(obj)
-        if isinstance(obj, (np.integer, np.floating)):
+        if isinstance(obj, np.integer | np.floating):
             return int(obj) if isinstance(obj, np.integer) else float(obj)
         if isinstance(obj, np.ndarray):
             return obj.tolist()
@@ -64,7 +64,7 @@ class QueryCacheManager:
         self._max_memory_mb = max_memory_mb
         self._large_result_threshold_mb = large_result_threshold_mb
 
-    def get(self, query_dict: dict[str, Any]) -> Optional[Any]:
+    def get(self, query_dict: dict[str, Any]) -> Any | None:
         """Get cached result for query, or None if not cached."""
         key = self._generate_key(query_dict)
         if key in self._cache:
@@ -92,7 +92,7 @@ class QueryCacheManager:
         self._cache_memory_bytes = 0
         logger.info(f"Cache cleared: {old_size} entries removed")
 
-    def stats(self) -> dict[str, Union[int, float, bool]]:
+    def stats(self) -> dict[str, int | float | bool]:
         """Get cache performance statistics."""
         total = self._cache_hits + self._cache_misses
         hit_rate = self._cache_hits / total if total > 0 else 0

@@ -15,9 +15,10 @@ Generates detailed performance report with:
 """
 
 import time
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 from scipy import sparse
@@ -683,9 +684,7 @@ class PerformanceBenchmark:
             return
 
         self._log("\nMulti-Column Query Performance:")
-        self._log(
-            f"{'Query':<30} {'Dense':<12} {'Uncached':<12} {'Cached':<12} {'Speedup':<10}"
-        )
+        self._log(f"{'Query':<30} {'Dense':<12} {'Uncached':<12} {'Cached':<12} {'Speedup':<10}")
         self._log(f"{'':<30} {'(ms)':<12} {'(ms)':<12} {'(ms)':<12} {'(vs Dense)':<10}")
         self._log("-" * 77)
 
