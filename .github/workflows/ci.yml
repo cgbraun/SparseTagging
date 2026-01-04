@@ -70,7 +70,7 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=cgbraun_SparseTagging
-            -Dsonar.organization=vonbraun
+            -Dsonar.organization=cgbraun
 
   test:
     name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
