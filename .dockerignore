@@ -1,0 +1,52 @@
+# Git
+.git/
+.github/
+.gitignore
+.gitattributes
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing
+tests/
+htmlcov/
+.coverage
+.pytest_cache/
+.mypy_cache/
+coverage.xml
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.claude/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Reports
+reports/
+
+# Environment
+.env
+.env.local
+
+# Scripts
+scripts/
