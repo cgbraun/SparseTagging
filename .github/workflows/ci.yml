@@ -165,15 +165,32 @@ jobs:
           sarif_file: 'trivy-results.sarif'
           # To enable: Settings → Code security → Enable Code scanning
 
+      - name: Upload Trivy SARIF report as artifact
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        if: always()
+        with:
+          name: trivy-sarif-report
+          path: trivy-results.sarif
+          retention-days: 90
+
       - name: Run Trivy for full report (informational)
         uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0  # master
         continue-on-error: true  # Don't fail build on vulnerabilities (base image issues)
         with:
           image-ref: sparsetagging:${{ github.sha }}
           format: 'table'
+          output: 'trivy-report.txt'  # Save table report to file
           exit-code: '0'  # Report vulnerabilities but don't fail the build
           severity: 'CRITICAL,HIGH,MEDIUM'
           scanners: 'vuln,secret,config'  # Comprehensive scanning
+
+      - name: Upload Trivy table report as artifact
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        if: always()
+        with:
+          name: trivy-vulnerability-report
+          path: trivy-report.txt
+          retention-days: 90
 
       - name: Generate SBOM
         uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0  # master
@@ -184,9 +201,126 @@ jobs:
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        if: always()
         with:
           name: sbom
           path: sbom.spdx.json
+          retention-days: 90
+
+      - name: Export Docker image as tarball
+        run: |
+          docker save sparsetagging:${{ github.sha }} -o sparsetagging-${{ github.sha }}.tar
+          gzip sparsetagging-${{ github.sha }}.tar
+
+      - name: Upload Docker image as artifact
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        with:
+          name: docker-image
+          path: sparsetagging-${{ github.sha }}.tar.gz
+          retention-days: 30  # Shorter retention for large files
+
+      - name: Generate artifact summary
+        run: |
+          cat > artifact-summary.md << 'EOF'
+          # SparseTagging Docker Build Artifacts
+
+          **Build Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Commit SHA:** ${{ github.sha }}
+          **Branch:** ${{ github.ref_name }}
+
+          ## Available Artifacts
+
+          ### 1. Docker Image (`docker-image`)
+          - **File:** `sparsetagging-${{ github.sha }}.tar.gz`
+          - **Size:** ~300MB (compressed)
+          - **Usage:**
+            ```bash
+            # Download and load the image
+            gunzip sparsetagging-${{ github.sha }}.tar.gz
+            docker load -i sparsetagging-${{ github.sha }}.tar
+
+            # Run the image
+            docker run --rm sparsetagging:${{ github.sha }}
+
+            # Interactive shell
+            docker run --rm -it sparsetagging:${{ github.sha }} /bin/bash
+            ```
+
+          ### 2. Trivy Vulnerability Report (`trivy-vulnerability-report`)
+          - **File:** `trivy-report.txt`
+          - **Format:** Human-readable table
+          - **Severities:** CRITICAL, HIGH, MEDIUM
+          - **Scans:** Vulnerabilities, Secrets, Misconfigurations
+          - **Usage:** Open in text editor to review findings
+
+          ### 3. Trivy SARIF Report (`trivy-sarif-report`)
+          - **File:** `trivy-results.sarif`
+          - **Format:** SARIF (machine-readable)
+          - **Usage:** Import into security tools, IDEs, or GitHub Security
+
+          ### 4. SBOM - Software Bill of Materials (`sbom`)
+          - **File:** `sbom.spdx.json`
+          - **Format:** SPDX JSON
+          - **Usage:** Compliance, license tracking, supply chain security
+            ```bash
+            # View with Trivy
+            trivy sbom sbom.spdx.json
+
+            # Validate SPDX
+            java -jar spdx-tools.jar Verify sbom.spdx.json
+            ```
+
+          ## Image Details
+
+          - **Base Image:** python:3.11-slim
+          - **Architecture:** linux/amd64
+          - **User:** sparsetag (UID 1000, non-root)
+          - **Working Directory:** /app
+          - **Python Version:** 3.11
+          - **SparseTagging Version:** 2.4.0
+
+          ## Testing the Image
+
+          ```bash
+          # Load the image
+          docker load -i sparsetagging-${{ github.sha }}.tar
+
+          # Verify it works
+          docker run --rm sparsetagging:${{ github.sha }} python -c "import sparsetagging; print('OK')"
+
+          # Run benchmarks (if available)
+          docker run --rm sparsetagging:${{ github.sha }} python -m pytest --version
+          ```
+
+          ## Security Review
+
+          1. **Review vulnerabilities:** Check `trivy-report.txt`
+          2. **Check SARIF:** Import `trivy-results.sarif` to IDE
+          3. **Verify SBOM:** Review `sbom.spdx.json` for dependencies
+          4. **Test image:** Load and run security scans locally
+
+          ## GitHub Container Registry
+
+          On main branch, this image is also published to:
+          ```
+          ghcr.io/cgbraun/sparsetagging:latest
+          ghcr.io/cgbraun/sparsetagging:2.4.0
+          ```
+
+          Pull and use:
+          ```bash
+          docker pull ghcr.io/cgbraun/sparsetagging:latest
+          docker run --rm ghcr.io/cgbraun/sparsetagging:latest
+          ```
+          EOF
+
+      - name: Upload artifact summary
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        if: always()
+        with:
+          name: artifact-summary
+          path: artifact-summary.md
+          retention-days: 90
 
       - name: Log in to GitHub Container Registry
         if: github.ref == 'refs/heads/main'
