@@ -62,7 +62,10 @@
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
       "Bash(git commit:*)",
-      "Bash(gh run watch:*)"
+      "Bash(gh run watch:*)",
+      "Bash(cmd /c \"dir /b C:\\\\Users\\\\cgbraun\\\\AppData\\\\Local\\\\JetBrains\\\\PyCharm2025.3\\\\sonarlint\\\\storage\\\\6367627261756e\\\\projects\")",
+      "Bash(cmd /c \"dir /b /s C:\\\\Users\\\\cgbraun\\\\AppData\\\\Local\\\\JetBrains\\\\PyCharm2025.3\\\\sonarlint\\\\storage\\\\6367627261756e\\\\projects\\\\*.pb\")",
+      "Bash(cmd /c \"dir C:\\\\Users\\\\cgbraun\\\\AppData\\\\Local\\\\JetBrains\\\\PyCharm2025.3\\\\log /o-d | findstr /i sonar\")"
     ]
   }
 }
