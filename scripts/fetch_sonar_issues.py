@@ -8,6 +8,8 @@ then presents them for automated fixing.
 
 Usage:
     python scripts/fetch_sonar_issues.py
+
+    CGBraun, Jan 2026
 """
 
 import json
