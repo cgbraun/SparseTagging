@@ -54,9 +54,6 @@ WORKDIR /app
 COPY --from=builder /build/dist/*.whl /tmp/
 RUN pip install --no-cache-dir /tmp/*.whl && rm /tmp/*.whl
 
-# Copy example scripts (optional)
-COPY examples/ examples/ 2>/dev/null || true
-
 # Switch to non-root user
 USER sparsetag
 
