@@ -154,14 +154,16 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
+          scanners: 'vuln,secret,config'  # Scan for vulnerabilities, secrets, and misconfigs
           exit-code: '0'  # Don't exit on findings, just create the report
 
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@ea9e4e37992a54ee68a9622e985e60c8e8f12d9f  # v3.27.6
         if: always()
-        continue-on-error: true  # Don't fail if upload has issues
+        continue-on-error: true  # Will fail until Code Scanning is enabled in repo settings
         with:
           sarif_file: 'trivy-results.sarif'
+          # To enable: Settings → Code security → Enable Code scanning
 
       - name: Run Trivy for full report (informational)
         uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0  # master
@@ -171,6 +173,7 @@ jobs:
           format: 'table'
           exit-code: '0'  # Report vulnerabilities but don't fail the build
           severity: 'CRITICAL,HIGH,MEDIUM'
+          scanners: 'vuln,secret,config'  # Comprehensive scanning
 
       - name: Generate SBOM
         uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0  # master
