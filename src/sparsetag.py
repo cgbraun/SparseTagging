@@ -981,7 +981,7 @@ class SparseTag:
         savings = (old_mem - new_mem) / old_mem * 100
 
         logger.info(
-            f"Optimized indices dtype: {self._data.indices.dtype} → {target_dtype}, saved {savings:.1f}% indices memory"
+            f"Optimized indices dtype: {self._data.indices.dtype} → {target_dtype}, saved {savings:.1f}%% indices memory"
         )
 
         if inplace:
