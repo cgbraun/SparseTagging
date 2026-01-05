@@ -145,26 +145,29 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy vulnerability scanner (SARIF)
         uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0  # master
+        continue-on-error: true  # Don't fail if vulnerabilities found, we want the SARIF file
         with:
           image-ref: sparsetagging:${{ github.sha }}
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
+          exit-code: '0'  # Don't exit on findings, just create the report
 
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@ea9e4e37992a54ee68a9622e985e60c8e8f12d9f  # v3.27.6
         if: always()
+        continue-on-error: true  # Don't fail if upload has issues
         with:
           sarif_file: 'trivy-results.sarif'
 
-      - name: Run Trivy for full report
+      - name: Run Trivy for full report (will fail on HIGH/CRITICAL)
         uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0  # master
         with:
           image-ref: sparsetagging:${{ github.sha }}
           format: 'table'
-          exit-code: '1'
+          exit-code: '1'  # Fail the build if HIGH/CRITICAL vulnerabilities found
           severity: 'CRITICAL,HIGH'
 
       - name: Generate SBOM
