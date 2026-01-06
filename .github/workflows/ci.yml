@@ -422,16 +422,16 @@ jobs:
           # Parse test results from each matrix run
           if [ -d "test-results" ]; then
             for test_dir in test-results/test-results-*; do
-              if [ -d "\$test_dir" ]; then
-                os_py=\$(basename "\$test_dir" | sed 's/test-results-//')
+              if [ -d "$test_dir" ]; then
+                os_py=$(basename "$test_dir" | sed 's/test-results-//')
                 echo "" >> "${SCAN_DIR}/test-summary.md"
-                echo "### \$os_py" >> "${SCAN_DIR}/test-summary.md"
+                echo "### $os_py" >> "${SCAN_DIR}/test-summary.md"
                 echo "" >> "${SCAN_DIR}/test-summary.md"
 
-                if [ -f "\$test_dir/pytest-output.txt" ]; then
+                if [ -f "$test_dir/pytest-output.txt" ]; then
                   # Extract key metrics
-                  if grep -q "passed" "\$test_dir/pytest-output.txt"; then
-                    grep -E "(passed|failed|error|skipped|warnings summary)" "\$test_dir/pytest-output.txt" | tail -5 >> "${SCAN_DIR}/test-summary.md"
+                  if grep -q "passed" "$test_dir/pytest-output.txt"; then
+                    grep -E "(passed|failed|error|skipped|warnings summary)" "$test_dir/pytest-output.txt" | tail -5 >> "${SCAN_DIR}/test-summary.md"
                   else
                     echo "⚠️ Test output not parseable" >> "${SCAN_DIR}/test-summary.md"
                   fi
