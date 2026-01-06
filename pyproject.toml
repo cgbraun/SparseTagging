@@ -1,6 +1,6 @@
 [project]
 name = "sparsetagging"
-version = "2.4.0"
+version = "2.4.1"
 description = "High-performance sparse array library for tag confidence data with intelligent query caching"
 requires-python = ">=3.10"
 dependencies = [

@@ -2,6 +2,28 @@
 
 All notable changes to SparseTag will be documented in this file.
 
+## [2.4.1] - 2026-01-06
+
+### Security
+- **Docker image security update**: Upgraded pip to 25.3 in Dockerfile
+  - Fixes CVE-2025-8869: Symbolic link vulnerability in pip tar extraction
+  - Reduces MEDIUM vulnerabilities from 14 to 4 occurrences
+  - Python 3.11 already includes PEP 706 protections, but pip upgrade provides defense-in-depth
+- **Added SECURITY.md**: Security policy and vulnerability disclosure process
+  - Documents 2 unpatched MEDIUM CVEs in base image (CVE-2025-14104, CVE-2025-7709)
+  - Risk assessment shows VERY LOW actual impact on SparseTag
+  - Neither CVE affects SparseTag's functionality or use case
+
+### Changed
+- **Dockerfile**: Pin pip to version 25.3 in both builder and runtime stages
+  - Builder stage: Explicit pip 25.3 upgrade before installing dependencies
+  - Runtime stage: Upgraded pip in final image for security
+
+### Documentation
+- Created `SECURITY.md` with vulnerability reporting process
+- Added current security status and risk assessments
+- Documented base image CVEs with impact analysis
+
 ## [2.4.0] - 2025-12-23
 
 ### Added

@@ -22,7 +22,7 @@ COPY requirements.txt pyproject.toml ./
 COPY src/ src/
 
 # Install dependencies and build wheel
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+RUN pip install --no-cache-dir --upgrade pip==25.3 setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir build && \
     python -m build --wheel
@@ -32,7 +32,7 @@ FROM python:3.11-slim
 
 # OCI labels
 LABEL org.opencontainers.image.title="SparseTagging"
-LABEL org.opencontainers.image.version="2.4.0"
+LABEL org.opencontainers.image.version="2.4.1"
 LABEL org.opencontainers.image.description="High-performance sparse array library"
 LABEL org.opencontainers.image.source="https://github.com/cgbraun/SparseTagging"
 
@@ -41,6 +41,9 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         libopenblas0 \
     && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip to fix CVE-2025-8869
+RUN pip install --no-cache-dir --upgrade pip==25.3
 
 # Create non-root user
 RUN useradd -m -u 1000 -s /bin/bash sparsetag
@@ -62,4 +65,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD python -c "import sparsetagging; print('OK')"
 
 # Default command (can be overridden)
-CMD ["python", "-c", "import sparsetagging; print('SparseTagging v2.4.0 loaded successfully')"]
+CMD ["python", "-c", "import sparsetagging; print('SparseTagging v2.4.1 loaded successfully')"]
