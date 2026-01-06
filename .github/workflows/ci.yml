@@ -338,18 +338,18 @@ jobs:
           cp sbom.spdx.json "${SCAN_DIR}/" 2>/dev/null || echo "⚠️ sbom.spdx.json not found"
 
           # Generate SonarCloud link file
-          cat > "${SCAN_DIR}/sonarcloud-links.md" << 'SONAR_EOF'
+          cat > "${SCAN_DIR}/sonarcloud-links.md" << SONAR_EOF
           # SonarCloud Analysis Results
 
           **Project:** SparseTagging
-          **Commit:** ${{ github.sha }}
-          **Branch:** ${{ github.ref_name }}
+          **Commit:** \${{ github.sha }}
+          **Branch:** \${{ github.ref_name }}
           **Scan Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
 
           ## Links
 
           - **Project Dashboard:** https://sonarcloud.io/project/overview?id=vonbraun_SparseTagging
-          - **This Commit:** https://sonarcloud.io/project/overview?id=vonbraun_SparseTagging&branch=${{ github.ref_name }}
+          - **This Commit:** https://sonarcloud.io/project/overview?id=vonbraun_SparseTagging&branch=\${{ github.ref_name }}
           - **Code Coverage:** https://sonarcloud.io/component_measures?id=vonbraun_SparseTagging&metric=coverage
           - **Security Hotspots:** https://sonarcloud.io/project/security_hotspots?id=vonbraun_SparseTagging
           - **Issues:** https://sonarcloud.io/project/issues?id=vonbraun_SparseTagging
@@ -379,13 +379,13 @@ jobs:
           fi
 
           # Generate README.md summary
-          cat > "${SCAN_DIR}/README.md" << 'README_EOF'
+          cat > "${SCAN_DIR}/README.md" << README_EOF
           # Security Scan Results
 
           **Scan Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          **Commit SHA:** ${{ github.sha }}
-          **Branch:** ${{ github.ref_name }}
-          **Workflow Run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Commit SHA:** \${{ github.sha }}
+          **Branch:** \${{ github.ref_name }}
+          **Workflow Run:** https://github.com/\${{ github.repository }}/actions/runs/\${{ github.run_id }}
 
           ---
 
