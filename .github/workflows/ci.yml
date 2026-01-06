@@ -451,33 +451,6 @@ jobs:
 
           TEST_FOOTER
 
-          # Generate SonarCloud link file
-          cat > "${SCAN_DIR}/sonarcloud-links.md" << SONAR_EOF
-          # SonarCloud Analysis Results
-
-          **Project:** SparseTagging
-          **Commit:** \${{ github.sha }}
-          **Branch:** \${{ github.ref_name }}
-          **Scan Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-
-          ## Links
-
-          - **Project Dashboard:** https://sonarcloud.io/project/overview?id=vonbraun_SparseTagging
-          - **This Commit:** https://sonarcloud.io/project/overview?id=vonbraun_SparseTagging&branch=\${{ github.ref_name }}
-          - **Code Coverage:** https://sonarcloud.io/component_measures?id=vonbraun_SparseTagging&metric=coverage
-          - **Security Hotspots:** https://sonarcloud.io/project/security_hotspots?id=vonbraun_SparseTagging
-          - **Issues:** https://sonarcloud.io/project/issues?id=vonbraun_SparseTagging
-
-          ## Quick Stats
-
-          View the SonarCloud dashboard for:
-          - Code coverage percentage
-          - Security vulnerabilities (A-E rating)
-          - Code smells and technical debt
-          - Duplicated code percentage
-          - Reliability and maintainability ratings
-          SONAR_EOF
-
           # Parse vulnerability counts from Trivy report (if it exists)
           CRITICAL_COUNT=0
           HIGH_COUNT=0
@@ -497,9 +470,15 @@ jobs:
           # Security Scan Results
 
           **Scan Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          **Commit SHA:** \${{ github.sha }}
-          **Branch:** \${{ github.ref_name }}
-          **Workflow Run:** https://github.com/\${{ github.repository }}/actions/runs/\${{ github.run_id }}
+          **Commit SHA:** ${{ github.sha }}
+          **Branch:** ${{ github.ref_name }}
+          **Workflow Run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          ## Quick Links
+
+          - 🔒 **[SonarCloud Security Vulnerabilities](https://sonarcloud.io/project/issues?id=cgbraun_SparseTagging&resolved=false&types=VULNERABILITY)**
+          - 📊 **[SonarCloud Dashboard](https://sonarcloud.io/project/overview?id=cgbraun_SparseTagging)**
+          - 📈 **[Code Coverage Report](https://sonarcloud.io/component_measures?id=cgbraun_SparseTagging&metric=coverage&view=list)**
 
           ---
 
@@ -549,36 +528,64 @@ jobs:
             ```
           - **Contains:** All packages, versions, licenses, dependencies
 
-          ### 4. `sonarcloud-links.md`
-          - **Format:** Markdown with links
-          - **Purpose:** Quick access to SonarCloud analysis results
-          - **Contains:** Links to dashboards, coverage, security hotspots
 
-          ### 5. `coverage.xml`
+          ### 4. `coverage.xml`
           - **Format:** Cobertura XML
           - **Purpose:** Code coverage metrics from pytest
           - **Usage:** Import into IDEs, coverage visualization tools
           - **Contains:** Line-by-line coverage data for all source files
 
-          ### 6. `test-summary.md`
+          ### 5. `test-summary.md`
           - **Format:** Markdown summary report
           - **Purpose:** Consolidated test results from all Python versions and platforms
           - **Contains:** Pass/fail status for Python 3.10-3.13 on Ubuntu and Windows
 
-          ### 7. `ruff-lint.txt`
+          ### 6. `ruff-lint.txt`
           - **Format:** Plain text
           - **Purpose:** Linting results from ruff
           - **Contains:** Code style violations, unused imports, complexity issues
 
-          ### 8. `ruff-format.txt`
+          ### 7. `ruff-format.txt`
           - **Format:** Plain text
           - **Purpose:** Code formatting check results
           - **Contains:** Files that need formatting, formatting violations
 
-          ### 9. `mypy-report.txt`
+          ### 8. `mypy-report.txt`
           - **Format:** Plain text
           - **Purpose:** Static type checking results
           - **Contains:** Type errors, missing annotations, type mismatches
+
+          ---
+
+          ## SonarCloud Code Quality & Security Analysis
+
+          **Project:** SparseTagging
+          **Commit:** ${{ github.sha }}
+          **Branch:** ${{ github.ref_name }}
+
+          ### Security Analysis
+
+          - 🔒 **[Security Vulnerabilities](https://sonarcloud.io/project/issues?id=cgbraun_SparseTagging&resolved=false&types=VULNERABILITY)** - View all unresolved security vulnerabilities
+          - ⚠️ **[Security Hotspots](https://sonarcloud.io/project/security_hotspots?id=cgbraun_SparseTagging)** - Security-sensitive code requiring review
+          - 🛡️ **[Security Review Rating](https://sonarcloud.io/component_measures?id=cgbraun_SparseTagging&metric=security_review_rating)** - Overall security review status
+
+          ### Code Quality Analysis
+
+          - 🐛 **[Bugs](https://sonarcloud.io/project/issues?id=cgbraun_SparseTagging&resolved=false&types=BUG)** - Identified bugs in the codebase
+          - 💡 **[Code Smells](https://sonarcloud.io/project/issues?id=cgbraun_SparseTagging&resolved=false&types=CODE_SMELL)** - Maintainability issues
+          - 📊 **[Project Dashboard](https://sonarcloud.io/project/overview?id=cgbraun_SparseTagging)** - Complete overview with quality gate status
+          - 📈 **[Code Coverage](https://sonarcloud.io/component_measures?id=cgbraun_SparseTagging&metric=coverage&view=list)** - Line and branch coverage details
+          - 🔍 **[This Commit](https://sonarcloud.io/project/overview?id=cgbraun_SparseTagging&branch=${{ github.ref_name }})** - Analysis for this specific commit
+
+          ### Key Metrics
+
+          View the SonarCloud dashboard for:
+          - **Security Rating** (A-E scale)
+          - **Reliability Rating** (bug density)
+          - **Maintainability Rating** (technical debt)
+          - **Code Coverage** (target: ≥85%)
+          - **Code Duplication** (target: <3%)
+          - **Cognitive Complexity** (target: ≤15 per function)
 
           ---
 
@@ -586,12 +593,11 @@ jobs:
 
           ### Quick Security & Quality Review
 
-          1. **Security:** Check `trivy-report.txt` for CRITICAL/HIGH vulnerabilities
+          1. **Security Vulnerabilities:** Check SonarCloud security links above + `trivy-report.txt`
           2. **Tests:** Review `test-summary.md` for test pass/fail status
-          3. **Code Quality:** Check `ruff-lint.txt` and `mypy-report.txt` for issues
+          3. **Code Quality:** Check SonarCloud bugs/code smells + `ruff-lint.txt` and `mypy-report.txt`
           4. **Coverage:** Review `coverage.xml` metrics (should be ≥85%)
           5. **SBOM:** Review `sbom.spdx.json` for dependencies
-          6. **SonarCloud:** Click links in `sonarcloud-links.md` for detailed analysis
 
           ### Detailed Analysis
 
