@@ -43,6 +43,7 @@ jobs:
 
       - name: Lint with ruff
         continue-on-error: true
+        shell: bash
         run: |
           set +e  # Disable immediate exit on error
           ruff check src/ tests/ > ruff-lint.txt 2>&1
@@ -53,6 +54,7 @@ jobs:
 
       - name: Check formatting with ruff
         continue-on-error: true
+        shell: bash
         run: |
           set +e  # Disable immediate exit on error
           ruff format --check src/ tests/ > ruff-format.txt 2>&1
@@ -63,6 +65,7 @@ jobs:
 
       - name: Type check with mypy
         continue-on-error: true
+        shell: bash
         run: |
           set +e  # Disable immediate exit on error
           mypy src/sparsetag.py src/cache_manager.py src/exceptions.py > mypy-report.txt 2>&1
@@ -207,6 +210,7 @@ jobs:
 
       - name: Test with pytest
         continue-on-error: true
+        shell: bash
         run: |
           set +e  # Disable immediate exit on error
           pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing --cov-fail-under=85 -v --junitxml=pytest-results.xml > pytest-output.txt 2>&1
