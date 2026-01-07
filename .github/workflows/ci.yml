@@ -563,11 +563,12 @@ jobs:
 
           # Parse vulnerability counts from Trivy SARIF (accurate count of unique vulnerabilities)
           if [ -f "${SCAN_DIR}/trivy-results.sarif" ]; then
-            # Count unique vulnerabilities by severity from SARIF (accurate)
-            CRITICAL_COUNT=$(jq '[.runs[].results[] | select(.level=="error" and (.properties."security-severity" // "" | test("CRITICAL"; "i")))] | length' "${SCAN_DIR}/trivy-results.sarif" 2>/dev/null || echo "0")
-            HIGH_COUNT=$(jq '[.runs[].results[] | select(.level=="error" and (.properties."security-severity" // "" | test("HIGH"; "i")))] | length' "${SCAN_DIR}/trivy-results.sarif" 2>/dev/null || echo "0")
-            MEDIUM_COUNT=$(jq '[.runs[].results[] | select(.level=="warning" and (.properties."security-severity" // "" | test("MEDIUM"; "i")))] | length' "${SCAN_DIR}/trivy-results.sarif" 2>/dev/null || echo "0")
-            LOW_COUNT=$(jq '[.runs[].results[] | select(.level=="note" and (.properties."security-severity" // "" | test("LOW"; "i")))] | length' "${SCAN_DIR}/trivy-results.sarif" 2>/dev/null || echo "0")
+            # Count unique vulnerabilities by severity from SARIF tags array
+            # Note: Trivy stores vulnerabilities in .runs[].tool.driver.rules[], not .runs[].results[]
+            CRITICAL_COUNT=$(jq '[.runs[].tool.driver.rules[]? | select(.properties.tags[]? == "CRITICAL")] | length' "${SCAN_DIR}/trivy-results.sarif" 2>/dev/null || echo "0")
+            HIGH_COUNT=$(jq '[.runs[].tool.driver.rules[]? | select(.properties.tags[]? == "HIGH")] | length' "${SCAN_DIR}/trivy-results.sarif" 2>/dev/null || echo "0")
+            MEDIUM_COUNT=$(jq '[.runs[].tool.driver.rules[]? | select(.properties.tags[]? == "MEDIUM")] | length' "${SCAN_DIR}/trivy-results.sarif" 2>/dev/null || echo "0")
+            LOW_COUNT=$(jq '[.runs[].tool.driver.rules[]? | select(.properties.tags[]? == "LOW")] | length' "${SCAN_DIR}/trivy-results.sarif" 2>/dev/null || echo "0")
           elif [ -f "${SCAN_DIR}/trivy-report.txt" ]; then
             # Fallback to text parsing if SARIF unavailable (less accurate)
             echo "::warning::Using text-based vulnerability counting (less accurate). SARIF file preferred."
