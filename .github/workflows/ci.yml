@@ -28,20 +28,32 @@ jobs:
       - name: Lint with ruff
         continue-on-error: true
         run: |
-          ruff check src/ tests/ > ruff-lint.txt 2>&1 || true
-          echo "Exit code: $?" >> ruff-lint.txt
+          set +e  # Disable immediate exit on error
+          ruff check src/ tests/ > ruff-lint.txt 2>&1
+          EXIT_CODE=$?
+          echo "" >> ruff-lint.txt
+          echo "Exit code: ${EXIT_CODE}" >> ruff-lint.txt
+          exit ${EXIT_CODE}
 
       - name: Check formatting with ruff
         continue-on-error: true
         run: |
-          ruff format --check src/ tests/ > ruff-format.txt 2>&1 || true
-          echo "Exit code: $?" >> ruff-format.txt
+          set +e  # Disable immediate exit on error
+          ruff format --check src/ tests/ > ruff-format.txt 2>&1
+          EXIT_CODE=$?
+          echo "" >> ruff-format.txt
+          echo "Exit code: ${EXIT_CODE}" >> ruff-format.txt
+          exit ${EXIT_CODE}
 
       - name: Type check with mypy
         continue-on-error: true
         run: |
-          mypy src/sparsetag.py src/cache_manager.py src/exceptions.py > mypy-report.txt 2>&1 || true
-          echo "Exit code: $?" >> mypy-report.txt
+          set +e  # Disable immediate exit on error
+          mypy src/sparsetag.py src/cache_manager.py src/exceptions.py > mypy-report.txt 2>&1
+          EXIT_CODE=$?
+          echo "" >> mypy-report.txt
+          echo "Exit code: ${EXIT_CODE}" >> mypy-report.txt
+          exit ${EXIT_CODE}
 
       - name: Upload quality reports
         uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
@@ -88,15 +100,21 @@ jobs:
           pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing -v
 
       - name: Verify SONAR_TOKEN is available
+        id: check_sonar
         shell: bash
         run: |
           if [ -z "${SONAR_TOKEN}" ]; then
-            echo "::error::SONAR_TOKEN is empty. Check environment attachment, secret name, and fork PR restrictions."
-            exit 1
+            echo "::warning::SONAR_TOKEN is empty. SonarCloud scan will be skipped."
+            echo "available=false" >> $GITHUB_OUTPUT
+          else
+            echo "SONAR_TOKEN is set (masked)."
+            echo "available=true" >> $GITHUB_OUTPUT
           fi
-          echo "SONAR_TOKEN is set (masked)."
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: SonarCloud Scan
+        if: steps.check_sonar.outputs.available == 'true'
         uses: SonarSource/sonarcloud-github-action@ffc3010689be73b8e5ae0c57ce35968afd7909e8
 
       - name: Upload coverage report
@@ -134,8 +152,12 @@ jobs:
       - name: Test with pytest
         continue-on-error: true
         run: |
+          set +e  # Disable immediate exit on error
           pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing --cov-fail-under=85 -v --junitxml=pytest-results.xml > pytest-output.txt 2>&1
-          echo "Exit code: $?" >> pytest-output.txt
+          EXIT_CODE=$?
+          echo "" >> pytest-output.txt
+          echo "Exit code: ${EXIT_CODE}" >> pytest-output.txt
+          exit ${EXIT_CODE}
 
       - name: Upload test results
         uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
@@ -148,8 +170,26 @@ jobs:
             coverage.xml
           retention-days: 90
 
-      - name: Upload coverage to Codecov
+      - name: Check CODECOV_TOKEN availability
+        id: check_codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        shell: bash
+        run: |
+          if [ -z "${CODECOV_TOKEN}" ]; then
+            echo "::warning::CODECOV_TOKEN is empty. Coverage upload will be skipped."
+            echo "available=false" >> $GITHUB_OUTPUT
+          else
+            echo "CODECOV_TOKEN is set (masked)."
+            echo "available=true" >> $GITHUB_OUTPUT
+          fi
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload coverage to Codecov
+        if: |
+          matrix.os == 'ubuntu-latest' &&
+          matrix.python-version == '3.11' &&
+          steps.check_codecov.outputs.available == 'true'
         uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238  # v4
         continue-on-error: true  # Don't fail CI if CodeCov upload fails
         with:
@@ -173,6 +213,13 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}  # Ensure we can push back to repo
 
+      - name: Extract version from pyproject.toml
+        id: get_version
+        run: |
+          VERSION=$(python3 .github/scripts/extract-version.py)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Extracted version: ${VERSION}"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db  # v3.7.1
 
@@ -183,6 +230,8 @@ jobs:
           push: false
           load: true
           tags: sparsetagging:${{ github.sha }}
+          build-args: |
+            APP_VERSION=${{ steps.get_version.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -317,7 +366,7 @@ jobs:
           - **User:** sparsetag (UID 1000, non-root)
           - **Working Directory:** /app
           - **Python Version:** 3.11
-          - **SparseTagging Version:** 2.4.1
+          - **SparseTagging Version:** ${{ steps.get_version.outputs.version }}
 
           ## Testing the Image
 
@@ -344,7 +393,7 @@ jobs:
           On main branch, this image is also published to:
           ```
           ghcr.io/cgbraun/sparsetagging:latest
-          ghcr.io/cgbraun/sparsetagging:2.4.1
+          ghcr.io/cgbraun/sparsetagging:${{ steps.get_version.outputs.version }}
           ```
 
           Pull and use:
@@ -451,18 +500,26 @@ jobs:
 
           TEST_FOOTER
 
-          # Parse vulnerability counts from Trivy report (if it exists)
-          CRITICAL_COUNT=0
-          HIGH_COUNT=0
-          MEDIUM_COUNT=0
-          LOW_COUNT=0
-
-          if [ -f "${SCAN_DIR}/trivy-report.txt" ]; then
-            # Try to extract counts from Trivy table format (this is a best-effort parse)
+          # Parse vulnerability counts from Trivy SARIF (accurate count of unique vulnerabilities)
+          if [ -f "${SCAN_DIR}/trivy-results.sarif" ]; then
+            # Count unique vulnerabilities by severity from SARIF (accurate)
+            CRITICAL_COUNT=$(jq '[.runs[].results[] | select(.level=="error" and (.properties."security-severity" // "" | test("CRITICAL"; "i")))] | length' "${SCAN_DIR}/trivy-results.sarif" 2>/dev/null || echo "0")
+            HIGH_COUNT=$(jq '[.runs[].results[] | select(.level=="error" and (.properties."security-severity" // "" | test("HIGH"; "i")))] | length' "${SCAN_DIR}/trivy-results.sarif" 2>/dev/null || echo "0")
+            MEDIUM_COUNT=$(jq '[.runs[].results[] | select(.level=="warning" and (.properties."security-severity" // "" | test("MEDIUM"; "i")))] | length' "${SCAN_DIR}/trivy-results.sarif" 2>/dev/null || echo "0")
+            LOW_COUNT=$(jq '[.runs[].results[] | select(.level=="note" and (.properties."security-severity" // "" | test("LOW"; "i")))] | length' "${SCAN_DIR}/trivy-results.sarif" 2>/dev/null || echo "0")
+          elif [ -f "${SCAN_DIR}/trivy-report.txt" ]; then
+            # Fallback to text parsing if SARIF unavailable (less accurate)
+            echo "::warning::Using text-based vulnerability counting (less accurate). SARIF file preferred."
             CRITICAL_COUNT=$(grep -c "CRITICAL" "${SCAN_DIR}/trivy-report.txt" 2>/dev/null || echo "0")
             HIGH_COUNT=$(grep -c "HIGH" "${SCAN_DIR}/trivy-report.txt" 2>/dev/null || echo "0")
             MEDIUM_COUNT=$(grep -c "MEDIUM" "${SCAN_DIR}/trivy-report.txt" 2>/dev/null || echo "0")
             LOW_COUNT=$(grep -c "LOW" "${SCAN_DIR}/trivy-report.txt" 2>/dev/null || echo "0")
+          else
+            echo "::warning::trivy-results.sarif not found, vulnerability counts unavailable"
+            CRITICAL_COUNT="N/A"
+            HIGH_COUNT="N/A"
+            MEDIUM_COUNT="N/A"
+            LOW_COUNT="N/A"
           fi
 
           # Generate README.md summary
@@ -653,6 +710,6 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           docker tag sparsetagging:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/sparsetagging:latest
-          docker tag sparsetagging:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/sparsetagging:2.4.1
+          docker tag sparsetagging:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/sparsetagging:${{ steps.get_version.outputs.version }}
           docker push ghcr.io/${{ github.repository_owner }}/sparsetagging:latest
-          docker push ghcr.io/${{ github.repository_owner }}/sparsetagging:2.4.1
+          docker push ghcr.io/${{ github.repository_owner }}/sparsetagging:${{ steps.get_version.outputs.version }}

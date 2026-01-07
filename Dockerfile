@@ -30,9 +30,15 @@ RUN pip install --no-cache-dir --upgrade pip==25.3 setuptools wheel && \
 # Stage 2: Runtime
 FROM python:3.11-slim
 
+# Build argument for version
+ARG APP_VERSION=unknown
+
+# Convert ARG to ENV for runtime availability
+ENV APP_VERSION=${APP_VERSION}
+
 # OCI labels
 LABEL org.opencontainers.image.title="SparseTagging"
-LABEL org.opencontainers.image.version="2.4.1"
+LABEL org.opencontainers.image.version="${APP_VERSION}"
 LABEL org.opencontainers.image.description="High-performance sparse array library"
 LABEL org.opencontainers.image.source="https://github.com/cgbraun/SparseTagging"
 
@@ -65,4 +71,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD python -c "import sparsetagging; print('OK')"
 
 # Default command (can be overridden)
-CMD ["python", "-c", "import sparsetagging; print('SparseTagging v2.4.1 loaded successfully')"]
+CMD python -c "import sparsetagging; import os; print(f'SparseTagging v{os.environ.get(\"APP_VERSION\", \"unknown\")} loaded successfully')"
