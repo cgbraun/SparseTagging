@@ -787,7 +787,7 @@ jobs:
           docker run --rm sparsetagging:${{ github.sha }} python -c "import os; print(f'✅ Version: {os.environ.get(\"APP_VERSION\", \"unknown\")}')"
 
           # Test 3: Run basic functionality test
-          docker run --rm sparsetagging:${{ github.sha }} python -c "from sparsetagging import SparseTag, TagConfidence; st = SparseTag.create_random(100, ['Tag1', 'Tag2'], fill_percent=5.0); print(f'✅ Created sparse matrix: {st.shape}')"
+          docker run --rm sparsetagging:${{ github.sha }} python -c "from sparsetagging import SparseTag, TagConfidence; st = SparseTag.create_random(100, ['Tag1', 'Tag2'], fill_percent=0.05); print(f'✅ Created sparse matrix: {st.shape}')"
 
           echo "✅ All smoke tests passed"
 
