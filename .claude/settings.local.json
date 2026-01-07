@@ -67,7 +67,8 @@
       "Bash(cmd /c \"dir /b /s C:\\\\Users\\\\cgbraun\\\\AppData\\\\Local\\\\JetBrains\\\\PyCharm2025.3\\\\sonarlint\\\\storage\\\\6367627261756e\\\\projects\\\\*.pb\")",
       "Bash(cmd /c \"dir C:\\\\Users\\\\cgbraun\\\\AppData\\\\Local\\\\JetBrains\\\\PyCharm2025.3\\\\log /o-d | findstr /i sonar\")",
       "Bash(python:*)",
-      "Bash(docker build:*)"
+      "Bash(docker build:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }
