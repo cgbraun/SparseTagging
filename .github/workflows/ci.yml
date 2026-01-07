@@ -155,32 +155,37 @@ jobs:
         run: |
           echo "Checking service health..."
 
-          # Check PyPI
-          if curl -f -s -o /dev/null -w "%{http_code}" https://pypi.org/simple/ | grep -q "200"; then
-            echo "✅ PyPI is reachable"
+          # Check PyPI (accept 200)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://pypi.org/simple/)
+          if [[ "$STATUS" == "200" ]]; then
+            echo "✅ PyPI is reachable (HTTP $STATUS)"
           else
-            echo "::warning::PyPI may be unavailable"
+            echo "::warning::PyPI returned HTTP $STATUS"
           fi
 
-          # Check Docker Hub
-          if curl -f -s -o /dev/null -w "%{http_code}" https://hub.docker.com/ | grep -q "200"; then
-            echo "✅ Docker Hub is reachable"
+          # Check Docker Hub (accept 200 or 3xx redirects)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://hub.docker.com/)
+          if [[ "$STATUS" =~ ^(200|3[0-9]{2})$ ]]; then
+            echo "✅ Docker Hub is reachable (HTTP $STATUS)"
           else
-            echo "::warning::Docker Hub may be unavailable"
+            echo "::warning::Docker Hub returned HTTP $STATUS"
           fi
 
-          # Check SonarCloud
-          if curl -f -s -o /dev/null -w "%{http_code}" https://sonarcloud.io/ | grep -q "200"; then
-            echo "✅ SonarCloud is reachable"
+          # Check SonarCloud (accept 200 or 3xx redirects)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://sonarcloud.io/)
+          if [[ "$STATUS" =~ ^(200|3[0-9]{2})$ ]]; then
+            echo "✅ SonarCloud is reachable (HTTP $STATUS)"
           else
-            echo "::warning::SonarCloud may be unavailable"
+            echo "::warning::SonarCloud returned HTTP $STATUS"
           fi
 
-          # Check GitHub Container Registry
-          if curl -f -s -o /dev/null -w "%{http_code}" https://ghcr.io/ | grep -q "200"; then
-            echo "✅ GHCR is reachable"
+          # Check GHCR (accept 200, 3xx, or 405 - all indicate service is up)
+          # Note: GHCR returns 405 for HEAD requests on root, which is normal
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://ghcr.io/)
+          if [[ "$STATUS" =~ ^(200|3[0-9]{2}|405)$ ]]; then
+            echo "✅ GHCR is reachable (HTTP $STATUS)"
           else
-            echo "::warning::GHCR may be unavailable"
+            echo "::warning::GHCR returned HTTP $STATUS"
           fi
 
   test:
@@ -770,6 +775,21 @@ jobs:
             echo "::error::Docker image sparsetagging:${{ github.sha }} not found. Build may have failed."
             exit 1
           fi
+
+      - name: Test Docker image (smoke test)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Running smoke test on Docker image..."
+          # Test 1: Verify import works
+          docker run --rm sparsetagging:${{ github.sha }} python -c "import sparsetagging; print('✅ Import successful')"
+
+          # Test 2: Verify version environment variable
+          docker run --rm sparsetagging:${{ github.sha }} python -c "import os; print(f'✅ Version: {os.environ.get(\"APP_VERSION\", \"unknown\")}')"
+
+          # Test 3: Run basic functionality test
+          docker run --rm sparsetagging:${{ github.sha }} python -c "from sparsetagging import SparseTag, TagConfidence; st = SparseTag.create_random(100, ['Tag1', 'Tag2'], fill_percent=5.0); print(f'✅ Created sparse matrix: {st.shape}')"
+
+          echo "✅ All smoke tests passed"
 
       - name: Log in to GitHub Container Registry
         if: github.ref == 'refs/heads/main'
