@@ -86,6 +86,42 @@ pip-audit -r requirements.txt
 # - Fixed version
 ```
 
+### CI/CD Pipeline
+
+**Workflow**: `.github/workflows/ci.yml`
+
+The CI pipeline is designed for robustness, template reusability, and minimal external dependencies.
+
+**Pipeline Features:**
+- Exit code capture for quality gates (ruff, mypy, pytest)
+- Graceful degradation for optional services (SonarCloud, CodeCov)
+- Service health checks (PyPI, Docker Hub, SonarCloud, GHCR)
+- Docker smoke tests (import, version, functionality)
+- Centralized version management from `pyproject.toml`
+- SARIF-based vulnerability counting (accurate)
+- Comprehensive scan results in `ScanResults/` directory
+
+**Intentionally NOT Implemented: Retry Logic**
+
+The original plan included retry logic for network resilience (Phase 4: `nick-invision/retry@v3`), but this was **intentionally deferred** for the following reasons:
+
+1. **No demonstrated need**: CI is stable with no network-related failures
+2. **Supply chain security**: Adds external dependency and attack surface
+3. **Template portability**: Fewer dependencies = easier to adopt/customize
+4. **Existing resilience**: Graceful degradation, continue-on-error, pip caching already provide sufficient resilience
+
+**When to Reconsider Retry Logic:**
+
+Implement retry logic only if:
+- 3+ CI failures per month due to network timeouts
+- Geographic connectivity issues to PyPI/GHCR
+- Self-hosted runners with unreliable networks
+- Moving to production deployment pipeline
+
+If needed, implement minimal retry (GHCR push only, not pip installs) using pinned version for security.
+
+**Decision Date**: 2026-01-07 | **Status**: Deferred pending evidence of need
+
 ## Running Tests and Benchmarks
 
 ```bash
