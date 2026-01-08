@@ -676,18 +676,16 @@ jobs:
           > **View Results:** Check [workflow run logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) → "Service Health Check" job
 
           $(if [ "${SMOKE_TEST_AVAILABLE}" = "true" ]; then
-            cat << SMOKE_EOF
-
-          ### Docker Image Smoke Tests
-
-          | Test | Status |
-          |------|--------|
-          | Import Verification | $([ "${SMOKE_TEST1_STATUS}" = "PASSED" ] && echo "✅ Passed" || echo "❌ Failed") |
-          | Version Check | $([ "${SMOKE_TEST2_STATUS}" = "PASSED" ] && echo "✅ Passed (${SMOKE_VERSION})" || echo "❌ Failed") |
-          | Basic Functionality | $([ "${SMOKE_TEST3_STATUS}" = "PASSED" ] && echo "✅ Passed" || echo "❌ Failed") |
-
-          > **Note:** Docker smoke tests only run on main branch before pushing to GHCR.
-SMOKE_EOF
+            echo ""
+            echo "### Docker Image Smoke Tests"
+            echo ""
+            echo "| Test | Status |"
+            echo "|------|--------|"
+            echo "| Import Verification | $([ "${SMOKE_TEST1_STATUS}" = "PASSED" ] && echo "✅ Passed" || echo "❌ Failed") |"
+            echo "| Version Check | $([ "${SMOKE_TEST2_STATUS}" = "PASSED" ] && echo "✅ Passed (${SMOKE_VERSION})" || echo "❌ Failed") |"
+            echo "| Basic Functionality | $([ "${SMOKE_TEST3_STATUS}" = "PASSED" ] && echo "✅ Passed" || echo "❌ Failed") |"
+            echo ""
+            echo "> **Note:** Docker smoke tests only run on main branch before pushing to GHCR."
           else
             echo ""
             echo "> **Note:** Docker smoke tests only run on main branch (not executed for this build)."
