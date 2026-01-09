@@ -129,7 +129,7 @@ We use **minimum version constraints** (>=) rather than exact versions to:
 ### Tested Versions
 
 The library is actively tested with:
-- Python 3.9, 3.10, 3.11, 3.12, 3.13
+- Python 3.10, 3.11, 3.12, 3.13
 - NumPy 1.20+ through 2.4+
 - SciPy 1.8+ through 1.16+
 - psutil 5.8+ through 7.2+
@@ -140,7 +140,7 @@ The library is actively tested with:
 
 ### Python Version
 
-- **Minimum**: Python 3.9
+- **Minimum**: Python 3.10
 - **Recommended**: Python 3.10+
 - **Tested**: Up to Python 3.13
 
@@ -265,6 +265,34 @@ Add to `requirements-dev.txt` if:
 4. Update this guide
 5. Run full test suite
 6. Update CI/CD if needed
+
+---
+
+## Package Purpose Summary
+
+| Package | Purpose | Critical Feature Used |
+|---------|---------|----------------------|
+| **numpy** | Array operations | `intersect1d`, `union1d`, `setdiff1d` |
+| **scipy** | Sparse matrices | `sparse.csc_array`, CSC format |
+| **psutil** | Memory tracking | Process memory usage monitoring |
+| **pytest** | Testing | 177 unit tests |
+| **pytest-cov** | Coverage | 85%+ coverage tracking |
+| **mypy** | Type safety | Protocol validation, type checking |
+
+---
+
+## Standard Library Dependencies
+
+These are used but don't require installation:
+- `enum` - TagConfidence enum
+- `typing` - Type hints and Protocols
+- `functools` - Decorators (@invalidates_cache)
+- `hashlib` - Cache key generation (MD5)
+- `json` - Query serialization
+- `logging` - Debug and info logging
+- `warnings` - Deprecation warnings
+- `datetime` - Timestamps
+- `os`, `sys`, `time` - System utilities
 
 ---
 

@@ -10,13 +10,13 @@ Comprehensive documentation for the SparseTagging library - a high-performance s
 ## User Guides
 
 - **[Architecture Overview](ARCHITECTURE.md)** - System design and components
-- **[Docker Usage Guide](docker-usage.md)** - Container deployment and usage
+- **[Docker Usage Guide](DOCKER_USAGE.md)** - Container deployment and usage
 - **[Performance Guide](PERFORMANCE.md)** - Benchmarks and optimization tips
 
 ## Developer Documentation
 
-- **[Build Process Guide](build-process.md)** - CI/CD pipeline, external services, workflows
-- **[Effective Prompting Patterns](effective-prompting-patterns.md)** - AI-assisted development patterns
+- **[Build Process Guide](BUILD_PROCESS.md)** - CI/CD pipeline, external services, workflows
+- **[AI-Assisted Development Guide](DEVELOPER_GUIDE_AI_PROMPTING.md)** - AI prompting patterns and DevOps practices
 - **[Deployment Guide](DEPLOYMENT.md)** - Production deployment instructions
 - **[Development Guide](../CLAUDE.md)** - Contributing and development setup
 

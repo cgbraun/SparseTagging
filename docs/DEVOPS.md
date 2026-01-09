@@ -134,7 +134,7 @@ git commit --no-verify
 
 **What it does:**
 - Runs tests on every push and pull request
-- Tests on Python 3.9, 3.10, 3.11, 3.12, 3.13
+- Tests on Python 3.10, 3.11, 3.12, 3.13
 - Tests on Ubuntu and Windows
 - Reports coverage to Codecov
 - Blocks PRs if tests fail
@@ -420,7 +420,7 @@ indent-style = "space"
 ```
 
 **Key settings:**
-- `target-version`: Python 3.9+ (matches minimum version)
+- `target-version`: Python 3.10+ (matches minimum version)
 - `line-length`: 100 characters (consistent with existing code)
 - `select`: Comprehensive rule set covering style, bugs, and modernization
 - `ignore E501`: Line length handled by formatter
