@@ -11,7 +11,7 @@ pip install sparsetagging
 ### Development Installation
 
 ```bash
-git clone https://github.com/your-org/sparsetagging.git
+git clone https://github.com/cgbraun/sparsetagging.git
 cd sparsetagging
 pip install -e .
 ```
@@ -28,9 +28,9 @@ pip install "sparsetagging>=2.4.0,<3.0.0"
 
 ## Requirements
 
-- **Python**: ≥3.9
+- **Python**: ≥3.10
 - **NumPy**: ≥1.20.0
-- **SciPy**: ≥1.7.0
+- **SciPy**: ≥1.8.0
 - **psutil**: ≥5.8.0 (for memory monitoring)
 
 ## Performance Tuning

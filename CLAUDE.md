@@ -6,13 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 SparseTag is a high-performance sparse array library for tag confidence data with intelligent query caching. It provides 95% memory savings and 100-170x speedups for sparse tag confidence queries through scipy sparse arrays and intelligent caching.
 
-**Current Version:** v2.4.0
+**Current Version:** v2.4.1
 
-**Key Features** (v2.4.0):
+**Key Features** (v2.4.1):
 - 100% type hint coverage with mypy strict mode
 - Custom exception hierarchy for better error handling
 - Modular architecture with dedicated cache manager
-- 173 comprehensive tests with ≥85% coverage
+- 177 comprehensive tests with ≥85% coverage
 - Production-grade documentation
 
 ## Development Environment
@@ -26,7 +26,7 @@ pip install -r requirements.txt
 
 # Dependencies:
 # - numpy>=1.20.0
-# - scipy>=1.7.0
+# - scipy>=1.8.0
 # - psutil>=5.8.0
 ```
 
@@ -145,7 +145,7 @@ python benchmark.py
 # Generates performance reports for small (1K), medium (100K), and large (1M) matrices
 ```
 
-**Test Suite**: 173 tests across 9 test files with ≥85% coverage
+**Test Suite**: 177 tests across 9 test files with ≥85% coverage
 - `test_cache_manager.py`: Cache manager functionality
 - `test_exceptions.py`: Exception hierarchy and usage
 - `test_critical_bugs.py`: Critical bug fixes validation

@@ -23,23 +23,23 @@ Complete guide for building, scanning, and deploying the SparseTagging Docker im
 bash scripts/build-docker.sh
 
 # Option 2: Manual build
-docker build -t sparsetagging:2.4.0 .
+docker build -t sparsetagging:2.4.1 .
 ```
 
 ### Run the Image
 
 ```bash
 # Run default command (prints library version)
-docker run --rm sparsetagging:2.4.0
+docker run --rm sparsetagging:2.4.1
 
 # Interactive Python shell
-docker run --rm -it sparsetagging:2.4.0 python
+docker run --rm -it sparsetagging:2.4.1 python
 
 # Interactive bash shell
-docker run --rm -it sparsetagging:2.4.0 /bin/bash
+docker run --rm -it sparsetagging:2.4.1 /bin/bash
 
 # Run a specific Python script
-docker run --rm -v $(pwd)/examples:/app/examples sparsetagging:2.4.0 python examples/demo.py
+docker run --rm -v $(pwd)/examples:/app/examples sparsetagging:2.4.1 python examples/demo.py
 ```
 
 ## Security Scanning
@@ -48,13 +48,13 @@ docker run --rm -v $(pwd)/examples:/app/examples sparsetagging:2.4.0 python exam
 
 ```bash
 # Scan for HIGH and CRITICAL vulnerabilities
-trivy image --severity HIGH,CRITICAL sparsetagging:2.4.0
+trivy image --severity HIGH,CRITICAL sparsetagging:2.4.1
 
 # Full scan with all severities
-trivy image sparsetagging:2.4.0
+trivy image sparsetagging:2.4.1
 
 # Generate SBOM (Software Bill of Materials)
-trivy image --format spdx-json --output sbom.json sparsetagging:2.4.0
+trivy image --format spdx-json --output sbom.json sparsetagging:2.4.1
 
 # Scan for misconfigurations
 trivy config .
@@ -101,7 +101,7 @@ View results:
 
 ```dockerfile
 org.opencontainers.image.title="SparseTagging"
-org.opencontainers.image.version="2.4.0"
+org.opencontainers.image.version="2.4.1"
 org.opencontainers.image.description="High-performance sparse array library"
 org.opencontainers.image.source="https://github.com/cgbraun/SparseTagging"
 ```
@@ -123,11 +123,11 @@ org.opencontainers.image.source="https://github.com/cgbraun/SparseTagging"
 
 ```bash
 # Tag for GHCR
-docker tag sparsetagging:2.4.0 ghcr.io/cgbraun/sparsetagging:2.4.0
-docker tag sparsetagging:2.4.0 ghcr.io/cgbraun/sparsetagging:latest
+docker tag sparsetagging:2.4.1 ghcr.io/cgbraun/sparsetagging:2.4.1
+docker tag sparsetagging:2.4.1 ghcr.io/cgbraun/sparsetagging:latest
 
 # Push to registry
-docker push ghcr.io/cgbraun/sparsetagging:2.4.0
+docker push ghcr.io/cgbraun/sparsetagging:2.4.1
 docker push ghcr.io/cgbraun/sparsetagging:latest
 ```
 
@@ -137,7 +137,7 @@ When you push to `main` branch:
 1. GitHub Actions builds image
 2. Scans with Trivy
 3. Automatically pushes to `ghcr.io/cgbraun/sparsetagging`
-4. Tags with `:latest` and `:2.4.0`
+4. Tags with `:latest` and `:2.4.1`
 
 ## Using the Published Image
 
@@ -148,7 +148,7 @@ When you push to `main` branch:
 docker pull ghcr.io/cgbraun/sparsetagging:latest
 
 # Pull specific version
-docker pull ghcr.io/cgbraun/sparsetagging:2.4.0
+docker pull ghcr.io/cgbraun/sparsetagging:2.4.1
 
 # Run pulled image
 docker run --rm ghcr.io/cgbraun/sparsetagging:latest
@@ -158,7 +158,7 @@ docker run --rm ghcr.io/cgbraun/sparsetagging:latest
 
 **Dockerfile example:**
 ```dockerfile
-FROM ghcr.io/cgbraun/sparsetagging:2.4.0
+FROM ghcr.io/cgbraun/sparsetagging:2.4.1
 
 # Copy your application
 COPY app.py /app/
@@ -172,7 +172,7 @@ CMD ["python", "app.py"]
 version: '3.8'
 services:
   app:
-    image: ghcr.io/cgbraun/sparsetagging:2.4.0
+    image: ghcr.io/cgbraun/sparsetagging:2.4.1
     volumes:
       - ./data:/app/data
     command: python /app/process_data.py
@@ -186,7 +186,7 @@ services:
 # Copy tests into container and run
 docker run --rm \
   -v $(pwd)/tests:/app/tests \
-  sparsetagging:2.4.0 \
+  sparsetagging:2.4.1 \
   python -m pytest /app/tests/ -v
 ```
 
@@ -197,7 +197,7 @@ docker run --rm \
 docker run --rm -it \
   -v $(pwd)/src:/app/src \
   -v $(pwd)/tests:/app/tests \
-  sparsetagging:2.4.0 \
+  sparsetagging:2.4.1 \
   /bin/bash
 ```
 
@@ -207,7 +207,7 @@ docker run --rm -it \
 
 ```bash
 # Run with custom Python command
-docker run --rm sparsetagging:2.4.0 \
+docker run --rm sparsetagging:2.4.1 \
   python -c "from sparsetagging import SparseTag; print(SparseTag.__version__)"
 ```
 
@@ -218,7 +218,7 @@ docker run --rm sparsetagging:2.4.0 \
 docker run --rm \
   -e PYTHONUNBUFFERED=1 \
   -e LOG_LEVEL=DEBUG \
-  sparsetagging:2.4.0 \
+  sparsetagging:2.4.1 \
   python your_script.py
 ```
 
@@ -229,7 +229,7 @@ docker run --rm \
 docker run --rm \
   --cpus="2.0" \
   --memory="2g" \
-  sparsetagging:2.4.0
+  sparsetagging:2.4.1
 ```
 
 ## Troubleshooting
@@ -280,7 +280,7 @@ trivy image --download-db-only
 **Problem:** "sparsetagging module not found"
 ```bash
 # Verify image built correctly
-docker run --rm sparsetagging:2.4.0 python -c "import sparsetagging; print('OK')"
+docker run --rm sparsetagging:2.4.1 python -c "import sparsetagging; print('OK')"
 ```
 
 **Problem:** Health check failing
@@ -303,7 +303,7 @@ docker exec CONTAINER_ID python -c "import sparsetagging; print('OK')"
 2. **Use specific version tags**
    ```yaml
    # Good
-   image: ghcr.io/cgbraun/sparsetagging:2.4.0
+   image: ghcr.io/cgbraun/sparsetagging:2.4.1
 
    # Avoid in production
    image: ghcr.io/cgbraun/sparsetagging:latest
@@ -335,4 +335,4 @@ For issues with:
 - **SparseTagging library**: Open issue on GitHub repository
 - **Docker build**: Check Dockerfile and .dockerignore configuration
 - **CI/CD**: Review GitHub Actions logs in repository
-- **Security concerns**: Email security@sparsetag.org (or your contact)
+- **Security concerns**: Email noreply@sparsetag.org

@@ -33,10 +33,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-org/sparsetagging"
-Documentation = "https://github.com/your-org/sparsetagging/blob/main/README.md"
-Repository = "https://github.com/your-org/sparsetagging"
-Changelog = "https://github.com/your-org/sparsetagging/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/cgbraun/sparsetagging"
+Documentation = "https://github.com/cgbraun/sparsetagging/blob/main/README.md"
+Repository = "https://github.com/cgbraun/sparsetagging"
+Changelog = "https://github.com/cgbraun/sparsetagging/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["setuptools>=45", "wheel"]
