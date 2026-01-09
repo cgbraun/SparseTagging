@@ -11,7 +11,7 @@ Comprehensive documentation for the SparseTagging library - a high-performance s
 
 - **[Architecture Overview](ARCHITECTURE.md)** - System design and components
 - **[Docker Usage Guide](DOCKER_USAGE.md)** - Container deployment and usage
-- **[Performance Guide](PERFORMANCE.md)** - Benchmarks and optimization tips
+- **[Performance Guide](PERFORMANCE_SUMMARY.md)** - Benchmarks and optimization tips
 
 ## Developer Documentation
 

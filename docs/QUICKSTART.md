@@ -58,10 +58,10 @@ print(f"Complex query found {result.count} rows")
 
 ## Next Steps
 
-- **[Full Documentation](README.md)** - Complete guide to all features
+- **[Full Documentation](../README.md)** - Complete guide to all features
 - **[Architecture](ARCHITECTURE.md)** - Understand the design
 - **[Docker Usage](DOCKER_USAGE.md)** - Container deployment
-- **[Performance Guide](PERFORMANCE.md)** - Benchmarks and optimization
+- **[Performance Guide](PERFORMANCE_SUMMARY.md)** - Benchmarks and optimization
 
 ## Common Queries
 
