@@ -129,7 +129,7 @@ We use **minimum version constraints** (>=) rather than exact versions to:
 ### Tested Versions
 
 The library is actively tested with:
-- Python 3.9, 3.10, 3.11, 3.12, 3.13
+- Python 3.10, 3.11, 3.12, 3.13
 - NumPy 1.20+ through 2.4+
 - SciPy 1.8+ through 1.16+
 - psutil 5.8+ through 7.2+
@@ -140,7 +140,7 @@ The library is actively tested with:
 
 ### Python Version
 
-- **Minimum**: Python 3.9
+- **Minimum**: Python 3.10
 - **Recommended**: Python 3.10+
 - **Tested**: Up to Python 3.13
 

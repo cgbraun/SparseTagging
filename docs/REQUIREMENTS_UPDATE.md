@@ -19,7 +19,7 @@ psutil>=5.8.0
 **New version:**
 ```txt
 # Core runtime dependencies for SparseTag library
-# Tested with Python 3.9+
+# Tested with Python 3.10+
 
 # NumPy - Array operations and numerical computing
 # Version 1.20.0+ required for modern array API
