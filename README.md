@@ -1,7 +1,7 @@
-# SparseTag v2.4.0
+# SparseTag v2.4.1
 
-![CI Status](https://github.com/your-org/sparsetagging/workflows/CI/badge.svg)
-![Coverage](https://codecov.io/gh/your-org/sparsetagging/branch/main/graph/badge.svg)
+![CI Status](https://github.com/cgbraun/sparsetagging/workflows/CI/badge.svg)
+![Coverage](https://codecov.io/gh/cgbraun/sparsetagging/branch/main/graph/badge.svg)
 ![Python Versions](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -10,6 +10,8 @@
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=vonbraun_SparseTagging&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=vonbraun_SparseTagging)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=vonbraun_SparseTagging&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=vonbraun_SparseTagging)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=vonbraun_SparseTagging&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=vonbraun_SparseTagging)
+
+**[Quick Start Guide](docs/QUICKSTART.md)** | Get started in 5 minutes
 
 High-performance sparse array library for tag confidence data with intelligent query caching.
 
