@@ -60,7 +60,7 @@ print(f"Complex query found {result.count} rows")
 
 - **[Full Documentation](README.md)** - Complete guide to all features
 - **[Architecture](ARCHITECTURE.md)** - Understand the design
-- **[Docker Usage](docker-usage.md)** - Container deployment
+- **[Docker Usage](DOCKER_USAGE.md)** - Container deployment
 - **[Performance Guide](PERFORMANCE.md)** - Benchmarks and optimization
 
 ## Common Queries

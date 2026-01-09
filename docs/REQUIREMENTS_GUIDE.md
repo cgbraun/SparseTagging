@@ -268,6 +268,34 @@ Add to `requirements-dev.txt` if:
 
 ---
 
+## Package Purpose Summary
+
+| Package | Purpose | Critical Feature Used |
+|---------|---------|----------------------|
+| **numpy** | Array operations | `intersect1d`, `union1d`, `setdiff1d` |
+| **scipy** | Sparse matrices | `sparse.csc_array`, CSC format |
+| **psutil** | Memory tracking | Process memory usage monitoring |
+| **pytest** | Testing | 177 unit tests |
+| **pytest-cov** | Coverage | 85%+ coverage tracking |
+| **mypy** | Type safety | Protocol validation, type checking |
+
+---
+
+## Standard Library Dependencies
+
+These are used but don't require installation:
+- `enum` - TagConfidence enum
+- `typing` - Type hints and Protocols
+- `functools` - Decorators (@invalidates_cache)
+- `hashlib` - Cache key generation (MD5)
+- `json` - Query serialization
+- `logging` - Debug and info logging
+- `warnings` - Deprecation warnings
+- `datetime` - Timestamps
+- `os`, `sys`, `time` - System utilities
+
+---
+
 ## Related Files
 
 - `requirements.txt` - Runtime dependencies
