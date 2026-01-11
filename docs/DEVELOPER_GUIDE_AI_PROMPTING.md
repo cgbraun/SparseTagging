@@ -380,6 +380,15 @@ Can we [alternative approach] as [rationale]?
 
 ---
 
+### Pattern 3.4: Refactor Loop
+- Initial prompt → "Clean up the tagging pipeline; it's hard to follow."
+- Assistant suggestion → "Focus on the loop in `tag_records` and extract helpers?"
+- Refined prompt → "Refactor `tag_records` by extracting parsing and scoring helpers; keep behavior identical."
+- Outcome → "Smaller functions, clearer names, zero behavior change."
+- Later reference → "Use the Refactor Loop for safe clarity-focused refactors."
+
+---
+
 ## Phase 4: Test Generation
 
 ### Pattern 4.1: Test-Driven Development Request
