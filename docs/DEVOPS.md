@@ -598,3 +598,12 @@ If you encounter issues:
    - Error message
    - Steps to reproduce
    - Environment (Python version, OS, tool versions)
+
+## Glossary
+
+- **SARIF**: Standardized JSON format for static analysis results used by code scanning tools.
+- **SBOM**: Software Bill of Materials listing components, versions, and licenses in a build.
+- **Quality Gate**: Automated pass/fail check that enforces code quality thresholds in CI.
+- **Coverage**: Percentage of code exercised by tests, typically tracked per build or PR.
+- **Trivy**: Vulnerability and misconfiguration scanner for containers and filesystems.
+- **SonarCloud**: SaaS code quality and security analysis platform with dashboards and gates.
