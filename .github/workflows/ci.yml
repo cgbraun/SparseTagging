@@ -478,7 +478,7 @@ jobs:
           retention-days: 90
 
       - name: Download quality reports
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7.0.0
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
         with:
@@ -486,7 +486,7 @@ jobs:
           path: ./quality-reports/
 
       - name: Download coverage report
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7.0.0
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
         with:
@@ -494,7 +494,7 @@ jobs:
           path: ./coverage-report/
 
       - name: Download all test results
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7.0.0
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
         with:
