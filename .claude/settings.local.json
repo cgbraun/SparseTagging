@@ -127,7 +127,9 @@
       "Bash(mmdc:*)",
       "Bash(systeminfo)",
       "Bash(where:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(npx markdownlint-cli2@0.12.1:*)",
+      "Bash(npx markdown-link-check@3.12.1:*)"
     ]
   }
 }

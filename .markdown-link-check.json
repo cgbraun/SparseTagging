@@ -8,6 +8,9 @@
     },
     {
       "pattern": "^https://sonarcloud.io/project/.*"
+    },
+    {
+      "pattern": "^#"
     }
   ],
   "timeout": "10s",

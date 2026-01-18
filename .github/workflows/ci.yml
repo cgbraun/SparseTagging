@@ -255,6 +255,19 @@ jobs:
           set +e  # Disable immediate exit on error
           markdownlint-cli2 "**/*.md" "#node_modules" "#.venv" "#ScanResults" > markdownlint-report.txt 2>&1
           EXIT_CODE=$?
+
+          # Show summary of errors in GitHub Actions UI
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::warning::Markdownlint found style violations"
+            echo "Summary:"
+            grep "Summary:" markdownlint-report.txt || true
+            echo ""
+            echo "First 10 violations:"
+            grep -E "^[A-Za-z].*MD[0-9]" markdownlint-report.txt | head -10 || true
+            echo ""
+            echo "Full report available in markdownlint-report.txt artifact"
+          fi
+
           echo "" >> markdownlint-report.txt
           echo "Exit code: ${EXIT_CODE}" >> markdownlint-report.txt
           cat markdownlint-report.txt
@@ -267,6 +280,16 @@ jobs:
           set +e  # Disable immediate exit on error
           find . -name "*.md" -not -path "*/node_modules/*" -not -path "*/.venv/*" -not -path "*/ScanResults/*" -print0 | xargs -0 -n1 markdown-link-check -c .markdown-link-check.json > markdown-link-check-report.txt 2>&1
           EXIT_CODE=$?
+
+          # Show summary of errors in GitHub Actions UI
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::warning::Found dead links in markdown files"
+            echo "Dead links found:"
+            grep -E "(FILE:.*\.md|✖.*|ERROR:.*dead)" markdown-link-check-report.txt | head -30 || true
+            echo ""
+            echo "Full report available in markdown-link-check-report.txt artifact"
+          fi
+
           echo "" >> markdown-link-check-report.txt
           echo "Exit code: ${EXIT_CODE}" >> markdown-link-check-report.txt
           cat markdown-link-check-report.txt

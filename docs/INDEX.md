@@ -31,7 +31,7 @@ Comprehensive documentation for the SparseTagging library - a high-performance s
 - **GitHub Repository:** https://github.com/cgbraun/SparseTagging
 - **SonarCloud Dashboard:** https://sonarcloud.io/project/overview?id=vonbraun_SparseTagging
 - **CodeCov Dashboard:** https://app.codecov.io/gh/cgbraun/SparseTagging
-- **GHCR Package:** https://github.com/cgbraun/SparseTagging/pkgs/container/sparsetagging
+- **GHCR Package:** `ghcr.io/cgbraun/sparsetagging:latest` (pull with docker)
 
 ## Support
 

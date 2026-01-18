@@ -2137,7 +2137,7 @@ docker pull ghcr.io/cgbraun/sparsetagging:2.4.1
 **External Services:**
 - SonarCloud: https://sonarcloud.io/project/overview?id=cgbraun_SparseTagging
 - CodeCov: https://app.codecov.io/gh/cgbraun/SparseTagging
-- GHCR Package: https://github.com/cgbraun/SparseTagging/pkgs/container/sparsetagging
+- GHCR Package: `ghcr.io/cgbraun/sparsetagging:latest` (pull with docker)
 
 **Documentation:**
 - GitHub Actions: https://docs.github.com/en/actions
