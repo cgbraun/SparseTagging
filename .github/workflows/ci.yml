@@ -22,10 +22,50 @@ env:
   PRIMARY_PYTHON_VERSION: "3.11"
 
 jobs:
+  detect-changes:
+    name: Detect File Changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+      docs: ${{ steps.filter.outputs.docs }}
+      config: ${{ steps.filter.outputs.config }}
+      workflows: ${{ steps.filter.outputs.workflows }}
+      scan_results: ${{ steps.filter.outputs.scan_results }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+
+      - uses: dorny/paths-filter@v3.0.2
+        id: filter
+        with:
+          filters: |
+            code:
+              - 'src/**'
+              - 'tests/**'
+              - 'requirements*.txt'
+              - 'pyproject.toml'
+              - 'Dockerfile'
+            docs:
+              - 'docs/**'
+              - '*.md'
+              - '.claude/**'
+              - 'tools/diagram-converter/**'
+            config:
+              - 'mypy.ini'
+              - '.ruff.toml'
+              - '.pre-commit-config.yaml'
+              - 'sonar-project.properties'
+            workflows:
+              - '.github/workflows/**'
+            scan_results:
+              - 'ScanResults/**'
+
   quality:
     name: Code Quality
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    needs: detect-changes
+    if: needs.detect-changes.outputs.code == 'true' || needs.detect-changes.outputs.config == 'true' || needs.detect-changes.outputs.workflows == 'true'
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
 
@@ -89,7 +129,8 @@ jobs:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: quality
+    needs: [detect-changes, quality]
+    if: needs.detect-changes.outputs.code == 'true' || needs.detect-changes.outputs.config == 'true' || needs.detect-changes.outputs.workflows == 'true'
     environment: CGB
     permissions:
       contents: read
@@ -188,10 +229,65 @@ jobs:
             echo "::warning::GHCR returned HTTP $STATUS"
           fi
 
+  doc-validation:
+    name: Documentation Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: detect-changes
+    if: needs.detect-changes.outputs.docs == 'true'
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af  # v4.1.0
+        with:
+          node-version: '20'
+
+      - name: Install markdown tools
+        run: |
+          npm install -g markdownlint-cli2@0.12.1
+          npm install -g markdown-link-check@3.12.1
+
+      - name: Lint markdown files
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e  # Disable immediate exit on error
+          markdownlint-cli2 "**/*.md" "#node_modules" "#.venv" "#ScanResults" > markdownlint-report.txt 2>&1
+          EXIT_CODE=$?
+          echo "" >> markdownlint-report.txt
+          echo "Exit code: ${EXIT_CODE}" >> markdownlint-report.txt
+          cat markdownlint-report.txt
+          exit ${EXIT_CODE}
+
+      - name: Check markdown links
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e  # Disable immediate exit on error
+          find . -name "*.md" -not -path "*/node_modules/*" -not -path "*/.venv/*" -not -path "*/ScanResults/*" -print0 | xargs -0 -n1 markdown-link-check -c .markdown-link-check.json > markdown-link-check-report.txt 2>&1
+          EXIT_CODE=$?
+          echo "" >> markdown-link-check-report.txt
+          echo "Exit code: ${EXIT_CODE}" >> markdown-link-check-report.txt
+          cat markdown-link-check-report.txt
+          exit ${EXIT_CODE}
+
+      - name: Upload documentation validation reports
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        if: always()
+        with:
+          name: doc-validation-reports
+          path: |
+            markdownlint-report.txt
+            markdown-link-check-report.txt
+          retention-days: 90
+
   test:
     name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
+    needs: detect-changes
+    if: needs.detect-changes.outputs.code == 'true' || needs.detect-changes.outputs.config == 'true' || needs.detect-changes.outputs.workflows == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -267,7 +363,8 @@ jobs:
     name: Docker Build & Scan
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [quality, test]
+    needs: [detect-changes, quality, test]
+    if: needs.detect-changes.outputs.code == 'true' || needs.detect-changes.outputs.config == 'true' || needs.detect-changes.outputs.workflows == 'true'
     permissions:
       contents: write  # Changed from 'read' to allow committing scan results
       packages: write

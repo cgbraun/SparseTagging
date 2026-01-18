@@ -72,3 +72,4 @@ Pipfile.lock
 .sonar/
 /.output.txt
 /nul
+/tmpclaude-*

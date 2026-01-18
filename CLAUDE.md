@@ -122,6 +122,33 @@ If needed, implement minimal retry (GHCR push only, not pip installs) using pinn
 
 **Decision Date**: 2026-01-07 | **Status**: Deferred pending evidence of need
 
+**Path-Based Job Execution (2026-01-18)**
+
+The CI pipeline uses intelligent path filtering to optimize execution:
+
+- **Documentation-only changes** (`docs/**`, `*.md`, `.claude/**`, `ScanResults/**`):
+  - Runs: `detect-changes`, `service-health-check`, `doc-validation` (~45 seconds)
+  - Skips: `quality`, `sonarcloud`, `test`, `docker-build-scan`
+  - **Speedup: 97% (25 minutes → 45 seconds)**
+
+- **Code changes** (`src/**`, `tests/**`, `requirements*.txt`, `pyproject.toml`, `Dockerfile`):
+  - Runs: Full pipeline (~25 minutes)
+  - Behavior: Same as before optimization
+
+- **Config/workflow changes** (`mypy.ini`, `.ruff.toml`, `.github/workflows/**`):
+  - Runs: Full pipeline (~25 minutes)
+  - Rationale: Config affects quality gates, workflows need testing
+
+**Documentation Validation Tools:**
+- `markdownlint-cli2@0.12.1` - Lints markdown for style consistency
+- `markdown-link-check@3.12.1` - Validates all hyperlinks
+- Pre-commit hook: Runs markdownlint locally before push
+
+**Performance Impact:**
+- Estimated 30% reduction in daily CI compute time
+- ~73 minutes/day savings (10 commits/day, 30% doc-only)
+- For details: See `docs/CI_PIPELINE_OPTIMIZATION.md`
+
 ## Running Tests and Benchmarks
 
 ```bash

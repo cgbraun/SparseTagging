@@ -213,3 +213,24 @@ AI Response Type: Plan/Implementation/Mixed
 Outcome: Implemented ruff (linter/formatter replacing black, flake8, isort), pre-commit hooks (automated quality gates), GitHub Actions CI/CD (test matrix: 5 Python versions × 2 OS = 10 combinations), and Codecov integration. Fixed 203 code issues automatically, formatted 14 files, maintained 100% test pass rate (173 tests). Created comprehensive documentation in docs/DEVOPS.md with tool comparisons, troubleshooting guides, and best practices.
 Pattern Category: DevOps-Tooling-Integration
 ---
+
+---
+Ref: SESSION-SparseTagging-2026-01-16
+Type: Debug-Strategy
+Context: User received "Maximum call stack size exceeded" error when running /document-session and questioned why documentation files were added to .gitignore.
+
+User Prompt (Restated):
+"""
+Fix the "Maximum call stack size exceeded" error that occurs when running /document-session command. The error appears to be:
+
+RangeError: Maximum call stack size exceeded
+at Module.existsSync (node:fs:284:20)
+at file:///C:/Users/major/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/cli.js:9:1171
+
+Additionally, the session documentation files (.claude/SUMMARY_SESSION.md, .claude/KEY_PROMPTS_AND_PLANS.md, .claude/OTHER_SESSION_NOTES.md) should NOT be in .gitignore - they need to be tracked in git for long-term storage and sharing of session history.
+"""
+
+AI Response Type: Analysis/Implementation
+Outcome: Removed incorrect .gitignore entries and discovered excludePatterns is not a valid Claude Code setting field; root cause of stack overflow (file watcher recursion) remains unresolved but .gitignore issue fixed.
+Pattern Category: Configuration Error Fix
+---

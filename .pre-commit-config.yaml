@@ -31,6 +31,15 @@ repos:
         types_or: [python, pyi]
         args: [--fix, --exit-non-zero-on-fix]
 
+  # Markdown linting
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.12.1
+    hooks:
+      - id: markdownlint-cli2
+        name: markdownlint
+        args: ["--config", ".markdownlint.yaml"]
+        exclude: ^(ScanResults/|\.venv/|node_modules/)
+
   # Type checking with mypy
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.8.0

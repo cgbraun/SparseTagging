@@ -123,7 +123,11 @@
       "Bash(python:*)",
       "Bash(docker build:*)",
       "Bash(git checkout:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(mmdc:*)",
+      "Bash(systeminfo)",
+      "Bash(where:*)",
+      "Bash(git reset:*)"
     ]
   }
 }
