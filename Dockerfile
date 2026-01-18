@@ -22,7 +22,7 @@ COPY requirements.txt pyproject.toml ./
 COPY src/ src/
 
 # Install dependencies and build wheel
-RUN pip install --no-cache-dir --upgrade pip==25.3 "setuptools>=76.0.0" wheel && \
+RUN pip install --no-cache-dir --upgrade pip==25.3 "setuptools>=76.0.0" "jaraco.context>=6.1.0" wheel && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir build && \
     python -m build --wheel
