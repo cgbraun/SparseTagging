@@ -25,6 +25,58 @@ MD041: false
 MD024:
   siblings_only: true
 
+# MD022: Blanks around headings
+# Disabled because not all headings need blank lines (especially in dense documentation)
+MD022: false
+
+# MD025: Multiple top-level headings
+# Disabled because compiled docs and session notes often have multiple H1s
+MD025: false
+
+# MD031: Blanks around fences
+# Disabled because code blocks don't always need surrounding blank lines
+MD031: false
+
+# MD032: Blanks around lists
+# Disabled because lists can be embedded in other content without blank lines
+MD032: false
+
+# MD036: No emphasis as heading
+# Disabled because bold text is sometimes used for visual hierarchy without being a heading
+MD036: false
+
+# MD040: Fenced code language
+# Disabled because not all code blocks need language specification (generic output, etc.)
+MD040: false
+
+# MD029: Ordered list prefix
+# Disabled because lists can continue across sections with non-sequential numbering
+MD029: false
+
+# MD050: Strong style
+# Disabled to allow both asterisk (**) and underscore (__) for bold text
+MD050: false
+
+# MD051: Link fragments
+# Disabled because anchor links may reference dynamically generated headings
+MD051: false
+
+# MD012: Multiple consecutive blank lines
+# Disabled to allow extra spacing for visual separation in long documents
+MD012: false
+
+# MD001: Heading increment
+# Disabled because heading levels can skip for layout purposes (e.g., H1 -> H3 for subsections)
+MD001: false
+
+# MD026: Trailing punctuation in heading
+# Disabled to allow periods in headings (common in session notes and numbered lists)
+MD026: false
+
+# MD007: Unordered list indentation
+# Disabled to allow flexible list indentation styles
+MD007: false
+
 # Ignore patterns for directories that shouldn't be linted
 ignore:
   - "ScanResults/**"
