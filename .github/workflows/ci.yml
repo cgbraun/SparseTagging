@@ -939,6 +939,14 @@ jobs:
           | 🟡 MEDIUM | ${MEDIUM_COUNT} | Monitor |
           | 🔵 LOW | ${LOW_COUNT} | Informational |
 
+          $(if [ "${HIGH_COUNT}" -gt "0" ] && [ "${HIGH_COUNT}" != "N/A" ]; then
+            echo ""
+            echo "> **📋 Documented Vulnerabilities:** ${HIGH_COUNT} HIGH severity CVEs are documented as accepted risks with low practical exploitability:"
+            echo "> - **CVE-2026-0861** (glibc memalign): Awaiting Debian patch - See [Issue #18](https://github.com/cgbraun/SparseTagging/issues/18) | [SECURITY.md](../../../SECURITY.md#cve-2026-0861---glibc-memalign-integer-overflow)"
+            echo "> - **GHSA-58pv-8j8x-9vj2** (jaraco.context): Setuptools vendored dependency, not exploitable at runtime - See [Issue #19](https://github.com/cgbraun/SparseTagging/issues/19) | [SECURITY.md](../../../SECURITY.md#ghsa-58pv-8j8x-9vj2---jaracocontext-path-traversal)"
+            echo ""
+          fi)
+
           $(if [ "${CRITICAL_COUNT}" != "0" ] && [ "${CRITICAL_COUNT}" != "N/A" ]; then
             echo ""
             echo "> **⚠️ CRITICAL:** ${CRITICAL_COUNT} CRITICAL vulnerabilities found. Review [trivy-report.txt](./trivy-report.txt) for CVE details and affected packages."
@@ -956,6 +964,37 @@ jobs:
           - [sbom.spdx.json](./sbom.spdx.json) - Software Bill of Materials (SPDX 2.3)
 
           ---
+
+          $(if [ "${HIGH_COUNT}" -gt "0" ] && [ "${HIGH_COUNT}" != "N/A" ]; then
+            echo "## 📋 Documented Vulnerabilities (Accepted Risk)"
+            echo ""
+            echo "**Total:** ${HIGH_COUNT} HIGH severity CVEs documented with accepted risk"
+            echo ""
+            echo "The following vulnerabilities have been reviewed, documented, and accepted as low practical risk:"
+            echo ""
+            echo "### CVE-2026-0861 - glibc memalign Integer Overflow"
+            echo "- **Severity:** HIGH (CVSS 8.0)"
+            echo "- **Package:** glibc (libc6, libc-bin)"
+            echo "- **Status:** ⏳ Awaiting Debian security patch"
+            echo "- **Risk Level:** VERY LOW (requires precise control of size + alignment arguments)"
+            echo "- **Tracking:** [GitHub Issue #18](https://github.com/cgbraun/SparseTagging/issues/18)"
+            echo "- **Documentation:** [SECURITY.md](../../../SECURITY.md#cve-2026-0861---glibc-memalign-integer-overflow)"
+            echo "- **Review Schedule:** First Monday of each month (automated CI checks)"
+            echo ""
+            echo "### GHSA-58pv-8j8x-9vj2 - jaraco.context Path Traversal"
+            echo "- **Severity:** HIGH (CVSS 8.6)"
+            echo "- **Package:** jaraco.context (setuptools vendored dependency)"
+            echo "- **Status:** ⏳ Awaiting setuptools to update vendored copy"
+            echo "- **Risk Level:** VERY LOW (build-time only, not accessible at runtime)"
+            echo "- **Tracking:** [GitHub Issue #19](https://github.com/cgbraun/SparseTagging/issues/19)"
+            echo "- **Documentation:** [SECURITY.md](../../../SECURITY.md#ghsa-58pv-8j8x-9vj2---jaracocontext-path-traversal)"
+            echo "- **Review Schedule:** First Monday of each month (automated CI checks)"
+            echo ""
+            echo "> **Mitigation:** Both vulnerabilities are monitored via automated CI workflows. When patches become available, Docker images will be rebuilt and rescanned to verify resolution."
+            echo ""
+            echo "---"
+            echo ""
+          fi)
 
           ## 🐳 Docker Build Results
 

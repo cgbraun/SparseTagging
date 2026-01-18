@@ -21,6 +21,14 @@ WORKDIR /build
 COPY requirements.txt pyproject.toml ./
 COPY src/ src/
 
+# SECURITY NOTE: Builder stage contains GHSA-58pv-8j8x-9vj2 (jaraco.context path traversal, CVSS 8.6)
+# Status: Accepted risk - setuptools vendors jaraco.context 5.3.0 internally
+# Details: See SECURITY.md for full risk assessment and justification
+# Tracking: GitHub Issue #19, automated monthly checks via .github/workflows/cve-tracker.yml
+# Impact: Build-time only, not present in runtime image, not exploitable
+# Fix Available: No (awaiting setuptools to update vendored copy to >=6.1.0)
+# Note: Installing jaraco.context>=6.1.0 doesn't affect setuptools' internal _vendor/ copy
+
 # Install dependencies and build wheel
 RUN pip install --no-cache-dir --upgrade pip==25.3 "setuptools>=76.0.0" "jaraco.context>=6.1.0" wheel && \
     pip install --no-cache-dir -r requirements.txt && \

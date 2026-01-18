@@ -31,7 +31,7 @@ We will acknowledge receipt within 48 hours and aim to provide a fix within 7 da
 ### Vulnerability Summary
 
 - **CRITICAL:** 0
-- **HIGH:** 1 (accepted risk - base image only)
+- **HIGH:** 2 (accepted risk - base image + build dependency)
 - **MEDIUM:** 2 (in base image only)
 - **Application Dependencies:** Clean ✓
 
@@ -63,6 +63,34 @@ We will acknowledge receipt within 48 hours and aim to provide a fix within 7 da
 - **Tracking:** GitHub Issue [#18](https://github.com/cgbraun/SparseTagging/issues/18)
 - **Documentation:** See Dockerfile (line 33-38) for inline reference
 - **Next Review:** 2026-02-03 (first Monday of next month)
+
+**GHSA-58pv-8j8x-9vj2 - jaraco.context Path Traversal** ⚠️ **ACCEPTED RISK**
+- **Severity:** HIGH (CVSS 8.6)
+- **Status:** ⏳ Awaiting setuptools to update vendored dependency (no fix available as of 2026-01-18)
+- **Affected Package:** jaraco.context@5.3.0 (vendored within setuptools)
+- **Impact:** Zip Slip path traversal vulnerability in `jaraco.context.tarball()` function allows arbitrary file writes when extracting malicious tar archives
+- **Risk to SparseTag:** **VERY LOW**
+  - jaraco.context is only present in Docker **builder stage**, not runtime
+  - setuptools vendors (bundles) jaraco.context 5.3.0 internally in `_vendor/` directory
+  - SparseTag does not extract tar archives at runtime
+  - Vulnerability only exploitable if application processes untrusted tar files using setuptools' vendored code
+  - Runtime Docker image does not include setuptools or its vendored dependencies
+- **Accepted Risk Rationale:**
+  - No practical fix available - setuptools maintainers must update vendored copy
+  - Build-time only dependency, not accessible at runtime
+  - Installing jaraco.context 6.1.0+ separately doesn't affect setuptools' internal vendored copy
+  - Extremely low practical exploitability in SparseTag's use case
+  - Standard practice to wait for upstream (setuptools) to update vendored dependencies
+- **Mitigation Plan:**
+  - Monitor setuptools GitHub releases for vendored jaraco.context updates
+  - Rebuild Docker image immediately when setuptools updates to jaraco.context >=6.1.0
+  - Manual review: First Monday of each month
+  - Automated tracking: Monthly CI workflow (`.github/workflows/cve-tracker.yml`)
+- **Tracking:** GitHub Issue [#19](https://github.com/cgbraun/SparseTagging/issues/19)
+- **Documentation:** See Dockerfile builder stage for inline reference
+- **Next Review:** 2026-02-03 (first Monday of next month)
+
+#### Base Image - Other Vulnerabilities
 
 **CVE-2025-14104 - util-linux Heap Buffer Overread**
 - **Severity:** MEDIUM (CVSS 5.5)
@@ -186,6 +214,13 @@ For production use, we recommend:
   - Added automated CVE tracker workflow (`.github/workflows/cve-tracker.yml`)
     - Checks Debian security tracker monthly
     - Auto-comments on issue #18 when fix detected
+
+- GHSA-58pv-8j8x-9vj2 (jaraco.context): Accepted risk - setuptools vendored dependency
+  - Added to SECURITY.md with full risk assessment
+  - Created GitHub Issue [#19](https://github.com/cgbraun/SparseTagging/issues/19) for tracking
+  - Updated CVE tracker workflow to monitor setuptools releases
+  - Build-time only dependency, not exploitable at runtime
+  - No fix available - awaiting setuptools to update vendored copy
 
 ### v2.4.1 (2026-01-06)
 
