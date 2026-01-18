@@ -1,0 +1,159 @@
+{
+  "metadata": {
+    "total_diagrams": 15,
+    "source_file": "docs/TUTORIAL_DIAGRAMS_SLIDES.md",
+    "generated_by": "tools/diagram-converter/convert_diagrams.py"
+  },
+  "diagrams": [
+    {
+      "number": 1,
+      "title": "Complete Development Lifecycle",
+      "slug": "complete-development-lifecycle",
+      "filename": "complete-development-lifecycle.png",
+      "path": "docs/diagrams/complete-development-lifecycle.png",
+      "summary": "This diagram shows the complete 12-phase development lifecycle organized in four horizontal rows stacked vertically for optimal 4:3 slide format. The flow progresses from top-to-bottom and left-to-right within each row. The first section covers concept through core development, the second handles testing through CI/CD, the third covers quality tools through documentation, and the fourth completes with Docker build, deployment, and publishing. Each phase includes quality gates (decision points) that determine whether work proceeds or requires refinement.",
+      "purpose": "Provide 10,000-foot view of entire development process with quality checkpoints.",
+      "usage": "Tutorial introduction to show complete journey from idea to published package."
+    },
+    {
+      "number": 2,
+      "title": "Tool Ecosystem Map",
+      "slug": "tool-ecosystem-map",
+      "filename": "tool-ecosystem-map.png",
+      "path": "docs/diagrams/tool-ecosystem-map.png",
+      "summary": "This diagram maps the complete tool ecosystem organized by functional layers, showing how tools interconnect through data flows and API integrations. The foundation layer contains development tools (Claude Code, ChatGPT) that interact with version control (Git/GitHub). The quality layer shows how code flows through pre-commit hooks (Ruff, Mypy) before reaching CI/CD, which then coordinates with external scanning services (SonarCloud, CodeCov, Trivy). The deployment layer shows the build-publish pipeline from Docker to GHCR, with security validation at each step.",
+      "purpose": "Show interconnected tool landscape organized by functional layers and data flows.",
+      "usage": "Architecture overview to understand tool selection, configuration order, and integration points."
+    },
+    {
+      "number": 3,
+      "title": "LLM Plan-Execute-Refine Loop",
+      "slug": "llm-plan-execute-refine-loop",
+      "filename": "llm-plan-execute-refine-loop.png",
+      "path": "docs/diagrams/llm-plan-execute-refine-loop.png",
+      "summary": "This diagram captures the iterative cycle at the heart of LLM-first development: detailed planning before execution, rigorous validation after execution, and learning-driven refinement. Unlike traditional \"code first, fix later\" approaches, this workflow emphasizes upfront planning where the LLM explores the codebase, reviews existing patterns, and proposes architecture before writing any code. The execution phase involves TDD cycles with continuous testing, and validation checks code quality, test coverage, and security standards.",
+      "purpose": "Show iterative planning-execution-validation cycle with learning feedback loops.",
+      "usage": "Core methodology section explaining how LLM assistance enables rigorous iterative development."
+    },
+    {
+      "number": 4,
+      "title": "Phase 0: Concept to Requirements",
+      "slug": "phase-0-concept-to-requirements",
+      "filename": "phase-0-concept-to-requirements.png",
+      "path": "docs/diagrams/phase-0-concept-to-requirements.png",
+      "summary": "Phase 0 begins with a user need or business problem. The developer engages with the LLM to clarify the concept through dialogue, asking questions about scope, constraints, users, and success criteria. The LLM helps refine vague ideas into specific requirements by prompting for missing information and identifying edge cases. Once requirements are clear, they are documented in a structured format. This phase emphasizes thorough upfront thinking to avoid rework later.",
+      "purpose": "Transform vague concepts into clear, documented requirements through LLM-assisted dialogue.",
+      "usage": "Phase 0 chapter - teaches readers how to use LLMs to clarify requirements before writing code."
+    },
+    {
+      "number": 5,
+      "title": "Phase 1: Feature Specification",
+      "slug": "phase-1-feature-specification",
+      "filename": "phase-1-feature-specification.png",
+      "path": "docs/diagrams/phase-1-feature-specification.png",
+      "summary": "With requirements in hand, Phase 1 creates a detailed feature specification. The developer provides the requirements document as context to the LLM along with relevant codebase information. The LLM analyzes existing code to understand conventions and proposes how the feature should integrate. Together they define the feature interface, data structures, and integration points with usage examples.",
+      "purpose": "Create detailed feature specification with usage examples and integration points.",
+      "usage": "Phase 1 chapter - shows how to leverage LLM knowledge of codebase to create consistent designs."
+    },
+    {
+      "number": 6,
+      "title": "Phase 2: Planning & Design",
+      "slug": "phase-2-planning-design",
+      "filename": "phase-2-planning-design.png",
+      "path": "docs/diagrams/phase-2-planning-design.png",
+      "summary": "Phase 2 is the detailed technical planning phase. The LLM enters plan mode to explore the codebase thoroughly, understanding existing architecture, dependencies, and potential conflicts. Based on this exploration, the LLM proposes an architectural approach. The developer and LLM discuss trade-offs between different approaches. Once an approach is selected, they break it into implementation tasks, identify files to modify, plan test strategy, and identify risks.",
+      "purpose": "Create detailed technical implementation plan through LLM-assisted architecture exploration.",
+      "usage": "Phase 2 chapter - demonstrates the critical planning phase that determines implementation success."
+    },
+    {
+      "number": 7,
+      "title": "Phase 3: Implementation (TDD Cycle)",
+      "slug": "phase-3-implementation-tdd-cycle",
+      "filename": "phase-3-implementation-tdd-cycle.png",
+      "path": "docs/diagrams/phase-3-implementation-tdd-cycle.png",
+      "summary": "Phase 3 is where code gets written using test-driven development. The cycle starts by writing a failing test for the next small piece of functionality (Red). The LLM writes minimal code to make the test pass (Green). Then the code is refactored for quality while keeping tests passing (Refactor). This red-green-refactor cycle repeats for each piece of functionality. Quality checks (Ruff, Mypy) run continuously. When all functionality is complete and all tests pass, Phase 3 is done.",
+      "purpose": "Show test-driven development cycle with LLM writing tests and implementation code.",
+      "usage": "Phase 3 chapter - demonstrates rigorous TDD approach with immediate quality feedback."
+    },
+    {
+      "number": 8,
+      "title": "Phase 4: Integration Testing",
+      "slug": "phase-4-integration-testing",
+      "filename": "phase-4-integration-testing.png",
+      "path": "docs/diagrams/phase-4-integration-testing.png",
+      "summary": "Phase 4 verifies that components work together correctly. Unit tests from Phase 3 tested individual functions in isolation. Integration tests verify workflows across multiple components, database interactions, API calls, and file I/O. The LLM helps write integration test scenarios based on user workflows. Failed integration tests often reveal interface mismatches or incorrect assumptions. The LLM assists in debugging by analyzing test failures and proposing fixes.",
+      "purpose": "Validate cross-component interactions and end-to-end workflows.",
+      "usage": "Phase 4 chapter - shows how to design and debug integration tests with LLM assistance."
+    },
+    {
+      "number": 9,
+      "title": "Phase 5: CI/CD Setup",
+      "slug": "phase-5-cicd-setup",
+      "filename": "phase-5-cicd-setup.png",
+      "path": "docs/diagrams/phase-5-cicd-setup.png",
+      "summary": "Phase 5 establishes continuous integration and deployment pipelines. The developer and LLM configure GitHub Actions workflows to run on every commit and PR. The pipeline includes multiple stages: install dependencies, run linters (Ruff), run type checking (Mypy), run all tests with coverage, build artifacts, and run security scans. Each stage has pass/fail gates. The LLM helps troubleshoot pipeline failures and optimize workflow performance. The result is automated quality enforcement on every code change.",
+      "purpose": "Establish automated testing, quality checks, and deployment pipelines.",
+      "usage": "Phase 5 chapter - demonstrates setting up robust CI/CD with multiple quality gates."
+    },
+    {
+      "number": 10,
+      "title": "Phase 6: Performance Tuning",
+      "slug": "phase-6-performance-tuning",
+      "filename": "phase-6-performance-tuning.png",
+      "path": "docs/diagrams/phase-6-performance-tuning.png",
+      "summary": "Phase 6 optimizes code performance once functionality is correct. The process starts with establishing baseline performance using benchmarks - measuring current speed, memory usage, and resource consumption. The LLM helps identify bottlenecks through profiling. Each bottleneck is analyzed to understand why it is slow. The LLM proposes optimizations specific to the bottleneck type. Each optimization is applied and measured to verify improvement. SparseTagging achieved 100-170x speedups through sparse matrix operations and intelligent caching.",
+      "purpose": "Systematically optimize performance using benchmarking, profiling, and targeted improvements.",
+      "usage": "Phase 6 chapter - teaches data-driven performance optimization with measurable improvements."
+    },
+    {
+      "number": 11,
+      "title": "Phase 7: Quality Checks",
+      "slug": "phase-7-quality-checks",
+      "filename": "phase-7-quality-checks.png",
+      "path": "docs/diagrams/phase-7-quality-checks.png",
+      "summary": "Phase 7 ensures code meets quality standards before CI/CD. The workflow runs three key tools in sequence: Ruff (linting and formatting), Mypy (type checking), and pre-commit hooks (automated enforcement). Ruff checks code style and identifies bugs. Mypy performs static type analysis. Pre-commit hooks run all checks automatically before each commit, preventing bad code from entering version control. Any failures must be fixed before proceeding.",
+      "purpose": "Enforce code quality standards locally before pushing to CI.",
+      "usage": "Phase 7 chapter - establishes local quality workflow that mirrors CI checks."
+    },
+    {
+      "number": 12,
+      "title": "Phase 8: Documentation",
+      "slug": "phase-8-documentation",
+      "filename": "phase-8-documentation.png",
+      "path": "docs/diagrams/phase-8-documentation.png",
+      "summary": "Phase 8 creates comprehensive documentation at multiple levels. Starting with code-level docstrings, the LLM generates descriptions for all public functions, classes, and modules. These docstrings are used to generate API reference documentation automatically. User-facing documentation includes quickstart guides, tutorials, and architecture overviews. The LLM can extract patterns from code to explain complex designs.",
+      "purpose": "Create multi-level documentation from docstrings through user guides.",
+      "usage": "Phase 8 chapter - shows how LLMs can generate consistent, comprehensive documentation."
+    },
+    {
+      "number": 13,
+      "title": "Phase 9: Docker Containerization",
+      "slug": "phase-9-docker-containerization",
+      "filename": "phase-9-docker-containerization.png",
+      "path": "docs/diagrams/phase-9-docker-containerization.png",
+      "summary": "Phase 9 packages the application in a Docker container for consistent deployment. The process starts with creating a Dockerfile that defines the container image. The image uses multi-stage builds to minimize size - build dependencies are separate from runtime dependencies. The LLM helps optimize layer caching and choose base images. Security scanning with Trivy checks for vulnerabilities before deployment. Smoke tests verify the container works correctly. The final image is tagged with version numbers and pushed to a registry.",
+      "purpose": "Create production-ready Docker containers with security validation.",
+      "usage": "Phase 9 chapter - demonstrates containerization best practices and security scanning."
+    },
+    {
+      "number": 14,
+      "title": "Phase 10: External Services Integration",
+      "slug": "phase-10-external-services-integration",
+      "filename": "phase-10-external-services-integration.png",
+      "path": "docs/diagrams/phase-10-external-services-integration.png",
+      "summary": "Phase 10 integrates external quality and deployment services. SonarCloud provides code quality analysis with quality gates. CodeCov tracks coverage trends. GitHub Container Registry (GHCR) hosts Docker images. Each service requires setup - creating accounts, generating tokens, adding secrets to GitHub, and configuring workflows. The LLM helps troubleshoot authentication issues and explains configuration options. Services coordinate through the CI pipeline with graceful degradation.",
+      "purpose": "Integrate SonarCloud, CodeCov, GHCR, and other external services with CI pipeline.",
+      "usage": "Phase 10 chapter - step-by-step external service setup with troubleshooting guidance."
+    },
+    {
+      "number": 15,
+      "title": "Phase 11: Publishing and Release",
+      "slug": "phase-11-publishing-and-release",
+      "filename": "phase-11-publishing-and-release.png",
+      "path": "docs/diagrams/phase-11-publishing-and-release.png",
+      "summary": "Phase 11 handles release preparation and deployment. The process starts with version bumping in pyproject.toml, which propagates through Docker images and package metadata. A comprehensive changelog documents all changes since the last release. Git tags mark release points, triggering deployment workflows. The CI pipeline builds distribution packages, runs final quality checks, creates Docker images with version tags, and pushes to registries (PyPI, GHCR). Release notes are generated from the changelog.",
+      "purpose": "Prepare and execute releases with versioning, tagging, and deployment automation.",
+      "usage": "Phase 11 chapter - demonstrates complete release workflow from version bump to deployment."
+    }
+  ]
+}
