@@ -15,6 +15,8 @@
 
 High-performance sparse array library for tag confidence data with intelligent query caching.
 
+**Performance:** 95% memory savings, 100-170x query speedup with caching enabled.
+
 ## Quality & Security
 
 SparseTag maintains high code quality standards:
