@@ -828,7 +828,7 @@ jobs:
           fi
 
           # Generate README.md summary
-          cat > "${SCAN_DIR}/README.md" << 'README_EOF'
+          cat > "${SCAN_DIR}/README.md" << README_EOF
           # Security Scan Results
 
           **Scan Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
