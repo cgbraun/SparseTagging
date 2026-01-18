@@ -22,13 +22,20 @@ COPY requirements.txt pyproject.toml ./
 COPY src/ src/
 
 # Install dependencies and build wheel
-RUN pip install --no-cache-dir --upgrade pip==25.3 setuptools wheel && \
+RUN pip install --no-cache-dir --upgrade pip==25.3 "setuptools>=75.7.0" wheel && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir build && \
     python -m build --wheel
 
 # Stage 2: Runtime
 FROM python:3.11-slim
+
+# SECURITY NOTE: Base image contains CVE-2026-0861 (glibc memalign integer overflow, CVSS 8.0)
+# Status: Accepted risk pending Debian patch release
+# Details: See SECURITY.md (line 42-64) for full risk assessment and justification
+# Tracking: GitHub Issue #18, automated monthly checks via .github/workflows/cve-tracker.yml
+# Last Reviewed: 2026-01-18
+# Fix Available: No (monitoring https://security-tracker.debian.org/tracker/CVE-2026-0861)
 
 # Build argument for version
 ARG APP_VERSION=unknown

@@ -25,19 +25,44 @@ We will acknowledge receipt within 48 hours and aim to provide a fix within 7 da
 
 ## Current Security Status
 
-**Last Updated:** 2026-01-06
+**Last Updated:** 2026-01-18
 **Latest Secure Version:** v2.4.1
 
 ### Vulnerability Summary
 
 - **CRITICAL:** 0
-- **HIGH:** 0
+- **HIGH:** 1 (accepted risk - base image only)
 - **MEDIUM:** 2 (in base image only)
 - **Application Dependencies:** Clean ✓
 
 ### Known Vulnerabilities
 
 #### Base Image (python:3.11-slim on Debian)
+
+**CVE-2026-0861 - glibc memalign Integer Overflow** ⚠️ **ACCEPTED RISK**
+- **Severity:** HIGH (CVSS 8.0)
+- **Status:** ⏳ Awaiting fix from Debian (no patch available as of 2026-01-18)
+- **Affected Packages:** libc6@2.41-12+deb13u1, libc-bin@2.41-12+deb13u1
+- **Impact:** Integer overflow in memalign suite of functions (memalign, posix_memalign, aligned_alloc) may result in heap corruption when processing extremely large alignment values
+- **Risk to SparseTag:** **VERY LOW**
+  - Exploitation requires attacker control over BOTH size and alignment arguments
+  - Alignment must be in range [1<<62+1, 1<<63] with size near PTRDIFF_MAX (extremely uncommon)
+  - SparseTag does not directly call memalign functions
+  - NumPy/SciPy may use these internally but only with safe, controlled alignments (page size, block size, etc.)
+  - Typical alignment values are small constants, not attacker-controlled
+- **Accepted Risk Rationale:**
+  - No fix available from Debian (monitoring https://security-tracker.debian.org/tracker/CVE-2026-0861)
+  - Extremely low practical exploitability in SparseTag's use case
+  - Switching base images (e.g., Alpine) would break NumPy/SciPy binary wheel compatibility
+  - Compatibility testing burden outweighs negligible security benefit
+- **Mitigation Plan:**
+  - Monitor Debian security tracker for patch availability
+  - Rebuild Docker image immediately when patched glibc becomes available
+  - Manual review: First Monday of each month
+  - Automated tracking: Monthly CI workflow (`.github/workflows/cve-tracker.yml`)
+- **Tracking:** GitHub Issue [#18](https://github.com/cgbraun/SparseTagging/issues/18)
+- **Documentation:** See Dockerfile (line 33-38) for inline reference
+- **Next Review:** 2026-02-03 (first Monday of next month)
 
 **CVE-2025-14104 - util-linux Heap Buffer Overread**
 - **Severity:** MEDIUM (CVSS 5.5)
@@ -142,6 +167,25 @@ For production use, we recommend:
 6. **Update Regularly:** Rebuild images monthly for security patches
 
 ## Recent Security Updates
+
+### 2026-01-18 Security Patch
+
+**Fixed:**
+- GHSA-58pv-8j8x-9vj2 (jaraco.context): Upgraded setuptools to >=75.7.0 in Dockerfile
+  - Fixes path traversal vulnerability in jaraco.context.tarball() (Zip Slip attack)
+  - Severity: HIGH (CVSS 8.6)
+  - Impact: Prevents arbitrary file writes when extracting malicious tar archives
+  - Risk to SparseTag: LOW (library doesn't extract tar files, but fix applied for defense-in-depth)
+
+**Documented:**
+- CVE-2026-0861 (glibc memalign): Accepted risk with detailed justification
+  - Added to SECURITY.md with full risk assessment
+  - Added inline comment in Dockerfile for visibility
+  - Created GitHub Issue [#18](https://github.com/cgbraun/SparseTagging/issues/18) for tracking
+  - Established monthly review schedule (first Monday of each month)
+  - Added automated CVE tracker workflow (`.github/workflows/cve-tracker.yml`)
+    - Checks Debian security tracker monthly
+    - Auto-comments on issue #18 when fix detected
 
 ### v2.4.1 (2026-01-06)
 
