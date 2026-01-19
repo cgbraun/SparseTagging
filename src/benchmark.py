@@ -24,8 +24,7 @@ from typing import Any
 
 import numpy as np
 from scipy import sparse
-
-from src.sparsetag import SparseTag, TagConfidence
+from sparsetagging import SparseTag, TagConfidence
 
 # Shortcuts
 HIGH = TagConfidence.HIGH

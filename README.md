@@ -264,17 +264,22 @@ except InvalidColumnError as e:  # Also catchable as KeyError
 ## Factory Methods
 
 ```python
-# From random data
-bt = SparseTag.create_random(n_rows, column_names, fill_percent, seed)
+# From dense numpy array
+bt = SparseTag.from_dense(dense_array, column_names)
 
-# From numpy array
-bt = SparseTag.from_array(dense_array, column_names)
-
-# From sparse matrix
+# From scipy sparse matrix/array
 bt = SparseTag.from_sparse(sparse_matrix, column_names)
 
-# From dictionary
-bt = SparseTag.from_dict(data_dict, column_names, n_rows)
+# Create empty matrix
+bt = SparseTag.create_empty(n_rows, column_names)
+
+# Create random test data
+bt = SparseTag.create_random(
+    n_rows=1000,
+    column_names=['Tag1', 'Tag2', 'Tag3'],
+    fill_percent=1.0,
+    seed=42
+)
 ```
 
 ## API Reference

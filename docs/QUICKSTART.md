@@ -14,10 +14,13 @@ cd SparseTagging
 pip install -e .
 ```
 
+> **Note:** If you've installed with `pip install -e .` for development,
+> `from src.sparsetag` also works.
+
 ## Basic Usage
 
 ```python
-from src.sparsetag import SparseTag, TagConfidence
+from sparsetagging import SparseTag, TagConfidence
 
 # Create a sparse tag matrix (1000 rows, 3 columns, 5% filled)
 tags = SparseTag.create_random(
