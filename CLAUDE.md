@@ -165,10 +165,9 @@ pytest --cov=src --cov-report=html tests/
 mypy src/sparsetag.py src/cache_manager.py src/exceptions.py
 
 # Run benchmarks (from project root)
-cd src
-python benchmark.py
+python src/benchmark.py
 
-# Benchmark outputs saved to reports/ directory (gitignored)
+# Benchmark outputs saved to reports/ directory (not gitignored)
 # Generates performance reports for small (1K), medium (100K), and large (1M) matrices
 ```
 
