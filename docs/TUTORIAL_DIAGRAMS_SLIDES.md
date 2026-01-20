@@ -39,9 +39,9 @@ The lifecycle follows logical progression but shows the reality of development: 
 **Usage**: Tutorial introduction to show complete journey from idea to published package.
 
 ```mermaid
-graph TB
+graph LR
     subgraph CONCEPT["<b>CONCEPT TO CORE DEVELOPMENT</b>"]
-        direction LR
+        direction TB
         Start([<b>CONCEPT</b>]) --> P0[<b>PHASE 0</b><br/><b>Requirements</b>]
         P0 --> QG0{<b>Clear?</b>}
         QG0 -->|<b>No</b>| P0
@@ -52,7 +52,7 @@ graph TB
     end
 
     subgraph TESTING["<b>TESTING TO CI/CD</b>"]
-        direction LR
+        direction TB
         P3[<b>PHASE 3</b><br/><b>Testing</b>] --> QG2{<b>Pass?</b>}
         QG2 -->|<b>Yes</b>| P4[<b>PHASE 4</b><br/><b>Integration</b>]
         P4 --> P5[<b>PHASE 5</b><br/><b>CI/CD</b>]
@@ -61,7 +61,7 @@ graph TB
     end
 
     subgraph QUALITY["<b>QUALITY TO DOCUMENTATION</b>"]
-        direction LR
+        direction TB
         P6[<b>PHASE 6</b><br/><b>Quality</b>] --> QG4{<b>Standards<br/>Met?</b>}
         QG4 -->|<b>Yes</b>| P7[<b>PHASE 7</b><br/><b>Security</b>]
         P7 --> QG5{<b>Secure?</b>}
@@ -69,7 +69,7 @@ graph TB
     end
 
     subgraph DEPLOY["<b>BUILD TO RELEASE</b>"]
-        direction LR
+        direction TB
         P9[<b>PHASE 9</b><br/><b>Docker</b>] --> QG6{<b>Built?</b>}
         QG6 -->|<b>No</b>| P9
         QG6 -->|<b>Yes</b>| P10[<b>PHASE 10</b><br/><b>Deploy</b>]
@@ -197,19 +197,37 @@ The refinement loop is critical: failed validation triggers analysis and learnin
 
 ```mermaid
 graph LR
-    Start([<b>TASK/<br/>FEATURE</b>]) --> Plan[<b>PLAN</b><br/><b>Explore Codebase</b><br/><b>Review Patterns</b><br/><b>Propose Architecture</b>]
+    subgraph PLAN_PHASE["<b>PLANNING</b>"]
+        direction TB
+        Start([<b>TASK/FEATURE</b>]) --> Plan[<b>PLAN</b><br/><b>Explore Codebase</b><br/><b>Review Patterns</b><br/><b>Propose Architecture</b>]
+        Plan --> Review{<b>Review<br/>Plan?</b>}
+        Review -->|<b>Issues</b>| Plan
+    end
 
-    Plan --> Review{<b>Review<br/>Plan?</b>}
-    Review -->|<b>Issues</b>| Plan
-    Review -->|<b>Approved</b>| Execute[<b>EXECUTE</b><br/><b>Write Code</b><br/><b>Run Tests</b><br/><b>Fix Failures</b>]
+    subgraph EXECUTE_PHASE["<b>EXECUTION</b>"]
+        direction TB
+        Execute[<b>EXECUTE</b><br/><b>Write Code</b><br/><b>Run Tests</b><br/><b>Fix Failures</b>]
+        Execute --> Validate[<b>VALIDATE</b><br/><b>Check Quality</b><br/><b>Review Coverage</b><br/><b>Scan Security</b>]
+        Validate --> Gate{<b>Pass All<br/>Gates?</b>}
+    end
 
-    Execute --> Validate[<b>VALIDATE</b><br/><b>Check Quality</b><br/><b>Review Coverage</b><br/><b>Scan Security</b>]
+    subgraph REFINE_PHASE["<b>REFINEMENT</b>"]
+        direction TB
+        Refine[<b>REFINE</b><br/><b>Analyze Failures</b><br/><b>Update Approach</b><br/><b>Learn Patterns</b>]
+        Refine --> RefineOut[ ]
+    end
 
-    Validate --> Gate{<b>Pass All<br/>Gates?</b>}
-    Gate -->|<b>No</b>| Refine[<b>REFINE</b><br/><b>Analyze Failures</b><br/><b>Update Approach</b><br/><b>Learn Patterns</b>]
-    Refine --> Execute
+    subgraph COMPLETE_PHASE["<b>COMPLETION</b>"]
+        direction TB
+        Complete([<b>FEATURE<br/>COMPLETE</b>])
+    end
 
-    Gate -->|<b>Yes</b>| Complete([<b>FEATURE<br/>COMPLETE</b>])
+    Review -->|<b>Approved</b>| Execute
+    Gate -->|<b>No</b>| Refine
+    RefineOut --> Execute
+    Gate -->|<b>Yes</b>| Complete
+
+    style RefineOut fill:none,stroke:none
 
     style Start fill:#0e7490,stroke:#fff,stroke-width:3px,color:#fff
     style Plan fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
@@ -370,34 +388,32 @@ graph LR
 **Usage**: Phase 3 chapter - demonstrates rigorous TDD approach with immediate quality feedback.
 
 ```mermaid
-graph TB
-    subgraph RED["<b>RED PHASE: WRITE FAILING TEST</b>"]
-        direction LR
-        Start([<b>IMPLEMENTATION PLAN</b>]) --> WriteTest[<b>Write Failing Test</b>]
-        WriteTest --> RunTest1[<b>Run Test</b>]
-        RunTest1 --> Fail{<b>Test Fails?</b>}
+graph LR
+    subgraph RED["<b>RED: WRITE TEST</b>"]
+        direction TB
+        Start([<b>PLAN</b>]) --> WriteTest[<b>Write<br/>Failing Test</b>]
+        WriteTest --> Fail{<b>Fails?</b>}
         Fail -->|<b>No</b>| WriteTest
-        Fail -->|<b>Yes</b>| WriteCode[<b>Write Minimal Code</b>]
     end
 
-    subgraph GREEN["<b>GREEN PHASE: MAKE TEST PASS</b>"]
-        direction LR
-        RunTest2[<b>Run Test</b>] --> Pass{<b>Test Passes?</b>}
+    subgraph GREEN["<b>GREEN: MAKE PASS</b>"]
+        direction TB
+        WriteCode[<b>Write<br/>Code</b>] --> Pass{<b>Passes?</b>}
         Pass -->|<b>No</b>| WriteCode
-        Pass -->|<b>Yes</b>| Refactor[<b>Refactor Code</b>]
     end
 
-    subgraph REFACTOR["<b>REFACTOR PHASE: IMPROVE QUALITY</b>"]
-        direction LR
-        Quality[<b>Quality Checks Ruff/Mypy</b>] --> QualityPass{<b>Pass?</b>}
-        QualityPass -->|<b>No</b>| Refactor
-        QualityPass -->|<b>Yes</b>| More{<b>More Features?</b>}
-        More -->|<b>Yes</b>| WriteTest
-        More -->|<b>No</b>| Complete([<b>IMPLEMENTATION COMPLETE</b>])
+    subgraph REFACTOR["<b>REFACTOR: IMPROVE</b>"]
+        direction TB
+        Refactor[<b>Refactor<br/>Code</b>] --> Quality[<b>Quality<br/>Checks</b>]
+        Quality --> QPass{<b>Pass?</b>}
+        QPass -->|<b>No</b>| Refactor
+        QPass -->|<b>Yes</b>| More{<b>More?</b>}
+        More -->|<b>No</b>| Complete([<b>DONE</b>])
     end
 
-    WriteCode --> RunTest2
-    Refactor --> Quality
+    Fail -->|<b>Yes</b>| WriteCode
+    Pass -->|<b>Yes</b>| Refactor
+    More -->|<b>Yes</b>| WriteTest
 
     style Start fill:#0e7490,stroke:#fff,stroke-width:3px,color:#fff
     style Complete fill:#065f46,stroke:#fff,stroke-width:3px,color:#fff
@@ -725,7 +741,7 @@ graph LR
 ```mermaid
 graph TB
     subgraph ROW1["<b>SONARCLOUD SETUP</b>"]
-        direction LR
+        direction TB
         Input([<b>WORKING CI</b>]) --> SonarAcct[<b>Create Account</b>]
         SonarAcct --> SonarToken[<b>Generate Token</b>]
         SonarToken --> SonarSecret[<b>Add GitHub Secret</b>]
@@ -733,14 +749,14 @@ graph TB
     end
 
     subgraph ROW2["<b>CODECOV SETUP</b>"]
-        direction LR
+        direction TB
         CodeCovAcct[<b>Create Account</b>] --> CodeCovToken[<b>Generate Token</b>]
         CodeCovToken --> CodeCovSecret[<b>Add GitHub Secret</b>]
         CodeCovSecret --> CodeCovConfig[<b>Configure Upload</b>]
     end
 
     subgraph ROW3["<b>GHCR SETUP</b>"]
-        direction LR
+        direction TB
         GHCRPerms[<b>Configure Permissions</b>] --> GHCRPush[<b>Configure Push</b>]
         GHCRPush --> Test[<b>Test Integration</b>]
         Test --> Results{<b>Working?</b>}
@@ -777,49 +793,883 @@ graph TB
 **Usage**: Phase 11 chapter - demonstrates complete release workflow from version bump to deployment.
 
 ```mermaid
-graph LR
-    subgraph ROW1["<b>PREPARATION PHASE</b>"]
-        Input([<b>COMPLETED FEATURE</b>]) --> Version[<b>Bump Version</b>]
-        Version --> Changelog[<b>Update Changelog</b>]
-        Changelog --> Review{<b>Ready?</b>}
-        Review -->|<b>No</b>| Version
-        Review -->|<b>Yes</b>| Tag[<b>Create Git Tag</b>]
+graph TB
+    subgraph ROW1["<b>PREPARATION</b>"]
+        direction LR
+        A1([<b>COMPLETED FEATURE</b>]) --> A2[<b>Bump Version</b>]
+        A2 --> A3[<b>Update Changelog</b>]
+        A3 --> A4[<b>Create Git Tag</b>]
     end
 
-    subgraph ROW2["<b>RELEASE PHASE</b>"]
-        Trigger[<b>Push Tag Trigger Release</b>] --> Build[<b>Build Packages</b>]
-        Build --> QualityFinal[<b>Final Quality Checks</b>]
-        QualityFinal --> Docker[<b>Build Docker Images</b>]
-        Docker --> PyPI[<b>Push to PyPI</b>]
-        PyPI --> Registry[<b>Push to GHCR</b>]
+    subgraph ROW2["<b>BUILD</b>"]
+        direction LR
+        B1[<b>Push Tag</b>] --> B2[<b>Build Packages</b>]
+        B2 --> B3[<b>Quality Checks</b>]
+        B3 --> B4[<b>Build Docker</b>]
     end
 
-    subgraph ROW3["<b>FINALIZATION PHASE</b>"]
-        Notes[<b>Generate Release Notes</b>] --> Publish[<b>Publish GitHub Release</b>]
-        Publish --> Verify{<b>OK?</b>}
-        Verify -->|<b>Fail</b>| Rollback[<b>Rollback</b>]
-        Verify -->|<b>Pass</b>| Output([<b>RELEASED</b>])
+    subgraph ROW3["<b>PUBLISH</b>"]
+        direction LR
+        C1[<b>Push PyPI</b>] --> C2[<b>Push GHCR</b>]
+        C2 --> C3[<b>Generate Notes</b>]
+        C3 --> C4[<b>Publish Release</b>]
     end
 
-    Tag --> Trigger
-    Registry --> Notes
+    subgraph ROW4["<b>VERIFY</b>"]
+        direction LR
+        D1[<b>Test Deploy</b>] --> D2[<b>Monitor</b>]
+        D2 --> D3([<b>RELEASED</b>])
+    end
 
-    style Input fill:#0e7490,stroke:#fff,stroke-width:3px,color:#fff
-    style Output fill:#065f46,stroke:#fff,stroke-width:3px,color:#fff
-    style Review fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
-    style Verify fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
-    style Version fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
-    style Changelog fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
-    style Tag fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
-    style Trigger fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
-    style Build fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
-    style QualityFinal fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
-    style Docker fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
-    style PyPI fill:#e5e7eb,stroke:#fff,stroke-width:2px,color:#000
-    style Registry fill:#e5e7eb,stroke:#fff,stroke-width:2px,color:#000
-    style Notes fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
-    style Publish fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
-    style Rollback fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+    A4 -.-> B1
+    B4 -.-> C1
+    C4 -.-> D1
+
+    style A1 fill:#0e7490,stroke:#fff,stroke-width:3px,color:#fff
+    style D3 fill:#065f46,stroke:#fff,stroke-width:3px,color:#fff
+    style A2 fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style A3 fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style A4 fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style B1 fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style B2 fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style B3 fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style B4 fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style C1 fill:#e5e7eb,stroke:#fff,stroke-width:2px,color:#000
+    style C2 fill:#e5e7eb,stroke:#fff,stroke-width:2px,color:#000
+    style C3 fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+    style C4 fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+    style D1 fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style D2 fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+
+    linkStyle 11,12,13 stroke-width:0px
 ```
+
+---
+
+## Interaction Groups
+
+### 16. Scanning Services Interaction
+
+**Summary**: Multiple scanning and quality services coordinate during the CI pipeline through shared data formats. Pytest generates coverage data consumed by both CodeCov and SonarCloud. Ruff and Mypy results feed into SonarCloud's quality gate. Trivy scans Docker images and uploads SARIF results to GitHub Security. This data sharing creates a comprehensive quality picture.
+
+**Purpose**: Show coordination between scanning services through shared data formats.
+
+**Usage**: External Services chapter - explains service integration and data flow.
+
+```mermaid
+graph LR
+    subgraph SOURCES["<b>DATA SOURCES</b>"]
+        direction TB
+        CI([<b>CI TRIGGER</b>]) --> Pytest[<b>Run Pytest</b>]
+        Pytest --> CovXML[<b>coverage.xml</b>]
+        CI --> Ruff[<b>Run Ruff</b>]
+        CI --> Mypy[<b>Run Mypy</b>]
+        CI --> Docker[<b>Build Docker</b>]
+    end
+
+    subgraph CODECOV["<b>CODECOV FLOW</b>"]
+        direction TB
+        UploadCC[<b>Upload Coverage</b>] --> CCDash[<b>Dashboard</b>]
+        CCDash --> PRComment[<b>PR Comment</b>]
+    end
+
+    subgraph SONAR["<b>SONARCLOUD FLOW</b>"]
+        direction TB
+        UploadSC[<b>Upload Results</b>] --> SCAnalysis[<b>Analysis</b>]
+        SCAnalysis --> Gate{<b>Quality<br/>Gate?</b>}
+        Gate -->|<b>Pass</b>| Merge[<b>Allow</b>]
+        Gate -->|<b>Fail</b>| Block[<b>Block</b>]
+    end
+
+    subgraph TRIVY["<b>SECURITY FLOW</b>"]
+        direction TB
+        Scan[<b>Trivy Scan</b>] --> SARIF[<b>SARIF</b>]
+        SARIF --> GHSec[<b>GitHub<br/>Security</b>]
+    end
+
+    CovXML --> UploadCC
+    CovXML --> UploadSC
+    Ruff --> UploadSC
+    Mypy --> UploadSC
+    Docker --> Scan
+
+    style CI fill:#0e7490,stroke:#fff,stroke-width:3px,color:#fff
+    style Gate fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style Merge fill:#065f46,stroke:#fff,stroke-width:2px,color:#fff
+    style Block fill:#b91c1c,stroke:#fff,stroke-width:2px,color:#fff
+    style Pytest fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style CovXML fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style Ruff fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style Mypy fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style Docker fill:#e5e7eb,stroke:#fff,stroke-width:2px,color:#000
+    style UploadCC fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style UploadSC fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style Scan fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+```
+
+---
+
+### 17. Build & Deploy Pipeline
+
+**Summary**: Docker build and deployment pipeline with quality gates. Extracts version from pyproject.toml, builds image, runs three Trivy scans (SARIF, table, SBOM), executes smoke tests (import, version, functionality), then pushes to GHCR. Failed steps prevent deployment.
+
+**Purpose**: Show Docker build-to-deploy workflow with quality gates.
+
+**Usage**: CI/CD and Publishing chapters - production container deployment.
+
+```mermaid
+graph TB
+    subgraph BUILD["<b>BUILD PHASE</b>"]
+        direction TB
+        Trigger([<b>MAIN PUSH</b>]) --> Extract[<b>Extract Version</b>]
+        Extract --> Build[<b>Build Image</b>]
+        Build --> Tag[<b>Tag Image</b>]
+    end
+
+    subgraph SCAN["<b>SECURITY SCAN</b>"]
+        direction TB
+        Scan1[<b>Trivy: SARIF</b>] --> Scan2[<b>Trivy: Table</b>]
+        Scan2 --> Scan3[<b>Trivy: SBOM</b>]
+        Scan3 --> Vulns{<b>Critical?</b>}
+        Vulns -->|<b>Yes</b>| Fail[<b>BLOCK</b>]
+    end
+
+    subgraph SMOKE["<b>SMOKE TESTS</b>"]
+        direction TB
+        Test1[<b>Import Test</b>] --> Pass1{<b>Pass?</b>}
+        Pass1 -->|<b>No</b>| Fail
+        Pass1 -->|<b>Yes</b>| Test2[<b>Version Test</b>]
+        Test2 --> Pass2{<b>Pass?</b>}
+        Pass2 -->|<b>No</b>| Fail
+        Pass2 -->|<b>Yes</b>| Test3[<b>Function Test</b>]
+        Test3 --> Pass3{<b>Pass?</b>}
+        Pass3 -->|<b>No</b>| Fail
+    end
+
+    subgraph DEPLOY["<b>DEPLOYMENT</b>"]
+        direction TB
+        Login[<b>Login GHCR</b>] --> Push[<b>Push Image</b>]
+        Push --> Success([<b>DEPLOYED</b>])
+    end
+
+    Tag --> Scan1
+    Vulns -->|<b>No</b>| Test1
+    Pass3 -->|<b>Yes</b>| Login
+
+    style Trigger fill:#0e7490,stroke:#fff,stroke-width:3px,color:#fff
+    style Success fill:#065f46,stroke:#fff,stroke-width:3px,color:#fff
+    style Fail fill:#b91c1c,stroke:#fff,stroke-width:2px,color:#fff
+    style Vulns fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style Pass1 fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style Pass2 fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style Pass3 fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style Extract fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style Build fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style Tag fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style Scan1 fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+    style Scan2 fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+    style Scan3 fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+```
+
+---
+
+### 18. Quality Tools Integration
+
+**Summary**: Three-layer quality enforcement: local development (manual runs), pre-commit hooks (automatic enforcement), and CI pipeline (clean environment). Same tools (Ruff, Mypy, Pytest) at all layers with consistent configurations. Catches issues progressively earlier, reducing fix cost.
+
+**Purpose**: Show defense-in-depth quality strategy across three layers.
+
+**Usage**: Quality Checks and CI/CD chapters - establishes layered quality approach.
+
+```mermaid
+graph TB
+    subgraph LOCAL["<b>LOCAL DEV</b>"]
+        direction LR
+        Dev[<b>Write Code</b>] --> ManRuff[<b>ruff check</b>]
+        ManRuff --> ManMypy[<b>mypy</b>]
+        ManMypy --> ManTest[<b>pytest</b>]
+    end
+
+    subgraph PRECOMMIT["<b>PRE-COMMIT</b>"]
+        direction LR
+        Commit[<b>git commit</b>] --> HookRuff[<b>ruff hook</b>]
+        HookRuff --> HookMypy[<b>mypy hook</b>]
+        HookMypy --> HookTest[<b>pytest hook</b>]
+        HookTest --> Decision{<b>Pass?</b>}
+        Decision -->|<b>No</b>| Block[<b>BLOCK</b>]
+        Decision -->|<b>Yes</b>| Allow[<b>ALLOW</b>]
+    end
+
+    subgraph CI["<b>CI PIPELINE</b>"]
+        direction LR
+        Push[<b>git push</b>] --> CIRuff[<b>ruff job</b>]
+        CIRuff --> CIMypy[<b>mypy job</b>]
+        CIMypy --> CITest[<b>test matrix</b>]
+        CITest --> CIGate{<b>Pass?</b>}
+        CIGate -->|<b>No</b>| FailPR[<b>FAIL PR</b>]
+        CIGate -->|<b>Yes</b>| PassPR[<b>PASS PR</b>]
+    end
+
+    ManTest --> Commit
+    Allow --> Push
+
+    style Dev fill:#0e7490,stroke:#fff,stroke-width:3px,color:#fff
+    style Decision fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style CIGate fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style Block fill:#b91c1c,stroke:#fff,stroke-width:2px,color:#fff
+    style FailPR fill:#b91c1c,stroke:#fff,stroke-width:2px,color:#fff
+    style Allow fill:#065f46,stroke:#fff,stroke-width:2px,color:#fff
+    style PassPR fill:#065f46,stroke:#fff,stroke-width:2px,color:#fff
+    style ManRuff fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style ManMypy fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style ManTest fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+```
+
+---
+
+## New Content
+
+### 19. Development Artifacts Map
+
+**Summary**: Maps artifacts generated at each development phase. Planning phases (0-2) produce documents. Implementation (3-4) generates code and tests. Refinement (5-6) creates reports. Quality (7) produces tool outputs. Documentation (8) generates guides. CI/CD (9-11) produces workflow files, images, and packages.
+
+**Purpose**: Show artifacts created at each phase and by which processes.
+
+**Usage**: Cross-cutting reference - tracks deliverables at each stage.
+
+```mermaid
+graph LR
+    subgraph PLAN["<b>PLANNING (0-2)</b>"]
+        direction TB
+        P0[<b>Phase 0</b>] --> A0[<b>Requirements</b>]
+        P1[<b>Phase 1</b>] --> A1[<b>Spec</b>]
+        P2[<b>Phase 2</b>] --> A2[<b>Plan</b>]
+    end
+
+    subgraph IMPL["<b>IMPLEMENTATION (3-4)</b>"]
+        direction TB
+        P3[<b>Phase 3</b>] --> A3[<b>Code Files</b>]
+        P4[<b>Phase 4</b>] --> A4[<b>Test Files</b>]
+        P4 --> A4b[<b>Coverage</b>]
+    end
+
+    subgraph REFINE["<b>REFINEMENT (5-6)</b>"]
+        direction TB
+        P5[<b>Phase 5</b>] --> A5[<b>Bug Reports</b>]
+        P6[<b>Phase 6</b>] --> A6[<b>Benchmarks</b>]
+    end
+
+    subgraph QUALITY["<b>QUALITY (7)</b>"]
+        direction TB
+        P7[<b>Phase 7</b>] --> A7[<b>Ruff/Mypy<br/>Reports</b>]
+    end
+
+    subgraph DOCS["<b>DOCS (8)</b>"]
+        direction TB
+        P8[<b>Phase 8</b>] --> A8[<b>Docstrings<br/>API Docs</b>]
+    end
+
+    subgraph CICD["<b>CI/CD (9-11)</b>"]
+        direction TB
+        P9[<b>Phase 9</b>] --> A9[<b>Workflows<br/>SARIF</b>]
+        P10[<b>Phase 10</b>] --> A10[<b>SonarCloud<br/>CodeCov</b>]
+        P11[<b>Phase 11</b>] --> A11[<b>Images<br/>Packages</b>]
+    end
+
+    style A0 fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style A1 fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style A2 fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style A3 fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style A4 fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style A4b fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style A5 fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+    style A6 fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+    style A7 fill:#e5e7eb,stroke:#fff,stroke-width:2px,color:#000
+    style A8 fill:#e5e7eb,stroke:#fff,stroke-width:2px,color:#000
+    style A9 fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style A10 fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style A11 fill:#065f46,stroke:#fff,stroke-width:2px,color:#fff
+```
+
+---
+
+### 20. Tool Category Comparison Matrix
+
+**Summary**: Development tool categories with top alternatives. SparseTagging choices marked with ⭐. Categories include Linting (Ruff⭐), Type Checking (Mypy⭐), Testing (Pytest⭐), Coverage (pytest-cov⭐), CI/CD (GitHub Actions⭐), Quality Platforms (SonarCloud⭐), Container Tools (Docker⭐), Security Scanning (Trivy⭐), Container Registry (GHCR⭐), and Pre-commit (pre-commit⭐). Blue = local tools, Yellow = external services.
+
+**Purpose**: Compare tool options with SparseTagging choices highlighted.
+
+**Usage**: Tool Selection chapter - evaluate alternatives and trade-offs.
+
+```mermaid
+graph TB
+    subgraph LOCAL["<b>LOCAL TOOLS</b>"]
+        direction LR
+        Lint[<b>LINTING</b><br/>1. Ruff ⭐<br/>2. Flake8<br/>3. Pylint]
+        Type[<b>TYPE CHECK</b><br/>1. Mypy ⭐<br/>2. Pyright<br/>3. Pyre]
+        Test[<b>TESTING</b><br/>1. Pytest ⭐<br/>2. unittest<br/>3. nose2]
+        Cov[<b>COVERAGE</b><br/>1. pytest-cov ⭐<br/>2. coverage.py<br/>3. codecov]
+        Pre[<b>PRE-COMMIT</b><br/>1. pre-commit ⭐<br/>2. husky<br/>3. hooks]
+    end
+
+    subgraph SERVICES["<b>EXTERNAL SERVICES</b>"]
+        direction LR
+        CICD[<b>CI/CD</b><br/>1. GH Actions ⭐<br/>2. GitLab CI<br/>3. CircleCI]
+        Qual[<b>QUALITY</b><br/>1. SonarCloud ⭐<br/>2. Code Climate<br/>3. Scrutinizer]
+        Cont[<b>CONTAINERS</b><br/>1. Docker ⭐<br/>2. Podman<br/>3. Buildah]
+        Sec[<b>SECURITY</b><br/>1. Trivy ⭐<br/>2. Snyk<br/>3. Grype]
+        Reg[<b>REGISTRY</b><br/>1. GHCR ⭐<br/>2. Docker Hub<br/>3. ECR]
+    end
+
+    style Lint fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style Type fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style Test fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style Cov fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style Pre fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style CICD fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+    style Qual fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+    style Cont fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+    style Sec fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+    style Reg fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+```
+
+**Legend**: ⭐ = Used in SparseTagging | Blue = Local | Yellow = External
+
+---
+
+### 21. LLM Prompting Best Practices
+
+**Summary**: Visual synthesis of effective prompting patterns. Golden template: Context (current state, why) → Request (specific action) → Constraints (requirements) → Guidance (boundaries) → Collaboration (ask questions). Success patterns include specificity, structure, context, and permission. Anti-patterns include vagueness, no context, early implementation, assuming memory, and too many changes.
+
+**Purpose**: Visualize effective LLM prompting patterns and anti-patterns.
+
+**Usage**: Prompting chapter - teaches effective prompt crafting.
+
+```mermaid
+graph LR
+    subgraph TEMPLATE["<b>GOLDEN TEMPLATE</b>"]
+        direction TB
+        Context[<b>CONTEXT</b><br/>Current state<br/>Why needed]
+        Context --> Request[<b>REQUEST</b><br/>Specific action<br/>Clear scope]
+        Request --> Constraints[<b>CONSTRAINTS</b><br/>Requirements<br/>Specific values]
+        Constraints --> Guidance[<b>GUIDANCE</b><br/>Boundaries<br/>Exclusions]
+        Guidance --> Collab[<b>COLLABORATE</b><br/>Ask questions<br/>Iterate]
+    end
+
+    subgraph SUCCESS["<b>SUCCESS PATTERNS</b>"]
+        direction TB
+        S1[<b>✅ Specificity</b><br/>5min not short]
+        S2[<b>✅ Structure</b><br/>Numbered lists]
+        S3[<b>✅ Context</b><br/>Explain why]
+        S4[<b>✅ Permission</b><br/>Invite questions]
+    end
+
+    subgraph ANTI["<b>ANTI-PATTERNS</b>"]
+        direction TB
+        A1[<b>❌ Vague</b><br/>Make it better]
+        A2[<b>❌ No Context</b><br/>Fix line 690]
+        A3[<b>❌ Too Early</b><br/>Use library X]
+        A4[<b>❌ Assume Memory</b><br/>Do that thing]
+    end
+
+    Collab --> Results{<b>Good?</b>}
+    Results -->|<b>Yes</b>| Success([<b>ZERO FAILURES</b>])
+    Results -->|<b>No</b>| Context
+
+    style Context fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style Request fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style Constraints fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style Guidance fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style Collab fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style Results fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style Success fill:#065f46,stroke:#fff,stroke-width:3px,color:#fff
+    style S1 fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style S2 fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style S3 fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style S4 fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style A1 fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+    style A2 fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+    style A3 fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+    style A4 fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+```
+
+---
+
+### 22. Claude Code Cheat Sheet
+
+**Summary**: Quick reference for Claude Code keyboard shortcuts, slash commands, and workflow patterns.
+
+**Purpose**: Quick reference for Claude Code features.
+
+**Usage**: Getting Started and throughout - efficient Claude Code usage.
+
+| **Category** | **Item** | **Description** |
+|---|---|---|
+| **Essential Shortcuts** | Tab | Accept suggestion |
+| | Shift+Tab | Toggle auto-accept |
+| | Ctrl+R | Show full output |
+| | Ctrl+B | Background task |
+| | Ctrl+O | Transcript mode |
+| | Ctrl+C | Interrupt |
+| | Ctrl+Z | Undo input |
+| | Alt+T | Toggle thinking |
+| **Slash Commands** | /plan | Enter plan mode |
+| | /commit | Create commit |
+| | /pr | Create pull request |
+| | /context | Show context usage |
+| | /model | Switch model |
+| | /permissions | Manage tool access |
+| | /resume | Resume session |
+| | /clear | Clear conversation |
+| **@-Mention Features** | @file.py | Reference file |
+| | @folder/ | Reference directory |
+| | @agent | Invoke custom agent |
+| **Workflow Patterns** | Plan First | Use /plan for complex changes |
+| | Background Tasks | Ctrl+B for dev servers |
+| | Iterative Refinement | Give feedback on results |
+| | Context Management | Check /context regularly |
+| | Permission Management | Set per-project tool access |
+
+---
+
+### 23. ChatGPT Codex Cheat Sheet
+
+**Summary**: Quick reference for ChatGPT integration patterns and when to use ChatGPT vs Claude Code.
+
+**Purpose**: Quick reference for ChatGPT usage patterns.
+
+**Usage**: Tool Selection chapter - when to use ChatGPT vs Claude Code.
+
+| **Category** | **Pattern** | **Description** |
+|---|---|---|
+| **ChatGPT Strengths** | Algorithm Design | Design data structures and algorithms |
+| | Code Explanation | Understand complex code |
+| | Research Tasks | Compare approaches and libraries |
+| | Boilerplate Generation | Generate templates and scaffolding |
+| | Refactoring Ideas | Suggest improvements and patterns |
+| **Effective Patterns** | Provide Context | Share relevant files and dependencies |
+| | Specify Format | Code only, markdown, step-by-step |
+| | Break Down Tasks | Smaller focused prompts |
+| | Give Examples | Show desired output format |
+| | Iterate | Refine responses through dialogue |
+| **Best Use Cases** | Research Phase | Explore options before implementation |
+| | Algorithm Help | Design efficient solutions |
+| | Code Review | Get feedback on approach |
+| | Documentation | Generate explanations and guides |
+| **Integration with Claude** | ChatGPT: Research | Claude Code: Implement |
+| | ChatGPT: Design | Claude Code: Integrate |
+| | ChatGPT: Explain | Claude Code: Refactor |
+| | ChatGPT: Explore | Claude Code: Execute |
+
+---
+
+### 24. CI Pipeline Evolution
+
+**Summary**: Progressive enhancement of ci.yml from basic build to production pipeline. Stage 1: Build and test. Stage 2: Test matrix. Stage 3: Save artifacts. Stage 4: Security scanning. Stage 5: Docker smoke tests. Stage 6: External services. Stage 7: Result summary. Stage 8: Graceful degradation. SparseTagging evolved through these stages over 66 PRs.
+
+**Purpose**: Show progressive CI improvement from basic to production-grade.
+
+**Usage**: CI/CD chapter - demonstrates incremental improvement approach.
+
+```mermaid
+graph LR
+    subgraph BASIC["<b>BASIC (1-3)</b>"]
+        direction TB
+        S1[<b>Stage 1</b><br/>Build<br/>Test]
+        S1 --> S2[<b>Stage 2</b><br/>Test Matrix<br/>Multi-OS]
+        S2 --> S3[<b>Stage 3</b><br/>Save Artifacts<br/>Results]
+    end
+
+    subgraph SECURE["<b>SECURITY (4-5)</b>"]
+        direction TB
+        S4[<b>Stage 4</b><br/>Trivy Scan<br/>SARIF Upload]
+        S4 --> S5[<b>Stage 5</b><br/>Docker Smoke<br/>Tests]
+    end
+
+    subgraph SERVICES["<b>SERVICES (6-7)</b>"]
+        direction TB
+        S6[<b>Stage 6</b><br/>SonarCloud<br/>CodeCov]
+        S6 --> S7[<b>Stage 7</b><br/>Result Summary<br/>README]
+    end
+
+    subgraph ROBUST["<b>ROBUST (8)</b>"]
+        direction TB
+        S8[<b>Stage 8</b><br/>Graceful Degrade<br/>Continue on Error]
+        S8 --> Prod([<b>PRODUCTION<br/>READY</b>])
+    end
+
+    S3 --> S4
+    S5 --> S6
+    S7 --> S8
+
+    style S1 fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+    style S2 fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style S3 fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+    style S4 fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style S5 fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style S6 fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style S7 fill:#e5e7eb,stroke:#fff,stroke-width:2px,color:#000
+    style S8 fill:#d4edda,stroke:#fff,stroke-width:2px,color:#000
+    style Prod fill:#065f46,stroke:#fff,stroke-width:3px,color:#fff
+```
+
+---
+
+### 25. Iterative Development Reality
+
+**Summary**: Non-linear reality of software development with multiple concurrent work streams, frequent backtracking, and iterative refinement. SparseTagging had 66 PRs demonstrating this reality. Features reveal bugs, performance issues trigger optimization, new features break old ones, quality issues require refactoring. This is normal and expected.
+
+**Purpose**: Show realistic non-linear development with multiple refinement cycles.
+
+**Usage**: Introduction - sets realistic expectations about development process.
+
+```mermaid
+graph TB
+    subgraph WEEK1["<b>WEEK 1</b>"]
+        direction LR
+        S1([<b>PROJECT START</b>]) --> F1[<b>Feature 1</b>]
+        F1 --> B1[<b>Bug Found</b>]
+        B1 --> FIX1[<b>Fix Bug</b>]
+        FIX1 --> P1[<b>Perf Issue</b>]
+        P1 --> OPT1[<b>Optimize</b>]
+    end
+
+    subgraph WEEK2["<b>WEEK 2</b>"]
+        direction LR
+        F2[<b>Feature 2</b>] --> B2[<b>Breaks F1</b>]
+        B2 --> REF[<b>Refactor Both</b>]
+        REF --> CI[<b>Setup CI</b>]
+        CI --> B3[<b>CI Fails</b>]
+        B3 --> FIX2[<b>Fix CI</b>]
+    end
+
+    subgraph WEEK3["<b>WEEK 3</b>"]
+        direction LR
+        SC[<b>Add SonarCloud</b>] --> Q1[<b>Quality Issues</b>]
+        Q1 --> FIXQ[<b>Fix Quality</b>]
+        FIXQ --> F3[<b>Feature 3</b>]
+        F3 --> EDGE[<b>Edge Case</b>]
+        EDGE --> TESTS[<b>Add Tests</b>]
+    end
+
+    subgraph WEEK4["<b>WEEK 4</b>"]
+        direction LR
+        DOCS[<b>Write Docs</b>] --> API[<b>API Issue</b>]
+        API --> REDES[<b>Redesign API</b>]
+        REDES --> F4[<b>Feature 4</b>]
+        F4 --> P2[<b>Perf Regression</b>]
+        P2 --> OPT2[<b>Re-Optimize</b>]
+        OPT2 --> END([<b>66 PRS LATER</b>])
+    end
+
+    OPT1 -.-> F2
+    FIX2 -.-> SC
+    TESTS -.-> DOCS
+
+    style S1 fill:#065f46,stroke:#fff,stroke-width:3px,color:#fff
+    style END fill:#065f46,stroke:#fff,stroke-width:3px,color:#fff
+    style B1 fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+    style B2 fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+    style B3 fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+    style P1 fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style P2 fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style Q1 fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style API fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+
+    linkStyle 21,22,23 stroke-width:0px
+```
+
+**Note**: Each box could expand into multiple PRs. This is normal, not failure.
+
+---
+
+### 26. Configuration Consolidation Map
+
+**Summary**: Unified view of all configuration sources. Single source of truth: pyproject.toml (version, dependencies, metadata). Secrets flow from external services through GitHub Secrets into CI workflow. Environment variables defined in ci.yml. Configuration files include sonar-project.properties, .codecov.yml, mypy.ini, .pre-commit-config.yaml. Workflow ci.yml orchestrates everything.
+
+**Purpose**: Unified view of all configuration sources and their relationships.
+
+**Usage**: Configuration chapter - understand settings sources and interactions.
+
+```mermaid
+graph TB
+    subgraph TRUTH["<b>SOURCE OF TRUTH</b>"]
+        direction TB
+        PyProj[<b>pyproject.toml</b><br/>version: 2.4.1<br/>dependencies<br/>metadata]
+    end
+
+    subgraph SECRETS["<b>SECRETS</b>"]
+        direction TB
+        GHSecrets[<b>GitHub Secrets</b><br/>SONAR_TOKEN<br/>CODECOV_TOKEN<br/>GITHUB_TOKEN]
+    end
+
+    subgraph ENV["<b>ENVIRONMENT</b>"]
+        direction TB
+        EnvVars[<b>ci.yml env:</b><br/>SOURCE_DIR: src<br/>TEST_DIR: tests<br/>COVERAGE: 85<br/>PYTHON: 3.11]
+    end
+
+    subgraph CONFIG["<b>CONFIG FILES</b>"]
+        direction TB
+        Sonar[<b>sonar-project</b><br/>.properties]
+        CodeCov[<b>.codecov.yml</b>]
+        Mypy[<b>mypy.ini</b>]
+        PreCom[<b>.pre-commit-</b><br/>config.yaml]
+    end
+
+    subgraph ORCH["<b>ORCHESTRATION</b>"]
+        direction TB
+        Workflow[<b>ci.yml</b><br/>Reads all configs<br/>Coordinates execution]
+    end
+
+    subgraph BUILD["<b>BUILD</b>"]
+        direction TB
+        Docker[<b>Dockerfile</b><br/>APP_VERSION arg<br/>Base image]
+    end
+
+    PyProj --> Workflow
+    PyProj --> Docker
+    GHSecrets --> Workflow
+    EnvVars --> Workflow
+    Sonar --> Workflow
+    CodeCov --> Workflow
+    Mypy --> Workflow
+    PreCom --> Workflow
+    Workflow --> BuildProc([<b>BUILD PROCESS</b>])
+    Docker --> BuildProc
+
+    style PyProj fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+    style GHSecrets fill:#fecaca,stroke:#fff,stroke-width:2px,color:#000
+    style EnvVars fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style Workflow fill:#065f46,stroke:#fff,stroke-width:3px,color:#fff
+    style BuildProc fill:#0e7490,stroke:#fff,stroke-width:3px,color:#fff
+```
+
+**Key Insight**: Version in pyproject.toml flows through entire system.
+
+---
+
+## Documentation Consolidations
+
+### 27. Troubleshooting Decision Trees
+
+**Summary**: Consolidated troubleshooting guide combining scattered debugging information into decision trees. Starting with symptom identification (test failures, CI failures, memory issues, slow queries, type errors), the tree guides users through systematic diagnosis with actionable solutions.
+
+**Purpose**: Systematic diagnostic approach for common issues.
+
+**Usage**: Troubleshooting chapter - provides diagnostic decision trees.
+
+```mermaid
+graph TB
+    Start{<b>SYMPTOM?</b>} --> TestFail[<b>Tests Failing</b>]
+    Start --> CIFail[<b>CI Failing</b>]
+    Start --> Memory[<b>High Memory</b>]
+    Start --> Slow[<b>Slow Queries</b>]
+    Start --> TypeError[<b>Type Errors</b>]
+
+    TestFail --> Platform{<b>Local<br/>or CI?</b>}
+    Platform -->|<b>CI Only</b>| Matrix[<b>Check matrix job</b><br/>Python version<br/>OS platform]
+    Platform -->|<b>Both</b>| Deps[<b>Check deps<br/>versions</b>]
+
+    CIFail --> WhichJob{<b>Which<br/>job?</b>}
+    WhichJob -->|<b>Quality</b>| Ruff[<b>Run ruff<br/>Fix issues</b>]
+    WhichJob -->|<b>Test</b>| Coverage[<b>Check coverage<br/>Add tests</b>]
+    WhichJob -->|<b>SonarCloud</b>| Token[<b>Check token<br/>Verify config</b>]
+
+    Memory --> CheckCache[<b>Check cache<br/>stats</b>]
+    CheckCache --> CacheBig{<b>Cache<br/>>8MB?</b>}
+    CacheBig -->|<b>Yes</b>| ClearCache[<b>Clear cache<br/>Reduce limits</b>]
+    CacheBig -->|<b>No</b>| Indices[<b>Optimize<br/>indices dtype</b>]
+
+    Slow --> Cached{<b>Cache<br/>enabled?</b>}
+    Cached -->|<b>No</b>| EnableCache[<b>Enable caching</b>]
+    Cached -->|<b>Yes</b>| HitRate{<b>Hit rate<br/>>60%?</b>}
+    HitRate -->|<b>No</b>| QueryPattern[<b>Analyze query<br/>patterns</b>]
+
+    TypeError --> RunMypy[<b>Run mypy</b>]
+    RunMypy --> MypyErrors{<b>Errors?</b>}
+    MypyErrors -->|<b>Yes</b>| FixTypes[<b>Add type hints<br/>Fix errors</b>]
+
+    style Start fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+    style Platform fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style WhichJob fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style CacheBig fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style Cached fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style HitRate fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style MypyErrors fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style Matrix fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style Deps fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style Ruff fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style Coverage fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style Token fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style ClearCache fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style EnableCache fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style FixTypes fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+```
+
+---
+
+### 28. Service Setup Dependencies
+
+**Summary**: Prerequisite chain for setting up external services. Foundation is GitHub account. Creating repository enables GitHub Actions. SonarCloud requires account creation, organization setup, project creation, and token generation. CodeCov requires account and repository connection. GHCR uses GitHub but needs permissions. Dependabot needs enabling.
+
+**Purpose**: Show prerequisite chain for external service setup.
+
+**Usage**: External Services chapter - understand setup order and dependencies.
+
+```mermaid
+graph TB
+    Start([<b>DEVELOPER</b>]) --> GH[<b>1. GitHub Account</b>]
+    GH --> Repo[<b>2. Create Repository</b>]
+    Repo --> Actions[<b>3. GitHub Actions<br/>Automatic</b>]
+
+    Repo --> SC1[<b>4a. SonarCloud Account</b>]
+    SC1 --> SC2[<b>4b. Link GitHub</b>]
+    SC2 --> SC3[<b>4c. Create Org</b>]
+    SC3 --> SC4[<b>4d. Create Project</b>]
+    SC4 --> SC5[<b>4e. Generate Token</b>]
+    SC5 --> SCSecret[<b>4f. Add Secret</b>]
+
+    Repo --> CC1[<b>5a. CodeCov Account</b>]
+    CC1 --> CC2[<b>5b. Connect Repo</b>]
+    CC2 --> CC3[<b>5c. Copy Token</b>]
+    CC3 --> CCSecret[<b>5d. Add Secret</b>]
+
+    Repo --> GHC1[<b>6a. GHCR Access<br/>Automatic</b>]
+    GHC1 --> GHC2[<b>6b. Configure Perms</b>]
+    GHC2 --> GHC3[<b>6c. Enable Write</b>]
+
+    Repo --> Dep1[<b>7a. Enable Dependabot</b>]
+    Dep1 --> Dep2[<b>7b. Configure YAML</b>]
+
+    SCSecret --> Config[<b>8. Configure<br/>Workflows</b>]
+    CCSecret --> Config
+    GHC3 --> Config
+    Dep2 --> Config
+
+    Config --> Test[<b>9. Test Integration</b>]
+    Test --> Done([<b>ALL SERVICES<br/>INTEGRATED</b>])
+
+    style Start fill:#0e7490,stroke:#fff,stroke-width:3px,color:#fff
+    style Done fill:#065f46,stroke:#fff,stroke-width:3px,color:#fff
+    style GH fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style Repo fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style Actions fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style SCSecret fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+    style CCSecret fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+    style Config fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+```
+
+**Critical Path**: GitHub → Repository → Individual Services → Secrets → Workflow → Test
+
+---
+
+### 29. Version/Release Propagation
+
+**Summary**: How a single version number in pyproject.toml propagates through the entire system. Version 2.4.1 in pyproject.toml becomes Docker build arg, image tag, git tag, PyPI release version, and appears in changelog and release notes. Single source of truth prevents version mismatches.
+
+**Purpose**: Trace version from pyproject.toml through entire release process.
+
+**Usage**: Publishing chapter - demonstrates version management best practices.
+
+```mermaid
+graph TB
+    Dev[<b>Developer Edits<br/>pyproject.toml</b>] --> Version[<b>version = '2.4.1'</b>]
+    Version --> Git[<b>Git Commit & Push</b>]
+    Git --> CI[<b>CI Triggered</b>]
+
+    CI --> Extract[<b>extract-version.py</b>]
+    Extract --> CIVar[<b>VERSION=2.4.1</b>]
+
+    CIVar --> Docker[<b>Docker Build</b>]
+    Docker --> BuildArg[<b>APP_VERSION=2.4.1</b>]
+    BuildArg --> ImageEnv[<b>Image Env Var</b>]
+
+    CIVar --> Tag1[<b>Tag: 2.4.1</b>]
+    CIVar --> Tag2[<b>Tag: latest</b>]
+
+    Version --> GitTag[<b>Git Tag: v2.4.1</b>]
+    GitTag --> Release[<b>GitHub Release</b>]
+
+    Version --> PackageMeta[<b>__version__</b>]
+    PackageMeta --> PyPI[<b>PyPI: 2.4.1</b>]
+
+    Version --> Changelog[<b>CHANGELOG.md</b>]
+    Changelog --> ReleaseNotes[<b>Release Notes</b>]
+
+    Tag1 --> GHCR[<b>Push to GHCR</b>]
+    Tag2 --> GHCR
+
+    style Version fill:#fef3c7,stroke:#fff,stroke-width:3px,color:#000
+    style CIVar fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style GitTag fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style PyPI fill:#065f46,stroke:#fff,stroke-width:2px,color:#fff
+    style GHCR fill:#065f46,stroke:#fff,stroke-width:2px,color:#fff
+    style Extract fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style BuildArg fill:#e5e7eb,stroke:#fff,stroke-width:2px,color:#000
+```
+
+**Key Principle**: Single source of truth in pyproject.toml - change once, propagates everywhere.
+
+---
+
+### 30. Quality Metrics Dashboard
+
+**Summary**: Unified dashboard consolidating quality metrics from all sources. Security: Vulnerabilities (0 Critical, 0 High, A rating). Reliability: 0 bugs, A rating. Maintainability: 12 code smells, 0.3% tech debt, max cognitive complexity 12, A rating. Coverage: 88% line, 82% branch, 92% new code. Performance: 0.19ms uncached, 0.009ms cached, 95% memory savings, 65% cache hit rate. Quality: 0.8% duplication, max cyclomatic complexity 8. Overall: 9/10 metrics meeting targets.
+
+**Purpose**: Unified view of all quality metrics in single dashboard.
+
+**Usage**: Quality Assessment chapter - track and improve project health holistically.
+
+```mermaid
+graph TB
+    Dashboard[<b>QUALITY METRICS<br/>DASHBOARD</b>]
+
+    subgraph SEC["<b>SECURITY</b>"]
+        direction TB
+        Vuln[<b>Vulnerabilities</b><br/>Critical: 0<br/>High: 0<br/>Rating: A ✅]
+    end
+
+    subgraph REL["<b>RELIABILITY</b>"]
+        direction TB
+        Bugs[<b>Bugs</b><br/>Count: 0<br/>Rating: A ✅]
+    end
+
+    subgraph MAINT["<b>MAINTAINABILITY</b>"]
+        direction TB
+        Smells[<b>Code Smells: 12</b><br/>Tech Debt: 0.3%<br/>Cognitive: ≤15<br/>Rating: A ✅]
+    end
+
+    subgraph COV["<b>COVERAGE</b>"]
+        direction TB
+        LineCov[<b>Line: 88%</b><br/>Branch: 82%<br/>New: 92%<br/>Target: ≥85% ✅]
+    end
+
+    subgraph PERF["<b>PERFORMANCE</b>"]
+        direction TB
+        QueryTime[<b>Query Time</b><br/>Uncached: 0.19ms<br/>Cached: 0.009ms<br/>Savings: 95% ✅]
+    end
+
+    subgraph QUAL["<b>QUALITY</b>"]
+        direction TB
+        Dup[<b>Duplication: 0.8%</b><br/>Cyclomatic: ≤8<br/>Target: ≤3% ✅]
+    end
+
+    Dashboard --> Vuln
+    Dashboard --> Bugs
+    Dashboard --> Smells
+    Dashboard --> LineCov
+    Dashboard --> QueryTime
+    Dashboard --> Dup
+
+    style Dashboard fill:#fef3c7,stroke:#fff,stroke-width:3px,color:#000
+    style Vuln fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style Bugs fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style Smells fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style LineCov fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style QueryTime fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style Dup fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+```
+
+**Overall Health**: 9/10 metrics meeting targets - Production-Ready Quality ✅
 
 ---
