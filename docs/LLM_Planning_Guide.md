@@ -1,6 +1,6 @@
 # LLM Planning Guide: From Vague Requirements to Execution-Ready Plans
 
-**Version:** 1.0
+**Version:** 1.2
 **Date:** January 2026
 **Author:** Dr. Chris Braun
 **Company:** MRSL, Inc.
@@ -17,7 +17,8 @@
 - [Part II: Deep Dive - DevOps Tooling Plan](#part-ii-deep-dive-devops-tooling-plan)
 - [Part III: Additional Examples](#part-iii-additional-examples)
 - [Part IV: Best Practices](#part-iv-best-practices)
-- [Appendix: Quick Reference](#appendix-quick-reference)
+- [Appendix A: Quick Reference](#appendix-a-quick-reference)
+- [Appendix B: Interactive Claude Code Labs](#appendix-b-interactive-claude-code-labs)
 
 ---
 
@@ -73,6 +74,9 @@ Result:
 **Planning time**: 15 minutes Q&A + 10 minutes research = **25 minutes**
 **Time saved**: Avoided 2-3 months of rework and breaking changes
 **ROI**: Immeasurable (prevented technical debt that would compound)
+
+> 📝 **[Lab 1: The Planning Trap](#lab-1-the-planning-trap)**
+> Experience why skipping Q&A leads to wrong assumptions—run actual prompts in Claude Code and see the difference.
 
 ### When Planning Pays Off
 
@@ -156,6 +160,9 @@ These patterns consistently produce better plans:
 
 **Source**: [Anthropic Prompt Engineering Guide](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview)
 
+> 📝 **[Lab 3: Constraint-Based Prompts](#lab-3-constraint-based-prompts)**
+> Practice writing prompts that eliminate 80% of bad options upfront—with real Claude Code outputs.
+
 ---
 
 ## 4. Planning Anti-Patterns
@@ -169,6 +176,9 @@ Common mistakes that waste time:
 | **No Success Criteria** | Vague "done" definition | Never know when complete, scope creeps | Define verification steps upfront |
 | **Plan in Isolation** | Design without researching codebase | Reinvent solutions, architectural inconsistency | Use Explore agent to find existing patterns |
 | **Over-Planning** | Plan edge cases that don't exist yet | Analysis paralysis, YAGNI violations | Plan 80% case first, iterate when proven necessary |
+
+> 📝 **[Lab 4: Spot the Mistakes](#lab-4-spot-the-mistakes)**
+> Identify bad prompts, fix them, and compare outputs in Claude Code.
 
 > **Murphy's Law of Planning**: "If you skip planning because 'it's obvious,' you will discover 3 hidden dependencies, 2 breaking changes, and 1 existential crisis. Plan anyway."
 
@@ -265,6 +275,9 @@ Constraint: Consolidate tools ("no fluff")
 **Time**: 15 minutes Q&A
 **Benefit**: Clear requirements prevent building wrong solution
 
+> 📝 **[Lab 5: Q&A Refinement](#lab-5-qa-refinement)**
+> Transform vague requirements into specific constraints—practice the exact prompts that trigger productive Q&A.
+
 ---
 
 ## 7. Phase 2: Exploration
@@ -287,6 +300,9 @@ Constraint: Consolidate tools ("no fluff")
 
 **Time**: 20 minutes research
 **Benefit**: Avoided installing 5 redundant tools
+
+> 📝 **[Lab 6: Research Before Committing](#lab-6-research-before-committing)**
+> Discover why the first tool you think of is rarely the best choice—compare alternatives in Claude Code.
 
 ---
 
@@ -312,6 +328,9 @@ Review this DevOps plan and identify:
 | **Developer Onboarding** | New contributors forget pre-commit | Clear CONTRIBUTING.md with setup steps |
 | **False Security** | Tools ≠ bug-free code | Document: tools catch style/types, not logic |
 
+> 📝 **[Lab 7: The Critique Loop](#lab-7-the-critique-loop)**
+> Your plan has flaws. Use Claude Code to find and fix them before implementation.
+
 **Plan Evolution**:
 
 **Before Critique** (4 phases):
@@ -333,6 +352,9 @@ Review this DevOps plan and identify:
 7. Migration Steps (audit, auto-fix, manual fixes)
 8. Risk Mitigation (bypasses, version pinning)
 ```
+
+> 📝 **[Lab 2: The Full Cycle Preview](#lab-2-the-full-cycle-preview)**
+> Walk through all 5 phases quickly—see how each phase builds on the previous.
 
 **Time**: 10 minutes critique + 10 minutes replanning
 **Benefit**: Discovered 5 risks, all addressed proactively
@@ -370,6 +392,9 @@ Review this DevOps plan and identify:
 
 **Time**: 5 minutes
 **Total Planning Time**: 15 + 20 + 10 + 10 + 5 = **60 minutes**
+
+> 📝 **[Lab 8: Execution Checklist](#lab-8-execution-checklist)**
+> A plan isn't done until you know how to verify it worked—create verifiable success criteria in Claude Code.
 
 ---
 
@@ -527,6 +552,9 @@ not_result = np.setdiff1d(all_rows, matching_rows)
 
 **Rationale**: Sparse matrices represent "absence of data" not "data with value zero". Users expect NOT to operate only on rows with data.
 
+> 📝 **[Lab 7: The Critique Loop](#lab-7-the-critique-loop)**
+> Learn to document decisions with rationale—see how critique improves your plans.
+
 **Execution Summary**:
 - ✅ `src/sparsetag.py` - 9 lines changed
 - ✅ `tests/test_critical_bugs.py` - Test added
@@ -640,11 +668,11 @@ From SparseTagging project data:
 
 **Remember**: Plans will change - that's fine. Value is in the planning process (questioning assumptions, exploring alternatives, finding risks), not the plan artifact.
 
-Next: [Appendix - Quick Reference](#appendix-quick-reference) →
+Next: [Appendix A - Quick Reference](#appendix-a-quick-reference) →
 
 ---
 
-# Appendix: Quick Reference
+# Appendix A: Quick Reference
 
 ## Planning Process Checklist
 
@@ -705,8 +733,1459 @@ graph TD
 - [Prompt Engineering Guide](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview) - Comprehensive prompting techniques
 - [AWS Prompt Engineering](https://aws.amazon.com/blogs/machine-learning/prompt-engineering-techniques-and-best-practices-learn-by-doing-with-anthropics-claude-3-on-amazon-bedrock/) - Research and planning best practices
 
+> 📝 **[Appendix B: Interactive Claude Code Labs](#appendix-b-interactive-claude-code-labs)**
+> Put it all together: 8 hands-on labs with real prompts, outputs, and reflection questions.
+
 ---
 
-**End of Guide** | **Version 1.0** | **January 2026** | © MRSL, Inc.
+**End of Appendix A** | Continue to [Appendix B: Interactive Claude Code Labs](#appendix-b-interactive-claude-code-labs) →
+
+---
+
+# Appendix B: Interactive Claude Code Labs
+
+> **Learning by Doing**: "I hear and I forget. I see and I remember. I do and I understand." - Confucius (who clearly worked in software)
+
+These labs are **interactive tutorials** designed for Claude Code. Instead of reading about planning, you'll:
+1. Run actual prompts in Claude Code
+2. See real outputs (good and bad)
+3. Reflect on differences via guided questions
+4. Iterate toward better solutions
+
+**Scenario**: All labs use the same project—building a **CLI File Organizer** tool. This requirement has natural ambiguity that makes it perfect for practicing planning skills.
+
+**Setup for All Labs**:
+- Open Claude Code in a fresh session (or start a new conversation)
+- Have a project folder ready (can be empty)
+- Follow each step in order—don't skip ahead
+
+---
+
+## Lab 1: The Planning Trap
+
+> **Section Link**: Returns to [1. Why Planning Matters](#1-why-planning-matters)
+
+### Why This Matters
+Most developers jump straight to coding. This lab shows you exactly what goes wrong when you skip planning—and how one simple change fixes it.
+
+### What You'll Learn
+- How many assumptions you make without realizing
+- Why vague prompts produce vague (wrong) results
+- How to trigger Claude to ask questions first
+
+### Setup
+- Open Claude Code in a fresh session
+- No project files needed (this is a planning exercise)
+
+---
+
+### Step 1: The Naive Prompt
+
+**Context**: You've been asked to build a file organizer tool. Your instinct is to just ask Claude to build it.
+
+**Your Task**: Copy this prompt into Claude Code:
+
+```
+Build a CLI file organizer tool that helps me keep my [FOLDER_NAME] folder clean.
+```
+
+(Replace `[FOLDER_NAME]` with "Downloads" or another folder you use)
+
+**Run this prompt before continuing.**
+
+<details>
+<summary>Step 1: Example Output & Reflection</summary>
+
+#### What Claude Might Produce
+Claude will likely produce:
+- A Python script with `click` or `argparse`
+- File categorization by extension (Documents, Images, Videos, etc.)
+- Code that MOVES files (not copies)
+- No conflict handling (or silent overwrite)
+- Single platform assumed
+
+#### What to Notice
+Count the **assumptions** Claude made without asking:
+- [ ] What "clean" means (by type? by date? by size?)
+- [ ] Move vs copy vs symlink
+- [ ] What to do on filename conflicts
+- [ ] Which operating system
+- [ ] Subdirectories or top-level only
+- [ ] Hidden files included or excluded
+- [ ] Files currently in use
+- [ ] Undo/rollback capability
+
+#### Reflection Questions
+1. How many of these assumptions match what YOU actually wanted?
+2. Which assumption could cause the most damage if wrong? (Hint: data loss)
+3. Did Claude ask you ANY questions before coding?
+
+#### The Problem
+Claude produced working code for a **specific interpretation** of your vague request. But that interpretation might be completely wrong for your needs. If you built this and deployed it, you might:
+- Lose files (silent overwrite)
+- Break symlinks
+- Corrupt files in use
+- Have no way to undo
+
+</details>
+
+---
+
+### Step 2: Force Questions First
+
+**Your Task**: Try this modified prompt:
+
+```
+I need to build a CLI file organizer tool for my [FOLDER_NAME] folder.
+
+Before proposing any solution, ask me clarifying questions about:
+- What "organized" means to me
+- How to handle edge cases
+- Platform and performance requirements
+
+Ask at least 5 questions before suggesting an approach.
+```
+
+**Run this and notice the difference.**
+
+<details>
+<summary>Step 2: Example Output & Reflection</summary>
+
+#### What Changed
+Claude now asks questions like:
+- "Should files be moved, copied, or symlinked?"
+- "How should I handle filename conflicts?"
+- "What operating systems need support?"
+- "Should subdirectories be processed?"
+- "Do you need undo/rollback capability?"
+
+#### What to Notice
+- Claude didn't write any code yet
+- The questions surface YOUR assumptions
+- You now have to think about requirements you hadn't considered
+
+#### Key Insight
+**The same tool, built two different ways:**
+- Step 1: Code based on Claude's assumptions
+- Step 2: Questions that reveal YOUR actual needs
+
+The 2-minute Q&A investment prevents hours of building the wrong thing.
+
+</details>
+
+---
+
+### Step 3: Answer and Compare
+
+**Your Task**: Answer Claude's questions from Step 2. Be specific. For example:
+
+```
+Answers:
+1. Move files (to save disk space)
+2. On conflict: rename with timestamp suffix (never overwrite)
+3. Windows 11 only for now
+4. Top-level only, no subdirectories
+5. Yes, I need undo capability - keep a log of moves
+```
+
+Then ask: "Now create a plan for this tool based on my answers."
+
+**Compare this plan to the code from Step 1.**
+
+<details>
+<summary>Step 3: Example Output & Reflection</summary>
+
+#### What Changed
+The plan now includes:
+- Conflict handling with timestamp suffix
+- Undo log for rollback
+- Windows-specific path handling
+- Explicit scope (top-level only)
+- No dangerous assumptions
+
+#### Side-by-Side Comparison
+
+| Aspect | Step 1 (No Q&A) | Step 3 (With Q&A) |
+|--------|-----------------|-------------------|
+| Conflict handling | Silent overwrite | Timestamp rename |
+| Undo capability | None | Log-based rollback |
+| Platform | Assumed current OS | Explicit Windows |
+| Scope | Recursive (maybe?) | Top-level only |
+
+#### Key Insight
+**15 minutes of Q&A prevented:**
+- Data loss from overwrites
+- No rollback on mistakes
+- Cross-platform bugs discovered late
+- Scope creep into subdirectories
+
+</details>
+
+---
+
+### Summary: What You Learned
+
+1. **Vague prompts → vague (wrong) results**: Claude fills in blanks with assumptions
+2. **Explicit Q&A request changes behavior**: "Ask questions before solving"
+3. **2 minutes of questions saves hours of rework**: ROI is massive
+
+**Pattern to remember**: *"Ask me 5 questions before proposing a solution"*
+
+---
+
+## Lab 2: The Full Cycle Preview
+
+> **Section Link**: Returns to [2. The Five-Phase Planning Cycle](#2-the-five-phase-planning-cycle)
+
+### Why This Matters
+The 5-phase cycle isn't just theory—it's a practical workflow. This lab walks you through all 5 phases quickly so you understand how they connect.
+
+### What You'll Learn
+- How each phase builds on the previous
+- What artifacts each phase produces
+- Why skipping phases creates problems
+
+### Setup
+- Continue from Lab 1, or start a new session
+- Reference the file organizer scenario
+
+---
+
+### Step 1: Phase 1 - Clarify Requirements
+
+**Your Task**: Start with this prompt:
+
+```
+I want to build a CLI file organizer. Let's start Phase 1: Requirements Clarification.
+
+Ask me questions in 3 rounds:
+1. Scope & Platform (4-5 questions)
+2. Rules & Behavior (4-5 questions)
+3. Quality & Risk (4-5 questions)
+
+After each round, summarize my answers before moving to the next round.
+```
+
+Answer each round honestly based on your actual needs.
+
+<details>
+<summary>Step 1: Example Output & Reflection</summary>
+
+#### What Claude Produces
+Three structured rounds of questions, with summaries like:
+```
+Round 1 Summary:
+- Platform: Windows 11
+- Source: User-specified directory
+- Action: Move (not copy)
+- Scope: Top-level only
+```
+
+#### Key Insight
+Notice how the rounds build:
+- Round 1: Boundaries (what's in/out of scope)
+- Round 2: Functionality (what it does)
+- Round 3: Quality (how to verify it works)
+
+**Artifact produced**: Requirements summary document
+
+</details>
+
+---
+
+### Step 2: Phase 2 - Explore Alternatives
+
+**Your Task**: Now explore options:
+
+```
+Phase 2: Exploration. Based on my requirements, research alternatives and create a comparison table for:
+
+1. Language choice (Python vs Go vs Rust)
+2. CLI framework (if Python: argparse vs click vs typer)
+3. Config format (JSON vs YAML vs TOML)
+
+For each, evaluate: Pros, Cons, Testability, and give a Verdict (Use/Defer/Reject).
+```
+
+<details>
+<summary>Step 2: Example Output & Reflection</summary>
+
+#### What Claude Produces
+Comparison tables like:
+
+| Language | Pros | Cons | Testability | Verdict |
+|----------|------|------|-------------|---------|
+| Python | Cross-platform, rapid dev | Slower | pytest excellent | **Use** |
+| Go | Fast binary | Learning curve | go test good | Defer |
+| Rust | Very fast | Steep learning | cargo test | Reject (overkill) |
+
+#### Key Insight
+**Exploration prevents premature commitment.** Your first instinct might not be the best choice. Spending 10 minutes researching saves days of rework.
+
+**Artifact produced**: Comparison tables with decisions
+
+</details>
+
+---
+
+### Step 3: Phase 3 - Generate Options
+
+**Your Task**: Generate architectural approaches:
+
+```
+Phase 3: Generate Options. Create 3 distinct architectural approaches for the file organizer:
+
+For each option, describe:
+- Core concept (2-3 sentences)
+- Key components/modules
+- Trade-offs (what you gain vs give up)
+
+Don't evaluate yet - just describe each fully.
+```
+
+<details>
+<summary>Step 3: Example Output & Reflection</summary>
+
+#### What Claude Produces
+Three approaches like:
+- **Option A: Simple Scanner** - Single-pass, extension-based
+- **Option B: Rule Engine** - Configurable rules, flexible
+- **Option C: Pipeline Architecture** - Modular, pluggable stages
+
+#### Key Insight
+Having multiple options reveals trade-offs you wouldn't see with just one approach. Even if you choose the "obvious" option, you now know WHY it's the right choice.
+
+**Artifact produced**: 2-4 alternative approaches
+
+</details>
+
+---
+
+### Step 4: Phase 4 - Critique
+
+**Your Task**: Now critique the options:
+
+```
+Phase 4: Critical Review. Take my recommended option and challenge it:
+
+1. What assumptions might be wrong?
+2. What could fail during execution?
+3. What edge cases are missing?
+4. What's the worst-case failure scenario?
+5. What hidden costs exist (testing, docs, maintenance)?
+
+Be harsh - find problems now, not during implementation.
+```
+
+<details>
+<summary>Step 4: Example Output & Reflection</summary>
+
+#### What Claude Produces
+Risk assessment like:
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|------------|--------|------------|
+| Data loss on move failure | Medium | High | Atomic operations |
+| Permission denied | Medium | Medium | Pre-check permissions |
+| Disk full mid-operation | Low | High | Check space first |
+
+#### Key Insight
+**Critique doubles plan quality.** The risks you find now are bugs you prevent later. Notice how the plan needs to change based on critique.
+
+**Artifact produced**: Risk assessment with mitigations
+
+</details>
+
+---
+
+### Step 5: Phase 5 - Finalize
+
+**Your Task**: Create the execution checklist:
+
+```
+Phase 5: Finalize. Create an execution checklist with:
+
+1. Design tasks (what to decide before coding)
+2. Implementation tasks (what to build)
+3. Documentation tasks (what to write)
+4. Risk mitigations (from critique)
+5. Verification criteria (how to prove each requirement is met)
+
+Make each item checkable - I should know exactly when it's done.
+```
+
+<details>
+<summary>Step 5: Example Output & Reflection</summary>
+
+#### What Claude Produces
+Checklist like:
+```
+### Implementation Tasks
+- [ ] Implement config loader (TOML parsing)
+- [ ] Implement directory scanner (with filtering)
+- [ ] Implement safe mover (atomic operations)
+- [ ] Implement CLI (organize, undo, dry-run commands)
+
+### Verification Criteria
+| Requirement | Test Method | Pass Criteria |
+|-------------|-------------|---------------|
+| Files organized | 20-file test | All in correct folders |
+| No data loss | Checksum compare | 100% match |
+| Conflicts handled | 5 same-name files | All renamed, none lost |
+```
+
+#### Key Insight
+**A plan isn't done until you know how to verify it.** Each requirement needs a test method and pass criteria. Without this, you never know when you're "done."
+
+**Artifact produced**: Execution checklist with verification
+
+</details>
+
+---
+
+### Summary: What You Learned
+
+1. **Each phase produces an artifact**: Requirements → Comparisons → Options → Risks → Checklist
+2. **Phases build on each other**: Skipping phases creates gaps
+3. **Total planning time**: ~45-60 minutes for this example
+4. **ROI**: Prevents weeks of rework from wrong assumptions and missed risks
+
+**Pattern to remember**: *"Clarify → Explore → Generate → Critique → Finalize"*
+
+---
+
+## Lab 3: Constraint-Based Prompts
+
+> **Section Link**: Returns to [3. Prompt Patterns That Work](#3-prompt-patterns-that-work)
+
+### Why This Matters
+Constraints eliminate 80% of bad options upfront. Instead of sifting through irrelevant suggestions, you get focused recommendations that match your actual situation.
+
+### What You'll Learn
+- How to structure constraint-based prompts
+- Why constraints produce better results than open-ended requests
+- The template that works every time
+
+### Setup
+- Fresh Claude Code session
+- File organizer scenario
+
+---
+
+### Step 1: The Unconstrained Prompt
+
+**Your Task**: Try this open-ended prompt:
+
+```
+What's the best way to organize files automatically?
+```
+
+**Run this and note the response.**
+
+<details>
+<summary>Step 1: Example Output & Reflection</summary>
+
+#### What Claude Might Produce
+A generic list covering:
+- macOS: Hazel, Automator
+- Windows: PowerShell scripts, File Juggler
+- Cross-platform: Python scripts, organize-cli
+- Cloud-based: Zapier, IFTTT integrations
+- Enterprise: M-Files, SharePoint
+
+#### The Problem
+This is overwhelming and unhelpful. Which one is right for you? Claude doesn't know because you didn't tell it your constraints.
+
+</details>
+
+---
+
+### Step 2: Add Structure with Constraints
+
+**Your Task**: Now use the constraint template:
+
+```
+Context: I have a messy [FOLDER_NAME] folder with ~500 files accumulated over months.
+Files include PDFs, images, videos, archives, and random downloads. No existing organization.
+
+Request: Plan a CLI tool to organize files by type into subfolders.
+
+Constraints:
+- [YOUR_OS] only (don't need cross-platform)
+- Must handle files currently in use (skip gracefully)
+- Never overwrite existing files (rename on conflict)
+- Complete in under 30 seconds for 1000 files
+- Python only (I'm most comfortable with it)
+
+Guidance: Prioritize data safety over speed. Simple is better than clever.
+
+Collaboration: Ask me about edge cases before making assumptions.
+```
+
+**Run this and compare to Step 1.**
+
+<details>
+<summary>Step 2: Example Output & Reflection</summary>
+
+#### What Changed
+Claude now gives:
+- A focused Python-based solution
+- Specific library recommendations (click for CLI)
+- Conflict handling strategy (timestamp suffix)
+- Skip-on-error behavior for locked files
+- Questions about remaining uncertainties
+
+#### Why It Works
+The constraints eliminated:
+- Cross-platform complexity (not needed)
+- Other languages (Python only)
+- Speed-at-cost-of-safety approaches
+- Overengineered solutions
+
+**Pattern**: Context + Request + Constraints + Guidance + Collaboration
+
+</details>
+
+---
+
+### Step 3: Compare Different Constraints
+
+**Your Task**: Change ONE constraint and see how the solution changes:
+
+```
+Same context, but now:
+- Cross-platform required (Windows, macOS, Linux)
+
+How does your recommendation change?
+```
+
+<details>
+<summary>Step 3: Example Output & Reflection</summary>
+
+#### What Changed
+- Path handling becomes more complex (`pathlib` required)
+- Testing now needs 3 OS matrix
+- Some libraries ruled out (Windows-only options)
+- More edge cases to handle (different permission models)
+
+#### Key Insight
+**Constraints shape solutions.** When you change constraints, the "best" answer changes. This is why specifying constraints upfront produces better results than asking open-ended questions.
+
+</details>
+
+---
+
+### Summary: What You Learned
+
+1. **Unconstrained prompts produce overwhelming, generic answers**
+2. **The template works**: Context + Request + Constraints + Guidance + Collaboration
+3. **Constraints eliminate 80% of irrelevant options** before you even see them
+4. **Different constraints = different solutions**: Be explicit about your situation
+
+**Pattern to remember**: *"Context, Request, Constraints, Guidance, Collaboration"*
+
+---
+
+## Lab 4: Spot the Mistakes
+
+> **Section Link**: Returns to [4. Planning Anti-Patterns](#4-planning-anti-patterns)
+
+### Why This Matters
+Recognizing bad prompts is as important as writing good ones. This lab trains your pattern recognition on common mistakes.
+
+### What You'll Learn
+- The 5 most common prompt anti-patterns
+- How to fix each one
+- Why each anti-pattern fails
+
+### Setup
+- Fresh Claude Code session
+- You'll analyze and fix broken prompts
+
+---
+
+### Step 1: Identify the Anti-Patterns
+
+**Your Task**: For each prompt below, identify what's wrong, then run the FIXED version to see the difference.
+
+**Prompt A** (run this first):
+```
+Build a file organizer in Python. Use the best libraries.
+```
+
+<details>
+<summary>Prompt A: Analysis</summary>
+
+#### Anti-Pattern: Skip Q&A
+- "Best" is undefined
+- No source/target specified
+- No conflict handling mentioned
+- No platform specified
+
+#### Fixed Version (try this):
+```
+Context: I need to organize my Downloads folder (Windows 11). Currently has ~500 files.
+
+Request: Plan a CLI file organizer in Python.
+
+Constraints:
+- Organize by file type (Documents, Images, Videos, Archives)
+- Handle conflicts by adding timestamp suffix
+- Skip files currently in use
+- Use click for CLI (I'm familiar with it)
+
+Ask clarifying questions if anything is unclear.
+```
+
+#### What Changed
+The fixed version produces a focused plan instead of generic suggestions.
+
+</details>
+
+---
+
+**Prompt B** (run this):
+```
+Plan every possible extension mapping, handle every error type, support all operating systems, add plugin architecture, comprehensive logging, metrics collection, cloud storage sync, scheduled runs, machine learning classification...
+```
+
+<details>
+<summary>Prompt B: Analysis</summary>
+
+#### Anti-Pattern: Over-Planning (YAGNI)
+- Analysis paralysis
+- Most features aren't needed for v1
+- You'll never finish planning, let alone building
+
+#### Fixed Version (try this):
+```
+Plan a minimal file organizer (v1) with:
+- 5 categories: Documents, Images, Videos, Audio, Other
+- Windows only (macOS in v2)
+- Basic error handling (skip problem files, log warning)
+
+Explicitly defer to v2: plugins, cloud sync, scheduling, ML classification.
+Focus on the 80% case. What's the simplest thing that could work?
+```
+
+#### What Changed
+The fixed version defines a shippable v1 instead of an imaginary perfect system.
+
+</details>
+
+---
+
+**Prompt C** (run this):
+```
+Here's my plan: 1) Scan files 2) Move files 3) Done.
+
+Build it.
+```
+
+<details>
+<summary>Prompt C: Analysis</summary>
+
+#### Anti-Pattern: Accept First Plan (No Critique)
+- No verification criteria
+- No error handling
+- What if move fails halfway?
+- What if disk full?
+
+#### Fixed Version (try this):
+```
+Here's my draft plan:
+1. Scan source directory for files
+2. Categorize by extension
+3. Move files to target folders
+
+Before I proceed, critique this plan:
+- What error scenarios am I missing?
+- What verification steps should I add?
+- What rollback capability do I need?
+- What edge cases could cause data loss?
+```
+
+#### What Changed
+The fixed version explicitly requests critique before accepting the plan.
+
+</details>
+
+---
+
+### Step 2: Test Your Recognition
+
+**Your Task**: For each prompt below, identify the anti-pattern WITHOUT looking at the answer first.
+
+**Prompt D**:
+```
+Create a file organizer from scratch. Don't look at any existing tools - I want something completely original.
+```
+
+**Prompt E**:
+```
+The file organizer should work properly when it's finished.
+```
+
+<details>
+<summary>Prompts D & E: Analysis</summary>
+
+#### Prompt D Anti-Pattern: Plan in Isolation
+Ignoring 30+ years of file management tools means reinventing solved problems badly.
+
+**Fixed**: "Before designing, research how existing tools (Hazel, organize-cli) handle edge cases. What patterns should I adopt?"
+
+#### Prompt E Anti-Pattern: No Success Criteria
+"Work properly" is untestable. When is it done? How do you verify?
+
+**Fixed**: Add specific success criteria:
+```
+Success criteria:
+- [ ] Moves 100 test files to correct folders (verify with test)
+- [ ] Handles 5 conflict scenarios correctly
+- [ ] Skips locked files without crashing
+- [ ] Completes 1000-file directory in <30 seconds
+```
+
+</details>
+
+---
+
+### Summary: What You Learned
+
+| Anti-Pattern | Symptom | Fix |
+|--------------|---------|-----|
+| Skip Q&A | "Build X with best Y" | Add constraints, request questions |
+| Over-Planning | Feature list never ends | Define minimal v1, defer rest |
+| Accept First Plan | No critique step | Explicitly request critique |
+| Plan in Isolation | "Don't look at existing" | Research first, then design |
+| No Success Criteria | "Should work properly" | Define testable verification |
+
+**Pattern to remember**: *"If you can't test it, you can't ship it"*
+
+---
+
+## Lab 5: Q&A Refinement
+
+> **Section Link**: Returns to [6. Phase 1: Q&A Refinement](#6-phase-1-qa-refinement)
+
+### Why This Matters
+Q&A transforms vague requirements into specific, testable constraints. This is the highest-ROI phase—15 minutes of questions prevents weeks of rework.
+
+### What You'll Learn
+- How to structure Q&A in rounds
+- What questions to ask in each round
+- How to summarize answers into requirements
+
+### Setup
+- Fresh Claude Code session
+- Imagine a real project you want to build
+
+---
+
+### Step 1: Vague to Specific
+
+**Your Task**: Start with this prompt:
+
+```
+I want to build: [DESCRIBE YOUR REAL PROJECT IN ONE VAGUE SENTENCE]
+
+Help me clarify this requirement through 3 rounds of Q&A:
+
+Round 1: Scope & Boundaries (5 questions)
+- What's in scope vs out of scope?
+- What platforms/environments?
+- What constraints exist?
+
+After I answer, summarize before Round 2.
+```
+
+Answer the questions based on a real project you're considering.
+
+<details>
+<summary>Step 1: Example Output & Reflection</summary>
+
+#### What Claude Produces
+Structured questions like:
+1. "What's the primary use case? (Daily use, occasional, one-time?)"
+2. "What operating systems need support?"
+3. "What's the expected scale? (10 files? 10,000?)"
+4. "What's explicitly NOT in scope for v1?"
+5. "What existing tools have you tried?"
+
+Then a summary:
+```
+Round 1 Summary:
+- Primary use: Daily batch processing
+- Platform: Windows 11 only
+- Scale: Up to 1,000 files
+- Out of scope: Cloud sync, ML classification
+- Previous attempts: Manual sorting (too slow)
+```
+
+#### Key Insight
+The summary locks in decisions. You can refer back to it when scope creep threatens.
+
+</details>
+
+---
+
+### Step 2: Deepen with Behavior Questions
+
+**Your Task**: Continue with Round 2:
+
+```
+Round 1 answers confirmed. Now Round 2: Rules & Behavior (5 questions)
+- How should the core functionality work?
+- What happens in edge cases?
+- What errors are acceptable vs fatal?
+
+After I answer, summarize before Round 3.
+```
+
+<details>
+<summary>Step 2: Example Output & Reflection</summary>
+
+#### What Claude Produces
+Questions like:
+1. "What action on each file? (Move, copy, symlink, report only?)"
+2. "How to handle filename conflicts?"
+3. "What about files without extensions?"
+4. "Should hidden/system files be processed?"
+5. "What happens if a file is locked/in use?"
+
+Then a summary:
+```
+Round 2 Summary:
+- Action: Move (save disk space)
+- Conflicts: Rename with timestamp (never overwrite)
+- No extension: Put in "Unknown" folder
+- Hidden files: Skip
+- Locked files: Skip and log warning
+```
+
+#### Key Insight
+Round 2 reveals edge cases. Every "what if" question you answer now is a bug you prevent later.
+
+</details>
+
+---
+
+### Step 3: Quality and Verification
+
+**Your Task**: Complete with Round 3:
+
+```
+Round 2 answers confirmed. Final Round 3: Quality & Verification (5 questions)
+- How will you know it's working correctly?
+- What testing/verification is needed?
+- What documentation is required?
+
+After I answer, create a final requirements document.
+```
+
+<details>
+<summary>Step 3: Example Output & Reflection</summary>
+
+#### What Claude Produces
+Questions like:
+1. "How to verify organization worked correctly?"
+2. "Do you need undo/rollback capability?"
+3. "What logging level? (Errors only, verbose, audit trail?)"
+4. "Performance requirements? (Time limits, file count limits?)"
+5. "What documentation is needed? (README, --help, man page?)"
+
+Then a complete requirements document:
+```
+File Organizer v1.0 Requirements
+
+Platform: Windows 11 only
+Source: User-specified directory
+Action: Move files
+Mode: Interactive CLI
+Scope: Top-level files only
+
+Organization Rules:
+- Categorize by extension (Documents, Images, Videos, Audio, Archives, Unknown)
+- Skip hidden files
+- Skip locked files (log warning)
+
+Conflict Resolution:
+- Never overwrite
+- Rename with timestamp: file_20260115_143022.ext
+
+Safety Features:
+- Dry-run mode (--dry-run)
+- Operation log for undo
+- Audit trail with timestamps
+
+Verification:
+- Target: 1,000 files in <30 seconds
+- All operations logged
+- Undo reverses last batch
+```
+
+#### Key Insight
+This document is your contract. Anyone (including future you) can read this and know exactly what to build.
+
+</details>
+
+---
+
+### Summary: What You Learned
+
+1. **3 rounds cover all bases**: Scope → Behavior → Quality
+2. **Summaries lock in decisions**: Reference them when scope creeps
+3. **Every edge case question = bug prevented**
+4. **Final document is your contract**: Testable, unambiguous
+
+**Pattern to remember**: *"Scope, then behavior, then verification—always in that order"*
+
+---
+
+## Lab 6: Research Before Committing
+
+> **Section Link**: Returns to [7. Phase 2: Exploration](#7-phase-2-exploration)
+
+### Why This Matters
+The first tool you think of is rarely the best choice. Exploration reveals alternatives you didn't know existed and trade-offs you didn't consider.
+
+### What You'll Learn
+- How to structure comparison research
+- What criteria matter for tool selection
+- How to make decisions you won't regret
+
+### Setup
+- Fresh Claude Code session
+- File organizer scenario with Python decision made
+
+---
+
+### Step 1: Your First Instinct
+
+**Your Task**: Before researching, write down your gut instinct:
+
+```
+For a Python CLI file organizer, I'd use:
+- CLI library: [YOUR FIRST THOUGHT]
+- Config format: [YOUR FIRST THOUGHT]
+- File operations: [YOUR FIRST THOUGHT]
+
+Why? [YOUR REASONING]
+```
+
+Don't research yet—just write what comes to mind.
+
+<details>
+<summary>Step 1: Reflection</summary>
+
+#### Why This Matters
+Your instinct is based on:
+- What you've used before (familiarity bias)
+- What you've heard about (popularity bias)
+- What's top of mind (recency bias)
+
+None of these guarantee it's the best choice for THIS project.
+
+</details>
+
+---
+
+### Step 2: Structured Research
+
+**Your Task**: Now research properly:
+
+```
+I'm building a Python CLI file organizer. Research these options and create comparison tables:
+
+Table 1: CLI Libraries
+Compare: argparse, click, typer
+Criteria: Learning curve, Testing support, Auto-complete, Maturity
+
+Table 2: Config Formats
+Compare: JSON, YAML, TOML
+Criteria: Human readability, Comments support, Error messages, Python stdlib support
+
+For each, give a Verdict: Use / Defer / Reject with rationale.
+```
+
+<details>
+<summary>Step 2: Example Output & Reflection</summary>
+
+#### What Claude Produces
+Tables like:
+
+**CLI Libraries**
+| Library | Learning Curve | Testing | Auto-complete | Maturity | Verdict |
+|---------|---------------|---------|---------------|----------|---------|
+| argparse | Low (stdlib) | Manual mocking | No | High | **Defer** (verbose) |
+| click | Medium | CliRunner built-in | Yes (plugin) | High | **Use** |
+| typer | Low (type hints) | Inherits click | Yes | Medium | **Consider v2** |
+
+**Config Formats**
+| Format | Readability | Comments | Errors | Stdlib | Verdict |
+|--------|-------------|----------|--------|--------|---------|
+| JSON | Medium | No | Poor | Yes | **Reject** |
+| YAML | High | Yes | Medium | PyYAML | **Defer** |
+| TOML | High | Yes | Good | Yes (3.11+) | **Use** |
+
+#### Compare to Your Instinct
+- Did your first choice win?
+- What did research reveal that you didn't know?
+- Would your instinct have caused problems later?
+
+</details>
+
+---
+
+### Step 3: Justify Your Decision
+
+**Your Task**: Make and document your decision:
+
+```
+Based on the research:
+
+My decision: [LIBRARY/FORMAT]
+
+Rationale:
+- Why this over alternatives: [REASON]
+- What trade-offs I'm accepting: [TRADE-OFFS]
+- When I'd reconsider: [CONDITIONS]
+```
+
+<details>
+<summary>Step 3: Example Output & Reflection</summary>
+
+#### Sample Decision Document
+```
+CLI Library Decision: click
+
+Rationale:
+- Why this over alternatives: Built-in testing support (CliRunner)
+  saves mocking complexity. Declarative syntax is readable.
+- Trade-offs accepted: Extra dependency (not stdlib). Slightly
+  higher learning curve than argparse.
+- When to reconsider: If package size becomes critical (embedded
+  systems), or if type hints become more important (switch to typer).
+```
+
+#### Key Insight
+**Documenting decisions prevents second-guessing.** Future you (or teammates) can see WHY you chose this, not just WHAT you chose.
+
+</details>
+
+---
+
+### Summary: What You Learned
+
+1. **First instinct ≠ best choice**: Research reveals options you didn't consider
+2. **Comparison tables force structured thinking**: Easier to evaluate objectively
+3. **Document the WHY, not just the WHAT**: Prevents future second-guessing
+4. **10 minutes of research saves days of regret**
+
+**Pattern to remember**: *"Research 3 options minimum before committing"*
+
+---
+
+## Lab 7: The Critique Loop
+
+> **Section Link**: Returns to [8. Phase 3 & 4: Critique and Replanning](#8-phase-3--4-critique-and-replanning)
+
+### Why This Matters
+Every plan has flaws. The critique loop finds them before implementation, when they're cheap to fix. Plans that survive critique are plans that survive reality.
+
+### What You'll Learn
+- How to request effective critique
+- What to do with critique feedback
+- How plans evolve through iteration
+
+### Setup
+- Continue with file organizer plan from previous labs
+- Or create a simple plan to critique
+
+---
+
+### Step 1: Create a Plan to Critique
+
+**Your Task**: First, create a simple plan:
+
+```
+Here's my plan for the file organizer:
+
+1. Read all files from source directory
+2. Categorize each file by extension
+3. Create target folders if needed
+4. Move files to target folders
+5. Print summary of what was moved
+
+This seems complete to me. Build it.
+```
+
+<details>
+<summary>Step 1: Reflection</summary>
+
+#### What's Missing?
+Before continuing, try to spot problems yourself:
+- What if a move fails?
+- What if disk is full?
+- What if files have the same name?
+- What if a file is locked?
+- How do you undo mistakes?
+
+If you found 0-2 problems, you NEED the critique step.
+If you found 3+, you're learning—but critique will find more.
+
+</details>
+
+---
+
+### Step 2: Request Explicit Critique
+
+**Your Task**: Now request critique:
+
+```
+Wait - before building, critique this plan harshly:
+
+1. What assumptions might be wrong?
+2. What could fail during execution?
+3. What edge cases are missing?
+4. What's the worst-case failure scenario?
+5. What hidden costs exist?
+
+Find at least 5 problems. Be ruthless.
+```
+
+<details>
+<summary>Step 2: Example Output & Reflection</summary>
+
+#### What Claude Produces
+Critique like:
+
+**Assumptions That Might Be Wrong:**
+- Assumes source directory exists and is readable
+- Assumes target directory is writable
+- Assumes enough disk space for moves
+
+**Failure Scenarios:**
+- Move fails halfway → partial organization, hard to recover
+- Two files with same name → which wins?
+- File is locked by another process → operation fails
+
+**Edge Cases Missing:**
+- Files without extensions
+- Hidden files (starting with .)
+- Symbolic links
+- Very long filenames (>255 chars)
+- Unicode filenames
+
+**Worst-Case Failure:**
+- Silent overwrite of existing file → data loss
+- No way to undo → permanent damage
+
+**Hidden Costs:**
+- Testing all edge cases
+- Documentation for error messages
+- Support when users lose files
+
+#### Key Insight
+This 2-minute critique found 10+ problems that would have become bugs or support tickets.
+
+</details>
+
+---
+
+### Step 3: Update the Plan
+
+**Your Task**: Now iterate:
+
+```
+Good critique. Update the plan to address these issues:
+
+For each risk identified, add either:
+- A mitigation step (how to prevent it)
+- A detection step (how to notice it)
+- A recovery step (how to fix it)
+
+Show me the updated plan with new steps highlighted.
+```
+
+<details>
+<summary>Step 3: Example Output & Reflection</summary>
+
+#### What Claude Produces
+Evolved plan:
+
+```
+File Organizer Plan v2 (post-critique)
+
+Pre-flight Checks: [NEW]
+1. Validate source directory exists and is readable
+2. Validate target directory writable
+3. Check available disk space > total file size
+4. Create operation log file for undo
+
+Execution:
+5. Scan source directory (skip hidden files, symlinks)
+6. Categorize each file by extension
+7. Handle conflicts: rename with timestamp suffix [UPDATED]
+8. For each file:
+   a. Check if file is locked → skip and log [NEW]
+   b. Move using atomic operation (temp → rename) [NEW]
+   c. Log operation for undo [NEW]
+9. Verify each move succeeded [NEW]
+
+Post-flight:
+10. Print summary
+11. Save undo log [NEW]
+```
+
+#### Plan Comparison
+
+| Original | Post-Critique |
+|----------|---------------|
+| 5 steps | 11 steps |
+| No error handling | Skip locked files |
+| Silent conflicts | Timestamp suffix |
+| No undo | Full undo log |
+| No validation | Pre-flight checks |
+
+#### Key Insight
+**Critique doubled the plan size but made it production-ready.** The extra steps aren't overhead—they're the difference between a toy and a tool.
+
+</details>
+
+---
+
+### Step 4: Iterate Again
+
+**Your Task**: Do one more critique round:
+
+```
+Critique the updated plan. What did we miss? Are any mitigations insufficient?
+```
+
+<details>
+<summary>Step 4: Example Output & Reflection</summary>
+
+#### What Claude Might Find
+- Atomic move might not work across drives (need copy-then-delete)
+- Disk space check should include overhead for temp files
+- Undo log format needs to handle filename conflicts in reverse
+
+#### Key Insight
+**Critique is iterative.** Two rounds catches more than one. Diminishing returns after 2-3 rounds for most plans.
+
+</details>
+
+---
+
+### Summary: What You Learned
+
+1. **Every plan has blind spots**: Critique reveals them
+2. **Explicit critique request works**: "Find 5 problems" produces problems
+3. **Plans evolve through critique**: Original → Revised → Production-ready
+4. **2 rounds is usually enough**: Diminishing returns after that
+
+**Pattern to remember**: *"Critique twice, build once"*
+
+---
+
+## Lab 8: Execution Checklist
+
+> **Section Link**: Returns to [9. Phase 5: Plan Finalization](#9-phase-5-plan-finalization)
+
+### Why This Matters
+A plan without verification criteria is just a wish list. The execution checklist turns your plan into something you can actually track and complete.
+
+### What You'll Learn
+- How to create verifiable tasks
+- How to define "done" for each requirement
+- How to set up quality gates
+
+### Setup
+- Have your critiqued plan from Lab 7 ready
+- Or use the file organizer plan
+
+---
+
+### Step 1: Convert Plan to Checklist
+
+**Your Task**: Transform your plan into checkable items:
+
+```
+Convert this plan into an execution checklist. Each item must be:
+- Specific (no vague terms like "implement X properly")
+- Checkable (clear done/not-done state)
+- Independent (can be completed without waiting for others when possible)
+
+Group into:
+1. Design decisions (what to decide before coding)
+2. Implementation tasks (what to build)
+3. Documentation tasks (what to write)
+4. Risk mitigations (from critique)
+```
+
+<details>
+<summary>Step 1: Example Output & Reflection</summary>
+
+#### What Claude Produces
+```
+### Design Decisions
+- [ ] Define extension → category mapping (document in config schema)
+- [ ] Choose timestamp format for conflicts (ISO 8601 or custom)
+- [ ] Define log file format (JSON lines or plain text)
+- [ ] Decide undo behavior (last batch only or full history)
+
+### Implementation Tasks
+- [ ] Implement config loader (TOML parsing, defaults, validation)
+- [ ] Implement directory scanner (filter hidden, skip symlinks)
+- [ ] Implement categorizer (extension lookup with "Unknown" fallback)
+- [ ] Implement safe mover (atomic temp→rename, cross-drive fallback)
+- [ ] Implement CLI commands (organize, undo, dry-run)
+- [ ] Implement logger (file + console, configurable level)
+
+### Documentation Tasks
+- [ ] README with installation and basic usage
+- [ ] --help output for all commands
+- [ ] Example config file with comments
+- [ ] Error message documentation (what each error means, how to fix)
+
+### Risk Mitigations
+- [ ] Pre-flight disk space check (fail fast if insufficient)
+- [ ] Locked file detection (skip and warn, don't fail)
+- [ ] Unicode filename testing (verify no encoding issues)
+- [ ] Long filename handling (truncate preserving extension)
+```
+
+#### Key Insight
+**Checkable items drive progress.** You can see exactly what's done and what's left. No ambiguity.
+
+</details>
+
+---
+
+### Step 2: Add Verification Criteria
+
+**Your Task**: For each requirement, define how to verify it:
+
+```
+For each major requirement, create a verification row:
+
+| Requirement | Test Method | Pass Criteria |
+|-------------|-------------|---------------|
+| Files organized by type | ? | ? |
+| No data loss | ? | ? |
+| Conflicts handled | ? | ? |
+| Undo works | ? | ? |
+| Performance | ? | ? |
+
+Fill in the test method and pass criteria. Each should be automatable or clearly measurable.
+```
+
+<details>
+<summary>Step 2: Example Output & Reflection</summary>
+
+#### What Claude Produces
+```
+| Requirement | Test Method | Pass Criteria |
+|-------------|-------------|---------------|
+| Files organized by type | Unit test: 20 files, 5 types | All files in correct folders |
+| No data loss | Integration: checksum before/after | 100% checksum match |
+| Conflicts handled | Test: 5 same-name files | All renamed with timestamp, none lost |
+| Undo works | Test: organize then undo | Original state restored exactly |
+| Performance | Benchmark: 1000 files | Complete in <30 seconds |
+| Locked files | Test: organize with open file | File skipped, warning logged, no crash |
+| Cross-drive moves | Test: source C:, target D: | Files moved correctly (copy+delete) |
+```
+
+#### Key Insight
+**If you can't define the test, you don't understand the requirement.** Writing verification criteria often reveals ambiguity in requirements.
+
+</details>
+
+---
+
+### Step 3: Define Quality Gates
+
+**Your Task**: Create gates that must pass before shipping:
+
+```
+Define quality gates - checkpoints that must pass before the project is "done":
+
+Pre-Implementation Gates:
+- What must be true before you start coding?
+
+Pre-Merge Gates:
+- What must pass before code is merged?
+
+Pre-Release Gates:
+- What must pass before shipping to users?
+
+Be specific - vague gates ("code review done") don't work.
+```
+
+<details>
+<summary>Step 3: Example Output & Reflection</summary>
+
+#### What Claude Produces
+```
+### Pre-Implementation Gates
+- [ ] All design decisions documented (no TBDs in spec)
+- [ ] Test cases defined for all requirements
+- [ ] Risk mitigations have assigned approach
+- [ ] Dependencies identified and version-locked
+
+### Pre-Merge Gates
+- [ ] All unit tests pass (pytest, no skipped tests)
+- [ ] Coverage > 80% on new code
+- [ ] Type checking passes (mypy --strict)
+- [ ] Linting passes (ruff, zero warnings)
+- [ ] Documentation updated (README, --help)
+
+### Pre-Release Gates
+- [ ] Integration tests pass on Windows
+- [ ] Integration tests pass on macOS (if applicable)
+- [ ] Performance benchmark passes (<30s for 1000 files)
+- [ ] Manual smoke test completed
+- [ ] Undo tested on real data (not just test fixtures)
+```
+
+#### Key Insight
+**Gates prevent "it works on my machine" syndrome.** Each gate is a checkpoint that catches problems before they reach users.
+
+</details>
+
+---
+
+### Summary: What You Learned
+
+1. **Checklists make progress visible**: Know exactly what's done
+2. **Verification criteria define "done"**: No ambiguity
+3. **Quality gates catch problems early**: Before they reach users
+4. **A plan without verification is a wish list**
+
+**Pattern to remember**: *"If you can't verify it, you can't ship it"*
+
+---
+
+## Appendix Summary: Lab Quick Reference
+
+| Lab | Core Skill | Key Pattern |
+|-----|------------|-------------|
+| **Lab 1** | Avoid assumptions | "Ask 5 questions before proposing" |
+| **Lab 2** | Complete planning cycle | "Clarify → Explore → Generate → Critique → Finalize" |
+| **Lab 3** | Constrained prompts | "Context, Request, Constraints, Guidance, Collaboration" |
+| **Lab 4** | Spot anti-patterns | "If you can't test it, you can't ship it" |
+| **Lab 5** | Q&A refinement | "Scope, behavior, verification—in that order" |
+| **Lab 6** | Research alternatives | "Research 3 options minimum" |
+| **Lab 7** | Critique loop | "Critique twice, build once" |
+| **Lab 8** | Execution checklist | "If you can't verify it, you can't ship it" |
+
+---
+
+**End of Appendix B**
+
+---
+
+**End of Guide** | **Version 1.2** | **January 2026** | © MRSL, Inc.
 
 > **Final Reality Check**: "The best plan is the one you actually follow. The second-best plan is the one you iterate on. The worst plan is 'we'll figure it out as we go.'" (Narrator: They did not figure it out.)
