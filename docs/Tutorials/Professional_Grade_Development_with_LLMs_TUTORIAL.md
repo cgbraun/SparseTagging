@@ -32,6 +32,7 @@
 - [Figure 1.1 — Complete Development Lifecycle](#figure-1-1)
 - [Figure 1.2 — Tool Ecosystem Map](#figure-1-2)
 - [Figure 2.1 — LLM Plan-Execute-Refine Loop](#figure-2-1)
+- [Figure 2.2 — Session Lifecycle for Context Management](#figure-2-2)
 - [Figure 3.1 — Phase 0: Concept to Requirements](#figure-3-1)
 - [Figure 3.2 — Phase 1: Feature Specification](#figure-3-2)
 - [Figure 3.3 — Phase 2: Planning & Design](#figure-3-3)
@@ -335,7 +336,202 @@ and processes for the SparseTag project. Requirements:
 
 This approach eliminated analysis paralysis and produced a working, maintainable DevOps stack in a single 90-minute session.
 
-## 6. Prompt Formats That Scale Past the First Week
+## 6. Managing Context Across Sessions and Long-Running Projects
+
+> **THEME**: Context is finite. Garbage in, garbage out. Manage it like memory.
+
+### Why Context Management Matters
+
+LLMs have token limits that constrain what they "see" at any moment. Unlike a human colleague who builds mental models over weeks, the LLM's context resets with each session. Stale information causes incorrect assumptions; unfocused context dilutes response quality.
+
+**The Problem**:
+- Token limits constrain what the LLM can reference
+- Stale code in context causes outdated suggestions
+- Conflicting instructions lead to contradictory outputs
+- Irrelevant exploration wastes precious context space
+
+**The Solution**: Treat context like memory management. Load what's needed, summarize to confirm, compact when full, document for handoff.
+
+### Session Lifecycle
+
+<a id="figure-2-2"></a>
+
+**Figure 2.2 — Session Lifecycle for Context Management**. This diagram shows the recommended lifecycle for managing LLM context across development sessions. Each session begins with loading key documents and confirming proper context insertion through summarization. Development work proceeds until a milestone, at which point `/compact` preserves decisions while clearing intermediate exploration. Sessions end with documentation for future handoff.
+
+```mermaid
+graph LR
+    subgraph SESSION["<b>SESSION LIFECYCLE</b>"]
+        Start([<b>FRESH SESSION</b>]) --> Load[<b>Load Key Docs</b><br/>CLAUDE.md, Architecture]
+        Load --> Summarize[<b>Request Summary</b><br/>Confirm Context]
+        Summarize --> Work[<b>Development Work</b><br/>Explore, Code, Test]
+        Work --> Milestone{<b>Milestone?</b>}
+        Milestone -->|<b>No</b>| Work
+        Milestone -->|<b>Yes</b>| Compact[<b>/compact</b><br/>Preserve Decisions]
+        Compact --> Continue{<b>Continue?</b>}
+        Continue -->|<b>Yes</b>| Work
+        Continue -->|<b>No</b>| Handoff[<b>Document & End</b><br/>Session Summary]
+    end
+
+    style Start fill:#0e7490,stroke:#fff,stroke-width:3px,color:#fff
+    style Handoff fill:#065f46,stroke:#fff,stroke-width:3px,color:#fff
+    style Milestone fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style Continue fill:#fed7aa,stroke:#fff,stroke-width:2px,color:#000
+    style Load fill:#e0e7ff,stroke:#fff,stroke-width:2px,color:#000
+    style Summarize fill:#dbeafe,stroke:#fff,stroke-width:2px,color:#000
+    style Work fill:#d1fae5,stroke:#fff,stroke-width:2px,color:#000
+    style Compact fill:#fef3c7,stroke:#fff,stroke-width:2px,color:#000
+```
+
+### Session Start Rituals
+
+Every productive session begins with deliberate context setup:
+
+1. **Clear context** (fresh session or `/clear`)
+2. **Load key documents** (CLAUDE.md, architecture docs relevant to task)
+3. **Request brief summary** to confirm proper insertion
+4. **State the task** with constraints
+
+**Example Session Start**:
+```
+Read CLAUDE.md and docs/ARCHITECTURE.md, then summarize the key
+constraints for working with this codebase. After that, we'll
+work on adding query caching to the SparseTag class.
+```
+
+**Why Summarization Matters**:
+The LLM's summary confirms it has correctly parsed the documents. If the summary misses key constraints, you know to reload or clarify before proceeding.
+
+**Anti-Pattern**: Jumping straight into coding without loading context. The LLM will make assumptions based on training data, not your specific codebase patterns.
+
+### Context Hygiene During Development
+
+**When to use `/compact`**:
+- After completing a major milestone (feature complete, tests passing)
+- Before switching task types (planning → coding → debugging)
+- When responses reference outdated information
+- When the conversation becomes slow (approaching token limits)
+
+**What `/compact` preserves**:
+- Key decisions made during the session
+- File paths and architecture understanding
+- Constraints and requirements stated by user
+- Current task state and next steps
+
+**What `/compact` removes**:
+- Detailed code exploration outputs
+- Intermediate failed attempts
+- Verbose tool outputs (grep results, file contents)
+- Superseded plans and discussions
+
+**Real Example from SparseTagging**:
+
+During the DevOps tooling session, after completing Ruff configuration:
+```
+/compact
+
+The context was compacted. Key information preserved:
+- Ruff selected (replaces 6 tools)
+- Configuration added to pyproject.toml
+- 203 issues auto-fixed, 106 manual remaining
+- Next: Configure pre-commit hooks
+```
+
+### Anti-Patterns: Context Pollution
+
+| Anti-Pattern | Symptom | Fix |
+|--------------|---------|-----|
+| **Outdated code in context** | LLM references old implementations, suggests already-deleted functions | Fresh session + re-read current files |
+| **Conflicting instructions** | Contradictory suggestions, confusion about requirements | Clear context, load single authoritative doc |
+| **Irrelevant exploration** | Too many search results cluttering context | `/compact` or fresh session, targeted searches |
+| **Stale error messages** | LLM keeps trying to fix already-resolved errors | `/compact` after fixing, re-run tests to confirm |
+| **Multi-task confusion** | LLM mixes up details from different features | One task per session, or explicit task switching with `/compact` |
+
+### Multi-Session Project Patterns
+
+Long-running projects require deliberate handoff between sessions:
+
+**At Session End**:
+1. Document what was accomplished (bullet points)
+2. Document what's next (specific task, not vague "continue work")
+3. Note any blockers or questions for next session
+4. Save session summary to `.claude/sessions/` or project docs
+
+**At Session Start**:
+1. Read previous session summary
+2. Load architecture docs if structural work planned
+3. Confirm understanding before proceeding
+
+**Session Documentation Template**:
+```markdown
+## Session: 2026-01-12 - DevOps Tooling
+
+### Accomplished
+- Ruff configuration complete (pyproject.toml)
+- Pre-commit hooks configured (.pre-commit-config.yaml)
+- 309 issues identified, 203 auto-fixed
+
+### Next Session
+- Configure GitHub Actions CI workflow
+- Add CodeCov integration
+- Update README with CI badges
+
+### Blockers
+- None
+
+### Key Decisions
+- Chose ruff over separate black/flake8/isort (6:1 consolidation)
+- Coverage threshold: 85% (library quality standard)
+```
+
+### Real Example: SparseTagging Multi-Session Development
+
+The SparseTagging project was built across 4 sessions (~90 minutes each), demonstrating effective context management:
+
+**Session 1: Core Implementation**
+- Loaded: Initial requirements, sparse matrix research
+- Accomplished: SparseTag class, basic query operators
+- Compacted: After query engine complete
+- Handoff: "Next: Add caching for repeated queries"
+
+**Session 2: Cache Manager**
+- Loaded: Session 1 summary, ARCHITECTURE.md
+- Accomplished: QueryCacheManager class, invalidation decorator
+- Compacted: After cache integration tested
+- Handoff: "Next: DevOps tooling for production readiness"
+
+**Session 3: DevOps Tooling**
+- Loaded: Session 2 summary, existing test structure
+- Accomplished: Ruff, pre-commit, GitHub Actions, CodeCov
+- Compacted: After each tool configured
+- Handoff: "Next: Docker containerization, GHCR publishing"
+
+**Session 4: Containerization & Docs**
+- Loaded: Session 3 summary, BUILD_PROCESS.md
+- Accomplished: Dockerfile, GHCR workflow, comprehensive docs
+- Final: v2.4.1 released
+
+**Pattern Observed**: Each session started clean, loaded specific context, worked to milestone, and ended with explicit handoff documentation. No context pollution across sessions.
+
+### Context Management Checklist
+
+**Session Start**:
+- [ ] Fresh session (or `/clear` if continuing)
+- [ ] Load CLAUDE.md and task-relevant docs
+- [ ] Request summary to confirm understanding
+- [ ] State task with explicit constraints
+
+**During Development**:
+- [ ] `/compact` after each milestone
+- [ ] Re-read files if referencing outdated code
+- [ ] One major task per session
+
+**Session End**:
+- [ ] Document accomplishments
+- [ ] Document next steps
+- [ ] Note any blockers or decisions
+- [ ] Save session summary
+
+## 7. Prompt Formats That Scale Past the First Week
 
 Professional prompting follows repeatable patterns. These three win over skeptics because they produce verifiable results:
 
@@ -379,7 +575,7 @@ Collaboration:
 
 **Success Pattern:** "Add linting with these constraints: single tool, auto-fix capable, Python 3.9+ support" yields immediate actionable proposal: ruff with specific configuration.
 
-## 7. Commits and PRs as First-Class Artifacts
+## 8. Commits and PRs as First-Class Artifacts
 LLMs are excellent at drafting:
 - conventional commit messages
 - PR descriptions with **Why / What / Risk / Verification / Rollback**
@@ -394,7 +590,7 @@ Rule:
 
 > **THEME**: Code is one artifact. Professional change includes tests, docs, and evidence.
 
-## 8. Documentation Captures Design Intent
+## 9. Documentation Captures Design Intent
 Treat these as living design records:
 - `README.md` — user intent and boundaries
 - `ARCHITECTURE.md` — invariants/constraints
@@ -403,7 +599,7 @@ Treat these as living design records:
 
 LLMs help draft and reconcile; humans own correctness and intent.
 
-## 9. Phase-by-Phase Development (Diagrammed)
+## 10. Phase-by-Phase Development (Diagrammed)
 This section uses a consistent phase model: requirements → spec → plan → implement → integration tests.
 
 ### Phase 0 — Concept to Requirements
@@ -2076,7 +2272,7 @@ git push origin :refs/tags/v2.4.1
 
 > **THEME**: LLMs amplify discipline. They do not replace it.
 
-## 15. Success Metrics from SparseTagging
+## 16. Success Metrics from SparseTagging
 
 The SparseTagging project demonstrates quantifiable benefits of LLM-first development. These numbers come from 4 documented sessions (90 minutes each) over 5 days.
 
@@ -2113,7 +2309,7 @@ The SparseTagging project demonstrates quantifiable benefits of LLM-first develo
 
 These aren't theoretical benefits. Every metric is verifiable in the SparseTagging GitHub repository, CI logs, and SonarCloud dashboard.
 
-## 16. Failure Stories and Anti-Patterns
+## 17. Failure Stories and Anti-Patterns
 
 Not everything worked perfectly. Here are real failures from SparseTagging development and the lessons learned:
 
@@ -2210,7 +2406,7 @@ Security vulnerabilities silently ignored, false sense of security.
     echo "vulnerabilities=${VULNS}" >> $GITHUB_OUTPUT
 ```
 
-## 17. Decision-Making Case Studies
+## 18. Decision-Making Case Studies
 
 Real architectural decisions from SparseTagging development, showing how LLM collaboration works in practice:
 
@@ -2323,7 +2519,7 @@ Semantic correctness prioritized over mathematical completeness. Documented rati
 - Sparse data structures have different user expectations than dense
 - Document WHY decisions were made, not just WHAT was implemented
 
-## 18. Comparison to Traditional Development
+## 19. Comparison to Traditional Development
 
 Based on SparseTagging project timelines and developer estimates:
 
@@ -2392,7 +2588,7 @@ Based on SparseTagging project timelines and developer estimates:
 **Key Insight:**
 LLMs accelerate execution (writing code, tests, configs) but not necessarily decision-making (what to build, how to architect). The combination of fast execution + human judgment is the force multiplier.
 
-## 19. When NOT to Use LLM-First Development
+## 20. When NOT to Use LLM-First Development
 
 LLM-first development isn't always the right choice. Situations where traditional approaches may be more appropriate:
 
@@ -2446,7 +2642,7 @@ LLM-first development isn't always the right choice. Situations where traditiona
 
 **Alternative:** Write manually. Use LLMs only when script grows >50 lines or needs testing/CI.
 
-## 20. Final Reality Check
+## 21. Final Reality Check
 
 LLM-first development is powerful but not magic. Here's what SparseTagging teaches:
 

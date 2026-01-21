@@ -600,7 +600,77 @@ evaluate trade-offs, and identify risks before proposing a solution."
 
 ---
 
-## 14. Common Mistakes to Avoid
+## 14. Context Management for Multi-Phase Planning
+
+Planning cycles that span multiple sessions require deliberate context management. Unlike single-task prompts, planning generates substantial intermediate artifacts (Q&A transcripts, comparison tables, critique feedback) that can pollute context if not managed.
+
+### When to Manage Context During Planning
+
+**Between Phases**: After Q&A refinement produces requirements, before exploration begins
+- Q&A generates verbose dialogue; `/compact` preserves requirements summary
+- Exploration needs clean context to search effectively
+
+**After Research**: Exploration generates many file reads and search results
+- Compact before generating options to preserve only comparison tables
+- Removes verbose grep/search outputs that won't inform option generation
+
+**Before Critique**: Clear implementation details, keep requirements
+- Critique should evaluate the plan against requirements, not get distracted by exploration artifacts
+- Fresh perspective on the plan improves critique quality
+
+### Planning-Specific Context Patterns
+
+1. **Start planning sessions by loading requirements docs**
+   - CLAUDE.md for codebase constraints
+   - Any existing architecture docs relevant to the planned feature
+   - Previous planning session summaries if continuing work
+
+2. **Summarize Q&A results before moving to exploration**
+   ```
+   /compact
+
+   Preserved: Requirements summary (platform: GitHub Actions,
+   coverage: 85%, constraint: no fluff, team: 1-2 developers)
+
+   Cleared: 15 rounds of Q&A dialogue, alternative questions considered
+   ```
+
+3. **`/compact` after exploration, keeping only comparison tables**
+   ```
+   /compact
+
+   Preserved: Tool comparison table (ruff: Use, black: Reject,
+   flake8: Reject), decision rationale
+
+   Cleared: 47 file reads, 12 grep searches, vendor documentation excerpts
+   ```
+
+4. **Document final plan in file (not just context) for cross-session reference**
+   - Context disappears; files persist
+   - Write plan to `.claude/plans/` or project docs
+   - Reference the file in future sessions instead of re-deriving
+
+### Context Budget for Planning Phases
+
+| Phase | Context Consumed | Action |
+|-------|------------------|--------|
+| Q&A Refinement | High (dialogue) | `/compact` after requirements clear |
+| Exploration | Very High (searches, file reads) | `/compact` preserving comparison table |
+| Option Generation | Medium | Keep for critique |
+| Critique | Low | Keep for finalization |
+| Finalization | Low | Document to file |
+
+### Connection to Labs
+
+The interactive labs in Appendix B instruct you to start with a "fresh Claude Code session." This ensures clean context for learning exercises. In production work, you may continue sessions with `/compact` between planning phases rather than starting fresh each time.
+
+**Key insight**: Learning benefits from isolation (fresh sessions); production benefits from continuity with managed compaction.
+
+> For comprehensive context management guidance including session lifecycle, anti-patterns, and multi-session handoff, see [Professional-Grade Development with LLMs: Section 6](Professional_Grade_Development_with_LLMs_TUTORIAL.md#6-managing-context-across-sessions-and-long-running-projects).
+
+---
+
+## 15. Common Mistakes to Avoid
 
 ### Mistake 1: Skipping Q&A
 **Symptom**: Jump to solution without clarifying
@@ -629,7 +699,7 @@ evaluate trade-offs, and identify risks before proposing a solution."
 
 ---
 
-## 15. Tool Selection Guide
+## 16. Tool Selection Guide
 
 | Agent Type | When to Use | Example Task |
 |------------|-------------|--------------|
@@ -641,7 +711,7 @@ evaluate trade-offs, and identify risks before proposing a solution."
 
 ---
 
-## 16. Planning ROI
+## 17. Planning ROI
 
 From SparseTagging project data:
 
@@ -664,7 +734,8 @@ From SparseTagging project data:
 1. Use extended thinking for complex decisions
 2. Avoid the 5 common mistakes (skip Q&A, accept first plan, etc.)
 3. Choose right tool (Explore vs Plan vs General)
-4. Expect 6-10x ROI on planning time
+4. Manage context between planning phases (`/compact` after Q&A, after exploration)
+5. Expect 6-10x ROI on planning time
 
 **Remember**: Plans will change - that's fine. Value is in the planning process (questioning assumptions, exploring alternatives, finding risks), not the plan artifact.
 
