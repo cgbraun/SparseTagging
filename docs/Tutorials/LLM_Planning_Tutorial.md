@@ -1,4 +1,4 @@
-# LLM Planning Guide: From Vague Requirements to Execution-Ready Plans
+# LLM Planning Tutorial: From Initial Requirements to Execution-Ready Plans
 
 **Version:** 1.2
 **Date:** January 2026

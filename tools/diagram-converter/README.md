@@ -278,6 +278,6 @@ This is a utility tool intended for future extraction. Contributions should focu
 
 ## Related Documentation
 
-- [TUTORIAL_DIAGRAMS_SLIDES.md](../../docs/TUTORIAL_DIAGRAMS_SLIDES.md) - Source markdown with diagrams
+- [TUTORIAL_DIAGRAMS_SLIDES.md](../../docs/Tutorials/TUTORIAL_DIAGRAMS_SLIDES.md) - Source markdown with diagrams
 - [Mermaid Documentation](https://mermaid.js.org/) - Mermaid diagram syntax reference
 - [mermaid-cli Documentation](https://github.com/mermaid-js/mermaid-cli) - CLI tool documentation
