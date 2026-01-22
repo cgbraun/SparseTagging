@@ -879,8 +879,6 @@ function claude { wsl -e bash -c "source ~/.profile && claude" }
 | 4. **Test** | Verify solution | Catch issues early | Run tests |
 | 5. **Ship** | Deploy with confidence | Quality assured | Commit & push |
 
-Reference: https://www.reddit.com/r/ClaudeAI/anti-yolo-method
-
 ### Multi-Agent Workflows
 
 | Pattern | Setup | Use Case |
@@ -924,8 +922,6 @@ Reference: https://github.com/vibe-log/vibe-log-cli
 - DO NOT suggest design patterns unless problem requires them
 - Keep it simple and direct
 ```
-
-Reference: https://www.reddit.com/r/ClaudeAI/anti-bloat-claude-md
 
 ---
 
