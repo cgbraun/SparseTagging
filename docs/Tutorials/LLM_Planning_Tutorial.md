@@ -179,7 +179,7 @@ Common mistakes that waste time:
 
 > 📝 **[Lab 4: Spot the Mistakes](#lab-4-spot-the-mistakes)**
 > Identify bad prompts, fix them, and compare outputs in Claude Code.
-
+>
 > **Murphy's Law of Planning**: "If you skip planning because 'it's obvious,' you will discover 3 hidden dependencies, 2 breaking changes, and 1 existential crisis. Plan anyway."
 
 ---
@@ -1393,7 +1393,7 @@ Build a file organizer in Python. Use the best libraries.
 - No conflict handling mentioned
 - No platform specified
 
-#### Fixed Version (try this):
+#### Fixed Version A (try this):
 ```
 Context: I need to organize my Downloads folder (Windows 11). Currently has ~500 files.
 
@@ -1408,7 +1408,7 @@ Constraints:
 Ask clarifying questions if anything is unclear.
 ```
 
-#### What Changed
+#### What Changed in A
 The fixed version produces a focused plan instead of generic suggestions.
 
 </details>
@@ -1428,7 +1428,7 @@ Plan every possible extension mapping, handle every error type, support all oper
 - Most features aren't needed for v1
 - You'll never finish planning, let alone building
 
-#### Fixed Version (try this):
+#### Fixed Version B (try this):
 ```
 Plan a minimal file organizer (v1) with:
 - 5 categories: Documents, Images, Videos, Audio, Other
@@ -1439,7 +1439,7 @@ Explicitly defer to v2: plugins, cloud sync, scheduling, ML classification.
 Focus on the 80% case. What's the simplest thing that could work?
 ```
 
-#### What Changed
+#### What Changed in B
 The fixed version defines a shippable v1 instead of an imaginary perfect system.
 
 </details>
@@ -1462,7 +1462,7 @@ Build it.
 - What if move fails halfway?
 - What if disk full?
 
-#### Fixed Version (try this):
+#### Fixed Version C (try this):
 ```
 Here's my draft plan:
 1. Scan source directory for files
@@ -1476,7 +1476,7 @@ Before I proceed, critique this plan:
 - What edge cases could cause data loss?
 ```
 
-#### What Changed
+#### What Changed in C
 The fixed version explicitly requests critique before accepting the plan.
 
 </details>
