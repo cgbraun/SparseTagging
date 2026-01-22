@@ -439,7 +439,7 @@ The context was compacted. Key information preserved:
 ### Anti-Patterns: Context Pollution
 
 | Anti-Pattern | Symptom | Fix |
-|--------------|---------|-----|
+| ------------ | ------- | --- |
 | **Outdated code in context** | LLM references old implementations, suggests already-deleted functions | Fresh session + re-read current files |
 | **Conflicting instructions** | Contradictory suggestions, confusion about requirements | Clear context, load single authoritative doc |
 | **Irrelevant exploration** | Too many search results cluttering context | `/compact` or fresh session, targeted searches |
@@ -2526,7 +2526,7 @@ Based on SparseTagging project timelines and developer estimates:
 ### Time Investment
 
 | Phase | Traditional (est.) | LLM-First (actual) | Speedup |
-|-------|--------------------|--------------------|---------|
+| ----- | ------------------ | ------------------ | ------- |
 | Requirements elicitation | 2-4 hours | 30 minutes | 4-8x |
 | Architecture design | 4-6 hours | 1 hour (plan mode) | 4-6x |
 | Core implementation | 2-3 days | 4 hours | 12-18x |
@@ -2540,7 +2540,7 @@ Based on SparseTagging project timelines and developer estimates:
 ### Quality Comparison
 
 | Metric | Traditional | LLM-First |
-|--------|-------------|-----------|
+| ------ | ----------- | --------- |
 | Test coverage | 60-70% (typical) | 87% (enforced ≥85%) |
 | Type safety | Partial | 100% with strict mypy |
 | Documentation | Often outdated | Generated + reviewed (fresh) |

@@ -162,7 +162,7 @@ This section provides step-by-step setup instructions for all external services 
 #### Required Secrets
 
 | Secret Name | Purpose | How to Get | Required? |
-|-------------|---------|------------|-----------|
+| ----------- | ------- | ---------- | --------- |
 | `SONAR_TOKEN` | SonarCloud authentication | Generate at [SonarCloud Security](https://sonarcloud.io/account/security) | Optional* |
 | `CODECOV_TOKEN` | Coverage upload | Get from [CodeCov Settings](https://app.codecov.io/gh/cgbraun/SparseTagging/settings) | Optional* |
 
@@ -2011,7 +2011,7 @@ Quick reference for secrets, environment variables, configuration files, and act
 ### Secrets and Tokens
 
 | Name | Purpose | Source | Scope | Required |
-|------|---------|--------|-------|----------|
+| ---- | ------- | ------ | ----- | -------- |
 | `SONAR_TOKEN` | SonarCloud authentication | [SonarCloud Security](https://sonarcloud.io/account/security) | Global Analysis Token | Optional |
 | `CODECOV_TOKEN` | CodeCov upload | [CodeCov Settings](https://app.codecov.io) | Repository upload token | Optional |
 | `GITHUB_TOKEN` | GitHub Actions authentication | Auto-generated | Repository access | Auto |
@@ -2021,7 +2021,7 @@ Quick reference for secrets, environment variables, configuration files, and act
 Defined in `.github/workflows/ci.yml` lines 9-22:
 
 | Variable | Value | Usage |
-|----------|-------|-------|
+| -------- | ----- | ----- |
 | `SOURCE_DIR` | `"src"` | Source code directory |
 | `TEST_DIR` | `"tests"` | Test directory |
 | `COVERAGE_THRESHOLD` | `"85"` | Minimum coverage percentage |
@@ -2032,7 +2032,7 @@ Defined in `.github/workflows/ci.yml` lines 9-22:
 ### Configuration Files
 
 | File | Purpose | Key Settings |
-|------|---------|--------------|
+| ---- | ------- | ------------ |
 | `pyproject.toml` | Package metadata | `version = "2.4.1"` |
 | `sonar-project.properties` | SonarCloud config | `sonar.organization`, `sonar.projectKey` |
 | `.github/workflows/ci.yml` | CI/CD pipeline | Jobs, triggers, matrix |
@@ -2045,7 +2045,7 @@ Defined in `.github/workflows/ci.yml` lines 9-22:
 Security best practice: Pin actions to specific commit SHAs.
 
 | Action | Version | SHA | Usage |
-|--------|---------|-----|-------|
+| ------ | ------- | --- | ----- |
 | `actions/checkout` | v4.3.1 | `34e114876b0b11c390a56381ad16ebd13914f8d5` | Code checkout |
 | `actions/setup-python` | v5.6.0 | `a26af69be951a213d495a4c3e4e4022e16d87065` | Python setup |
 | `actions/upload-artifact` | v4.5.0 | `6f51ac03b9356f520e9adb1b1b7802705f340c2b` | Artifact upload |
@@ -2077,7 +2077,7 @@ strategy:
 **Total combinations:** 8 (2 OS × 4 Python versions)
 
 | OS | Python Versions |
-|----|-----------------|
+| -- | --------------- |
 | ubuntu-latest | 3.10, 3.11, 3.12, 3.13 |
 | windows-latest | 3.10, 3.11, 3.12, 3.13 |
 

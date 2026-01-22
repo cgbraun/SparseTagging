@@ -77,10 +77,6 @@ MD026: false
 # Disabled to allow flexible list indentation styles
 MD007: false
 
-# MD060: Table column style
-# Disabled because table alignment is cosmetic and many existing tables have mixed styles
-MD060: false
-
 # Ignore patterns for directories that shouldn't be linted
 ignore:
   - "ScanResults/**"
