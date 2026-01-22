@@ -1746,7 +1746,7 @@ This section provides solutions to common issues encountered during development 
    ```bash
    # In fresh virtual environment
    pip install -e .
-   python -c "import sparsetag; print(sparsetag.__version__)"
+   python -c "import sparsetagging; print(sparsetagging.__version__)"
    ```
 
 #### Issue: Flaky tests (pass sometimes, fail sometimes)

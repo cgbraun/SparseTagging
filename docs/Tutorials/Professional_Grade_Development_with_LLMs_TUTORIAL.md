@@ -1615,12 +1615,12 @@ graph LR
 
 ## Installation
 ```bash
-pip install sparsetag
+pip install sparsetagging
 ```
 
 ## Basic Usage
 ```python
-from sparsetag import SparseTag, TagConfidence
+from sparsetagging import SparseTag, TagConfidence
 
 # Create sparse tag
 st = SparseTag.create_random(n_rows=10000, column_names=['Tag1', 'Tag2'])
@@ -1828,7 +1828,7 @@ docker build -t sparsetag:latest .
 docker run --rm sparsetag:latest
 
 # Run with custom script
-docker run --rm -v $(pwd)/examples:/examples sparsetag:latest \
+docker run --rm -v $(pwd)/examples:/examples sparsetagging:latest \
   python /examples/benchmark.py
 ```
 
@@ -1836,7 +1836,7 @@ docker run --rm -v $(pwd)/examples:/examples sparsetag:latest \
 ```bash
 # Scan for vulnerabilities
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-  aquasec/trivy image sparsetag:latest
+  aquasec/trivy image sparsetagging:latest
 ```
 
 **Output Example:**
@@ -2239,7 +2239,7 @@ GitHub Release:
 **Verification**:
 ```bash
 # Test PyPI installation
-pip install sparsetag==2.4.1
+pip install sparsetagging==2.4.1
 python -c "from sparsetag import SparseTag; print(SparseTag.__version__)"
 # Output: 2.4.1 ✓
 
