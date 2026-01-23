@@ -77,6 +77,14 @@ MD026: false
 # Disabled to allow flexible list indentation styles
 MD007: false
 
+# MD058: Blanks around tables
+# Disabled because tables can be embedded in other content without blank lines
+MD058: false
+
+# MD060: Table column style
+# Disabled to allow compact table formatting without spaces around pipes
+MD060: false
+
 # Ignore patterns for directories that shouldn't be linted
 ignore:
   - "ScanResults/**"

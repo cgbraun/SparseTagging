@@ -341,18 +341,21 @@ Review this DevOps plan and identify:
 4. Add CodeCov
 ```
 
-**After Critique** (8 phases):
-```
-1. Add Ruff Configuration (+ pin version)
-2. Update requirements-dev.txt
-3. Create Pre-commit Config (+ document --no-verify)
-4. Create GitHub Actions CI (+ caching, separate quality job)
-5. Add CodeCov Integration
-6. Update Documentation
-7. Migration Steps (audit, auto-fix, manual fixes)
-8. Risk Mitigation (bypasses, version pinning)
-```
+**After Critique** (8 phases → mapped to files):
 
+### Files to Modify
+
+- [ ] `pyproject.toml` - Add Ruff configuration (+ pin version)
+- [ ] `requirements-dev.txt` - Update dependencies
+- [ ] `.pre-commit-config.yaml` - Create Pre-commit Config (+ document --no-verify)
+- [ ] `.github/workflows/ci.yml` - Create GitHub Actions CI (+ caching, separate quality job)
+- [ ] `.codecov.yml` - Add CodeCov Integration
+- [ ] `CONTRIBUTING.md`, `README.md` - Update Documentation
+- [ ] `src/*.py` (existing files) - Migration Steps (audit, auto-fix, manual fixes)
+- [ ] `docs/DEVOPS.md` - Risk Mitigation (bypasses, version pinning)
+
+> 💡 **Planning Mode Pattern**: In Claude Code `/plan` mode, this phase list uses checkbox format (`- [ ]`) with sectioned milestones—see Section 9 for the full format.
+>
 > 📝 **[Lab 2: The Full Cycle Preview](#lab-2-the-full-cycle-preview)**
 > Walk through all 5 phases quickly—see how each phase builds on the previous.
 
@@ -363,32 +366,51 @@ Review this DevOps plan and identify:
 
 ## 9. Phase 5: Plan Finalization
 
-**Execution Checklist**:
+This section shows how a finalized plan looks in Claude Code Planning mode format—the style that Claude produces when you use `/plan` or enter plan mode.
 
-**Configuration Tasks**:
-- [ ] Add Ruff configuration to pyproject.toml
-- [ ] Update requirements-dev.txt (ruff>=0.1.14,<0.2, pre-commit>=3.6.0)
-- [ ] Create .pre-commit-config.yaml (6-stage pipeline)
-- [ ] Create .github/workflows/ci.yml (quality + 10-matrix test jobs)
-- [ ] Create .codecov.yml (85% threshold)
+### Files to Modify
 
-**Documentation Tasks**:
-- [ ] Update CONTRIBUTING.md (pre-commit setup instructions)
-- [ ] Update README.md (CI status and coverage badges)
-- [ ] Create docs/DEVOPS.md (comprehensive tooling guide)
+- [ ] `pyproject.toml` - Add ruff configuration (38 lines)
+- [ ] `requirements-dev.txt` - Add ruff and pre-commit dependencies
+- [ ] `.pre-commit-config.yaml` - Create 6-stage pipeline (246 lines)
+- [ ] `.github/workflows/ci.yml` - Create quality + 10-matrix test jobs (339 lines)
+- [ ] `.codecov.yml` - Create with 85% threshold (23 lines)
+- [ ] `CONTRIBUTING.md` - Add pre-commit setup instructions (22 lines)
+- [ ] `README.md` - Add CI status and coverage badges
+- [ ] `docs/DEVOPS.md` - Create comprehensive tooling guide
 
-**Migration Tasks**:
-- [ ] Run ruff check --preview (audit current code)
-- [ ] Apply auto-fixes: ruff check --fix
-- [ ] Manually fix remaining issues
-- [ ] Verify all 173 tests pass
+### Implementation Steps
 
-**Verification Criteria**:
-- ✅ Pre-commit runs successfully (`pre-commit run --all-files`)
-- ✅ Tests pass with ≥85% coverage (`pytest --cov=src`)
-- ✅ Type checking passes (`mypy src/ --strict`)
-- ✅ CI workflow runs on GitHub Actions
-- ✅ CodeCov integration active (PR comments)
+#### 1. Configuration Setup
+
+- [ ] Add ruff configuration to `pyproject.toml` (line-length, target-version, rule sets)
+- [ ] Update `requirements-dev.txt` with pinned versions (ruff>=0.1.14,<0.2, pre-commit>=3.6.0)
+
+#### 2. Pipeline Creation
+
+- [ ] Create `.pre-commit-config.yaml` with 6-stage pipeline (trailing-whitespace, end-of-file, yaml, ruff, mypy, pytest)
+- [ ] Create `.github/workflows/ci.yml` with quality job + 10-matrix test configuration
+- [ ] Create `.codecov.yml` with 85% coverage threshold
+
+#### 3. Code Migration
+
+- [ ] Run `ruff check --preview` to audit current code against new rules
+- [ ] Apply auto-fixes with `ruff check --fix`
+- [ ] Manually fix remaining issues (expect ~10-15 manual fixes)
+
+#### 4. Documentation
+
+- [ ] Update `CONTRIBUTING.md` with pre-commit setup instructions
+- [ ] Update `README.md` with CI status and coverage badges
+- [ ] Create `docs/DEVOPS.md` documenting all tooling decisions
+
+### Verification
+
+- [ ] Run `pre-commit run --all-files` - should pass all 6 stages
+- [ ] Run `pytest --cov=src tests/` - should show ≥85% coverage
+- [ ] Run `mypy src/ --strict` - should pass with no errors
+- [ ] Push branch and verify GitHub Actions workflow runs successfully
+- [ ] Verify CodeCov posts coverage comment on PR
 
 **Time**: 5 minutes
 **Total Planning Time**: 15 + 20 + 10 + 10 + 5 = **60 minutes**
@@ -1189,15 +1211,18 @@ Make each item checkable - I should know exactly when it's done.
 <summary>Step 5: Example Output & Reflection</summary>
 
 #### What Claude Produces
-Checklist like:
+Checklist (simplified preview—see Lab 8 for full Planning mode format):
 ```
-### Implementation Tasks
+### Files to Create
+- [ ] `config.toml`, `file_organizer.py`, `cli.py`
+
+### Implementation Steps
 - [ ] Implement config loader (TOML parsing)
 - [ ] Implement directory scanner (with filtering)
 - [ ] Implement safe mover (atomic operations)
 - [ ] Implement CLI (organize, undo, dry-run commands)
 
-### Verification Criteria
+### Verification
 | Requirement | Test Method | Pass Criteria |
 |-------------|-------------|---------------|
 | Files organized | 20-file test | All in correct folders |
@@ -1983,30 +2008,42 @@ Show me the updated plan with new steps highlighted.
 <summary>Step 3: Example Output & Reflection</summary>
 
 #### What Claude Produces
-Evolved plan:
+Evolved plan (Planning mode format):
 
 ```
 File Organizer Plan v2 (post-critique)
 
-Pre-flight Checks: [NEW]
-1. Validate source directory exists and is readable
-2. Validate target directory writable
-3. Check available disk space > total file size
-4. Create operation log file for undo
+### Files to Create/Modify
+- [ ] `config.toml` - Category mappings and settings [NEW]
+- [ ] `file_organizer.py` - Main logic with safe operations [UPDATED]
+- [ ] `operation_log.json` - Undo support [NEW]
 
-Execution:
-5. Scan source directory (skip hidden files, symlinks)
-6. Categorize each file by extension
-7. Handle conflicts: rename with timestamp suffix [UPDATED]
-8. For each file:
-   a. Check if file is locked → skip and log [NEW]
-   b. Move using atomic operation (temp → rename) [NEW]
-   c. Log operation for undo [NEW]
-9. Verify each move succeeded [NEW]
+### Implementation Steps
 
-Post-flight:
-10. Print summary
-11. Save undo log [NEW]
+#### 1. Pre-flight Checks [NEW]
+- [ ] Validate source directory exists and is readable
+- [ ] Validate target directory writable
+- [ ] Check available disk space > total file size
+- [ ] Create operation log file for undo
+
+#### 2. Execution
+- [ ] Scan source directory (skip hidden files, symlinks)
+- [ ] Categorize each file by extension
+- [ ] Handle conflicts: rename with timestamp suffix [UPDATED]
+- [ ] For each file:
+  - [ ] Check if file is locked → skip and log [NEW]
+  - [ ] Move using atomic operation (temp → rename) [NEW]
+  - [ ] Log operation for undo [NEW]
+- [ ] Verify each move succeeded [NEW]
+
+#### 3. Post-flight
+- [ ] Print summary
+- [ ] Save undo log [NEW]
+
+### Verification
+- [ ] Run with 100 test files across 5 categories
+- [ ] Verify locked file handling (open file in editor, run organize)
+- [ ] Test undo restores original state exactly
 ```
 
 #### Plan Comparison
@@ -2100,13 +2137,21 @@ Group into:
 
 #### What Claude Produces
 ```
-### Design Decisions
+### Files to Create
+- [ ] `config.toml` - Extension mappings, timestamp format, log settings
+- [ ] `file_organizer.py` - Main application logic
+- [ ] `cli.py` - Command-line interface (organize, undo, dry-run)
+- [ ] `README.md` - Installation and usage guide
+
+### Implementation Steps
+
+#### 1. Design Decisions (resolve before coding)
 - [ ] Define extension → category mapping (document in config schema)
 - [ ] Choose timestamp format for conflicts (ISO 8601 or custom)
 - [ ] Define log file format (JSON lines or plain text)
 - [ ] Decide undo behavior (last batch only or full history)
 
-### Implementation Tasks
+#### 2. Core Implementation
 - [ ] Implement config loader (TOML parsing, defaults, validation)
 - [ ] Implement directory scanner (filter hidden, skip symlinks)
 - [ ] Implement categorizer (extension lookup with "Unknown" fallback)
@@ -2114,17 +2159,17 @@ Group into:
 - [ ] Implement CLI commands (organize, undo, dry-run)
 - [ ] Implement logger (file + console, configurable level)
 
-### Documentation Tasks
-- [ ] README with installation and basic usage
-- [ ] --help output for all commands
-- [ ] Example config file with comments
-- [ ] Error message documentation (what each error means, how to fix)
+#### 3. Documentation
+- [ ] Write README with installation and basic usage
+- [ ] Add --help output for all commands
+- [ ] Create example config file with comments
+- [ ] Document error messages (what each error means, how to fix)
 
-### Risk Mitigations
-- [ ] Pre-flight disk space check (fail fast if insufficient)
-- [ ] Locked file detection (skip and warn, don't fail)
-- [ ] Unicode filename testing (verify no encoding issues)
-- [ ] Long filename handling (truncate preserving extension)
+### Verification
+- [ ] Run `python cli.py organize --dry-run ./test_files` - should preview changes
+- [ ] Run `python cli.py organize ./test_files` - should move files correctly
+- [ ] Run `python cli.py undo` - should restore original state
+- [ ] Run `pytest tests/` - should pass all unit tests
 ```
 
 #### Key Insight
@@ -2199,25 +2244,32 @@ Be specific - vague gates ("code review done") don't work.
 
 #### What Claude Produces
 ```
-### Pre-Implementation Gates
+### Quality Gates
+
+#### Pre-Implementation Gates (before writing code)
 - [ ] All design decisions documented (no TBDs in spec)
 - [ ] Test cases defined for all requirements
 - [ ] Risk mitigations have assigned approach
-- [ ] Dependencies identified and version-locked
+- [ ] Dependencies identified and version-locked in requirements.txt
 
-### Pre-Merge Gates
-- [ ] All unit tests pass (pytest, no skipped tests)
-- [ ] Coverage > 80% on new code
-- [ ] Type checking passes (mypy --strict)
-- [ ] Linting passes (ruff, zero warnings)
-- [ ] Documentation updated (README, --help)
+#### Pre-Merge Gates (before code review)
+- [ ] All unit tests pass: `pytest tests/ --no-skipped`
+- [ ] Coverage > 80% on new code: `pytest --cov=src --cov-fail-under=80`
+- [ ] Type checking passes: `mypy src/ --strict`
+- [ ] Linting passes: `ruff check . --no-fix` (zero warnings)
+- [ ] Documentation updated (README, --help output)
 
-### Pre-Release Gates
-- [ ] Integration tests pass on Windows
+#### Pre-Release Gates (before shipping to users)
+- [ ] Integration tests pass on Windows: `pytest tests/integration/`
 - [ ] Integration tests pass on macOS (if applicable)
-- [ ] Performance benchmark passes (<30s for 1000 files)
-- [ ] Manual smoke test completed
+- [ ] Performance benchmark passes: `python benchmark.py` (<30s for 1000 files)
+- [ ] Manual smoke test completed on real directory
 - [ ] Undo tested on real data (not just test fixtures)
+
+### Verification Commands
+- [ ] Pre-impl: `grep -r "TBD\|TODO" docs/` should return empty
+- [ ] Pre-merge: `make quality` or run gate steps in sequence
+- [ ] Pre-release: `make release-check` or run gate steps manually
 ```
 
 #### Key Insight
