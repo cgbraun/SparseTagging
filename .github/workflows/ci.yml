@@ -374,7 +374,7 @@ jobs:
           matrix.os == 'ubuntu-latest' &&
           matrix.python-version == '3.11' &&
           steps.check_codecov.outputs.available == 'true'
-        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238  # v4
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de  # v4
         continue-on-error: true  # Don't fail CI if CodeCov upload fails
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
