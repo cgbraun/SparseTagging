@@ -176,7 +176,7 @@ jobs:
 
       - name: SonarCloud Scan
         if: steps.check_sonar.outputs.available == 'true'
-        uses: SonarSource/sonarcloud-github-action@ffc3010689be73b8e5ae0c57ce35968afd7909e8
+        uses: SonarSource/sonarqube-scan-action@v7.0.0  # Unified action for SonarCloud/SonarQube
 
       - name: Upload coverage report
         uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
@@ -378,7 +378,7 @@ jobs:
         continue-on-error: true  # Don't fail CI if CodeCov upload fails
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
+          files: ./coverage.xml
           fail_ci_if_error: false
           verbose: true
 
