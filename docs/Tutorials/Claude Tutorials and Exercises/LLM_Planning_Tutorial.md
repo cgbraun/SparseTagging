@@ -688,7 +688,7 @@ The interactive labs in Appendix B instruct you to start with a "fresh Claude Co
 
 **Key insight**: Learning benefits from isolation (fresh sessions); production benefits from continuity with managed compaction.
 
-> For comprehensive context management guidance including session lifecycle, anti-patterns, and multi-session handoff, see [Professional-Grade Development with LLMs: Section 6](Professional_Grade_Development_with_LLMs_TUTORIAL.md#6-managing-context-across-sessions-and-long-running-projects).
+> For comprehensive context management guidance including session lifecycle, anti-patterns, and multi-session handoff, see [Professional-Grade Development with LLMs: Section 6](../Professional_Grade_Development_with_LLMs_TUTORIAL.md#6-managing-context-across-sessions-and-long-running-projects).
 
 ---
 

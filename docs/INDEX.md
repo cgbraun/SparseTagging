@@ -29,7 +29,7 @@ Comprehensive documentation for the SparseTagging library - a high-performance s
 Guides for professional LLM-assisted development:
 
 - **[Professional-Grade Development with LLMs](Tutorials/Professional_Grade_Development_with_LLMs_TUTORIAL.md)** - End-to-end development lifecycle (12 phases)
-- **[LLM Planning Tutorial](Tutorials/LLM_Planning_Tutorial.md)** - 5-phase planning cycle with interactive labs
+- **[LLM Planning Tutorial](Tutorials/Claude Tutorials and Exercises/LLM_Planning_Tutorial.md)** - 5-phase planning cycle with interactive labs
 - **[AI Prompting Patterns](Tutorials/DEVELOPER_GUIDE_AI_PROMPTING.md)** - Practical prompting patterns from real sessions
 - **[Tutorial Diagrams](Tutorials/TUTORIAL_DIAGRAMS.md)** - Mermaid diagrams for tutorials
 - **[Tutorial Slides](Tutorials/TUTORIAL_DIAGRAMS_SLIDES.md)** - Slide-formatted diagram reference

@@ -56,7 +56,7 @@
 | Plans | On Windows | `%USERPROFILE%\.claude\plans\` | User |
 | `.mcp.json` | `./.mcp.json` | MCP server config | Project team |
 
-**Hierarchy:** Project local > Project > User > Default  
+**Hierarchy:** Project local > Project > User > Default
 **Security:** Store API keys in environment variables, deny CC access to `.env` files
 
 ---
@@ -136,9 +136,9 @@
 | `theme-factory` | Style artifacts | Themed output, branding | "Apply dark theme" |
 | `web-artifacts-builder` | Build React artifacts | Complex web artifacts | "Build data dashboard" |
 
-**Discovery:** Use natural language - CC auto-selects appropriate skill  
-**Custom Skills:** Create in `.claude/skills/<skill-name>/SKILL.md`  
-**Marketplace:** Install via `/plugin` command  
+**Discovery:** Use natural language - CC auto-selects appropriate skill
+**Custom Skills:** Create in `.claude/skills/<skill-name>/SKILL.md`
+**Marketplace:** Install via `/plugin` command
 **Reference:** https://github.com/anthropics/skills
 
 ---
@@ -1017,8 +1017,8 @@ Esc+Esc         Rewind
 
 ---
 
-**Version:** 1.0 | **Date:** January 21, 2026  
-**Maintained by:** MRSL Engineering  
+**Version:** 1.0 | **Date:** January 21, 2026
+**Maintained by:** MRSL Engineering
 **Feedback:** Submit via `/bug` or team channels
 
 **Remember:** Plan first (`Shift+Tab+Tab`), commit often (`git commit -am "WIP"`), use `/review` before pushing!
