@@ -422,7 +422,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Run Trivy vulnerability scanner (SARIF)
-        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0  # master
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8  # master
         continue-on-error: true  # Don't fail if vulnerabilities found, we want the SARIF file
         with:
           image-ref: sparsetagging:${{ github.sha }}
@@ -449,7 +449,7 @@ jobs:
           retention-days: 90
 
       - name: Run Trivy for full report (informational)
-        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0  # master
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8  # master
         continue-on-error: true  # Don't fail build on vulnerabilities (base image issues)
         with:
           image-ref: sparsetagging:${{ github.sha }}
@@ -468,7 +468,7 @@ jobs:
           retention-days: 90
 
       - name: Generate SBOM
-        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0  # master
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8  # master
         with:
           image-ref: sparsetagging:${{ github.sha }}
           format: 'spdx-json'
