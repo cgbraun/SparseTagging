@@ -115,7 +115,7 @@ jobs:
           exit ${EXIT_CODE}
 
       - name: Upload quality reports
-        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         if: always()
         with:
           name: quality-reports
@@ -179,7 +179,7 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v7.0.0  # Unified action for SonarCloud/SonarQube
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         if: always()
         with:
           name: coverage-report
@@ -296,7 +296,7 @@ jobs:
           exit ${EXIT_CODE}
 
       - name: Upload documentation validation reports
-        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         if: always()
         with:
           name: doc-validation-reports
@@ -344,7 +344,7 @@ jobs:
           exit ${EXIT_CODE}
 
       - name: Upload test results
-        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         if: always()
         with:
           name: test-results-${{ matrix.os }}-py${{ matrix.python-version }}
@@ -441,7 +441,7 @@ jobs:
           # To enable: Settings → Code security → Enable Code scanning
 
       - name: Upload Trivy SARIF report as artifact
-        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         if: always()
         with:
           name: trivy-sarif-report
@@ -460,7 +460,7 @@ jobs:
           scanners: 'vuln,secret,config'  # Comprehensive scanning
 
       - name: Upload Trivy table report as artifact
-        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         if: always()
         with:
           name: trivy-vulnerability-report
@@ -475,7 +475,7 @@ jobs:
           output: 'sbom.spdx.json'
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         if: always()
         with:
           name: sbom
@@ -488,7 +488,7 @@ jobs:
           gzip sparsetagging-${{ github.sha }}.tar
 
       - name: Upload Docker image as artifact
-        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         with:
           name: docker-image
           path: sparsetagging-${{ github.sha }}.tar.gz
@@ -590,7 +590,7 @@ jobs:
           EOF
 
       - name: Upload artifact summary
-        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b  # v4.5.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         if: always()
         with:
           name: artifact-summary
