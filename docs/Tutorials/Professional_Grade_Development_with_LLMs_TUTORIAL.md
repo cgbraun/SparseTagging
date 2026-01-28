@@ -3,7 +3,7 @@
 
 **Author:** Dr. Chris Braun
 **Company:** MRSL, Inc.
-**Version:** 2026-01 | v0.10 Draft
+**Version:** 2026-01 | v0.12 Draft
 **Date:** January 2026
 
 © MRSL, Inc. All rights reserved.
